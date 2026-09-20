@@ -2,4 +2,6 @@
 /// server.
 library;
 
+export 'src/card.dart';
+export 'src/card_type.dart';
 export 'src/category.dart';
