@@ -4,13 +4,13 @@ enum Category {
   dessert,
 
   /// Baked Beans, Carrots, Peas, Tomatoes.
-  vegetables,
+  vegetable,
 
   /// Fish Fingers, Lamb Chops, Sausages, Steak Pie.
   main,
 
   /// Baked Potato, Boiled Potatoes, Chips, Mashed Potato.
-  carbohydrates,
+  carbohydrate,
 
   /// Grape Soda, Milk, Orange Soda, Water.
   drink,
