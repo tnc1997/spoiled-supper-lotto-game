@@ -9,7 +9,7 @@ void main() {
         expect(
           CardType.values,
           [
-            CardType.food,
+            CardType.standard,
             CardType.spoiled,
           ],
         );

@@ -8,13 +8,13 @@ void main() {
       test('exposes its id, type, category, and name', () {
         const card = Card(
           id: '1',
-          type: CardType.food,
+          type: CardType.standard,
           category: Category.main,
           name: 'Sausages',
         );
 
         expect(card.id, '1');
-        expect(card.type, CardType.food);
+        expect(card.type, CardType.standard);
         expect(card.category, Category.main);
         expect(card.name, 'Sausages');
       });
@@ -34,13 +34,13 @@ void main() {
       test('two cards with the same fields are equal', () {
         const a = Card(
           id: '1',
-          type: CardType.food,
+          type: CardType.standard,
           category: Category.main,
           name: 'Sausages',
         );
         const b = Card(
           id: '1',
-          type: CardType.food,
+          type: CardType.standard,
           category: Category.main,
           name: 'Sausages',
         );
@@ -52,13 +52,13 @@ void main() {
       test('two cards with different ids are not equal', () {
         const a = Card(
           id: '1',
-          type: CardType.food,
+          type: CardType.standard,
           category: Category.main,
           name: 'Sausages',
         );
         const b = Card(
           id: '2',
-          type: CardType.food,
+          type: CardType.standard,
           category: Category.main,
           name: 'Sausages',
         );

@@ -11,7 +11,7 @@ class Card {
 
   /// The type of food (or drink) this card belongs to.
   ///
-  /// Applies to both [CardType.food] and [CardType.spoiled] cards.
+  /// Applies to both [CardType.standard] and [CardType.spoiled] cards.
   final Category category;
 
   /// The maintainer's original description of the card's imagery, e.g.
