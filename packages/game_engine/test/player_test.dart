@@ -19,6 +19,24 @@ void main() {
         expect(player.isAi, isTrue);
       });
 
+      test('each player gets its own independent default plate', () {
+        final alice = Player(name: 'Alice');
+        final bob = Player(name: 'Bob');
+
+        alice.plate.place(
+          const Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.main,
+            name: 'Sausages',
+          ),
+        );
+
+        expect(alice.plate[Category.main], isNotNull);
+        expect(bob.plate[Category.main], isNull);
+        expect(identical(alice.plate, bob.plate), isFalse);
+      });
+
       test('can be given a plate that already has cards on it', () {
         const card = Card(
           id: '1',

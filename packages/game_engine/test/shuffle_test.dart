@@ -64,6 +64,44 @@ void main() {
         expect(() => shuffle(items), returnsNormally);
         expect(items, unorderedEquals([1, 2, 3, 4, 5]));
       });
+
+      test('distributes each item roughly evenly across every position', () {
+        const itemCount = 5;
+        const trials = 20000;
+
+        // positionCounts[item][position] tracks how often `item` landed on
+        // `position` across all trials.
+        final positionCounts = List.generate(
+          itemCount,
+          (_) => List.filled(itemCount, 0),
+        );
+
+        final random = Random(7);
+        for (var trial = 0; trial < trials; trial++) {
+          final items = List.generate(itemCount, (i) => i);
+
+          shuffle(items, random);
+
+          for (var position = 0; position < itemCount; position++) {
+            positionCounts[items[position]][position]++;
+          }
+        }
+
+        // With a uniform shuffle, every item lands on every position with
+        // probability 1/itemCount. Allow generous slack around the expected
+        // count to keep this sanity check from flaking.
+        final expected = trials / itemCount;
+        final tolerance = expected * 0.15;
+
+        for (final counts in positionCounts) {
+          for (final count in counts) {
+            expect(
+              count,
+              closeTo(expected, tolerance),
+            );
+          }
+        }
+      });
     },
   );
 }

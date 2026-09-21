@@ -27,6 +27,54 @@ void main() {
         expect(plate[Category.dessert], isNull);
       });
 
+      test('can be constructed with every slot already filled', () {
+        const dessert = Card(
+          id: '1',
+          type: CardType.standard,
+          category: Category.dessert,
+          name: 'Jelly',
+        );
+        const vegetable = Card(
+          id: '2',
+          type: CardType.standard,
+          category: Category.vegetable,
+          name: 'Carrots',
+        );
+        const main = Card(
+          id: '3',
+          type: CardType.standard,
+          category: Category.main,
+          name: 'Sausages',
+        );
+        const carbohydrate = Card(
+          id: '4',
+          type: CardType.standard,
+          category: Category.carbohydrate,
+          name: 'Chips',
+        );
+        const drink = Card(
+          id: '5',
+          type: CardType.standard,
+          category: Category.drink,
+          name: 'Milk',
+        );
+
+        final plate = Plate(
+          dessert: dessert,
+          vegetable: vegetable,
+          main: main,
+          carbohydrate: carbohydrate,
+          drink: drink,
+        );
+
+        expect(plate[Category.dessert], dessert);
+        expect(plate[Category.vegetable], vegetable);
+        expect(plate[Category.main], main);
+        expect(plate[Category.carbohydrate], carbohydrate);
+        expect(plate[Category.drink], drink);
+        expect(plate.isFull, isTrue);
+      });
+
       test('places a card into the slot matching its category', () {
         const card = Card(
           id: '1',
