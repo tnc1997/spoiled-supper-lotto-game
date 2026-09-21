@@ -3,8 +3,8 @@ import 'card_type.dart';
 import 'category.dart';
 
 /// The full 30-card deck confirmed against the maintainer's physical 1983
-/// copy: 20 standard cards and 10 Spoiled cards, 4 and 2 per [Category]
-/// respectively.
+/// copy: 20 [CardType.standard] cards and 10 [CardType.spoiled] cards, 4
+/// and 2 per [Category] respectively.
 ///
 /// Each card's [Card.id] is a fixed UUID assigned once and never
 /// regenerated, so a card's identity stays stable even if its name is
@@ -195,7 +195,7 @@ const _deck = <Card>[
 /// Builds the full 30-card deck.
 ///
 /// Returns a fresh, independent list on every call; the [Card]s themselves
-/// (including their fixed ids) are the same every time.
+/// (including their fixed [Card.id]s) are the same every time.
 List<Card> buildDeck() {
   return List.of(_deck);
 }
