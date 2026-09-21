@@ -2,8 +2,8 @@ import 'card.dart';
 import 'card_type.dart';
 import 'category.dart';
 
-/// The standard cards confirmed against the maintainer's physical 1983 copy
-/// (see Appendix A of `SPECIFICATION.md`), 4 per [Category].
+/// The standard cards confirmed against the maintainer's physical 1983 copy,
+/// 4 per [Category].
 const _standardCardNames = {
   Category.dessert: [
     'Fruit Salad',
@@ -37,8 +37,8 @@ const _standardCardNames = {
   ],
 };
 
-/// The Spoiled cards confirmed against the maintainer's physical 1983 copy
-/// (see Appendix A of `SPECIFICATION.md`), 2 per [Category].
+/// The Spoiled cards confirmed against the maintainer's physical 1983 copy,
+/// 2 per [Category].
 const _spoiledCardNames = {
   Category.dessert: [
     'Apple Core',
@@ -63,8 +63,8 @@ const _spoiledCardNames = {
 };
 
 /// Builds the full 30-card deck confirmed against the maintainer's physical
-/// 1983 copy (see Appendix A of `SPECIFICATION.md`): 20 standard cards and 10
-/// Spoiled cards, 4 and 2 per [Category] respectively.
+/// 1983 copy: 20 standard cards and 10 Spoiled cards, 4 and 2 per [Category]
+/// respectively.
 ///
 /// Each card is given a unique, stable id derived from its type, category,
 /// and name, e.g. `standard-dessert-fruit-salad`.
