@@ -4,7 +4,7 @@ import 'category.dart';
 
 /// The standard cards confirmed against the maintainer's physical 1983 copy
 /// (see Appendix A of `SPECIFICATION.md`), 4 per [Category].
-const Map<Category, List<String>> _standardCardNames = {
+const _standardCardNames = {
   Category.dessert: ['Fruit Salad', 'Ice Cream', 'Jelly', 'Strawberries'],
   Category.vegetable: ['Baked Beans', 'Carrots', 'Peas', 'Tomatoes'],
   Category.main: ['Fish Fingers', 'Lamb Chops', 'Sausages', 'Steak Pie'],
@@ -19,7 +19,7 @@ const Map<Category, List<String>> _standardCardNames = {
 
 /// The Spoiled cards confirmed against the maintainer's physical 1983 copy
 /// (see Appendix A of `SPECIFICATION.md`), 2 per [Category].
-const Map<Category, List<String>> _spoiledCardNames = {
+const _spoiledCardNames = {
   Category.dessert: ['Apple Core', 'Banana Skin'],
   Category.vegetable: ['Dandelions', 'Mouldy Lettuce'],
   Category.main: ['Fish Bone', 'Leather Boot'],
