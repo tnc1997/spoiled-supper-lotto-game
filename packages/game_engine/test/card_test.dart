@@ -54,6 +54,25 @@ void main() {
           );
 
           expect(a, b);
+        },
+      );
+
+      test(
+        'two cards with the same fields have the same hash code',
+        () {
+          const a = Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.main,
+            name: 'Sausages',
+          );
+          const b = Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.main,
+            name: 'Sausages',
+          );
+
           expect(a.hashCode, b.hashCode);
         },
       );

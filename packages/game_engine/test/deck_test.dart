@@ -159,12 +159,21 @@ void main() {
       );
 
       test(
-        'builds a fresh deck on every call',
+        'builds the same cards on every call',
         () {
           final first = buildDeck();
           final second = buildDeck();
 
           expect(first, second);
+        },
+      );
+
+      test(
+        'builds a new list instance on every call',
+        () {
+          final first = buildDeck();
+          final second = buildDeck();
+
           expect(identical(first, second), isFalse);
         },
       );

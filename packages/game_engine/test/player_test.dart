@@ -6,12 +6,28 @@ void main() {
     'Player',
     () {
       test(
-        'exposes its name and an empty plate by default',
+        'exposes its name',
         () {
           final player = Player(name: 'Alice');
 
           expect(player.name, 'Alice');
+        },
+      );
+
+      test(
+        'defaults to not being a computer opponent',
+        () {
+          final player = Player(name: 'Alice');
+
           expect(player.isAi, isFalse);
+        },
+      );
+
+      test(
+        'defaults to an empty plate',
+        () {
+          final player = Player(name: 'Alice');
+
           expect(player.plate.isFull, isFalse);
         },
       );

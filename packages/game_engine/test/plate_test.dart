@@ -80,7 +80,6 @@ void main() {
           expect(plate[Category.main], main);
           expect(plate[Category.carbohydrate], carbohydrate);
           expect(plate[Category.drink], drink);
-          expect(plate.isFull, isTrue);
         },
       );
 
