@@ -31,8 +31,7 @@ void main() {
           expect(
             deck.where(
               (card) =>
-                  card.category == category &&
-                  card.type == CardType.standard,
+                  card.category == category && card.type == CardType.standard,
             ),
             hasLength(4),
           );
@@ -50,6 +49,31 @@ void main() {
         final deck = buildDeck();
 
         expect(deck.map((card) => card.id).toSet(), hasLength(deck.length));
+      });
+
+      test('builds every card with a fixed UUID id', () {
+        final deck = buildDeck();
+        final uuid = RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+        );
+
+        for (final card in deck) {
+          expect(card.id, matches(uuid));
+        }
+      });
+
+      test('assigns each card the same id on every call', () {
+        final first = buildDeck();
+        final second = buildDeck();
+
+        final firstIdsByName = {
+          for (final card in first) card.name: card.id,
+        };
+        final secondIdsByName = {
+          for (final card in second) card.name: card.id,
+        };
+
+        expect(secondIdsByName, firstIdsByName);
       });
 
       test('includes the confirmed standard card names', () {
