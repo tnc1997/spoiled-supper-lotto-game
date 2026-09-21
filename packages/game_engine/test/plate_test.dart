@@ -102,6 +102,32 @@ void main() {
       );
 
       test(
+        'placing a card leaves every other slot untouched',
+        () {
+          const dessert = Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.dessert,
+            name: 'Jelly',
+          );
+          const main = Card(
+            id: '2',
+            type: CardType.standard,
+            category: Category.main,
+            name: 'Sausages',
+          );
+
+          final plate = Plate(dessert: dessert)..place(main);
+
+          expect(plate[Category.dessert], dessert);
+          expect(plate[Category.main], main);
+          expect(plate[Category.vegetable], isNull);
+          expect(plate[Category.carbohydrate], isNull);
+          expect(plate[Category.drink], isNull);
+        },
+      );
+
+      test(
         'placing a card overwrites any card already in that slot',
         () {
           const first = Card(
