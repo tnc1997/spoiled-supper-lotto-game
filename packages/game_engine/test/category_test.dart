@@ -5,18 +5,21 @@ void main() {
   group(
     'Category',
     () {
-      test('has one value per food-type card category', () {
-        expect(
-          Category.values,
-          [
-            Category.dessert,
-            Category.vegetable,
-            Category.main,
-            Category.carbohydrate,
-            Category.drink,
-          ],
-        );
-      });
+      test(
+        'has one value per food-type card category',
+        () {
+          expect(
+            Category.values,
+            [
+              Category.dessert,
+              Category.vegetable,
+              Category.main,
+              Category.carbohydrate,
+              Category.drink,
+            ],
+          );
+        },
+      );
     },
   );
 }
