@@ -4,36 +4,43 @@ import 'package:game_engine/game_engine.dart';
 import 'package:test/test.dart';
 
 void main() {
+  const sausages = Card(
+    id: '1',
+    type: CardType.standard,
+    category: Category.main,
+    name: 'Sausages',
+  );
+  const milk = Card(
+    id: '2',
+    type: CardType.standard,
+    category: Category.drink,
+    name: 'Milk',
+  );
+
+  late Player alice;
+  late Player bob;
+
+  setUp(
+    () {
+      alice = Player(name: 'Alice');
+      bob = Player(name: 'Bob');
+    },
+  );
+
+  List<Player> playersOf(int count) => [
+        for (var i = 0; i < count; i++) Player(name: 'Player $i'),
+      ];
+
   group(
     'GameController',
     () {
-      const sausages = Card(
-        id: '1',
-        type: CardType.standard,
-        category: Category.main,
-        name: 'Sausages',
-      );
-      const milk = Card(
-        id: '2',
-        type: CardType.standard,
-        category: Category.drink,
-        name: 'Milk',
-      );
-
-      late Player alice;
-      late Player bob;
-
-      setUp(
-        () {
-          alice = Player(name: 'Alice');
-          bob = Player(name: 'Bob');
-        },
-      );
-
       test(
         'holds the players in turn order',
         () {
-          final controller = GameController(players: [alice, bob]);
+          final controller = GameController(
+            players: [alice, bob],
+            drawPile: [sausages],
+          );
 
           expect(controller.players, [alice, bob]);
         },
@@ -42,7 +49,10 @@ void main() {
       test(
         'starts with the first player taking the first turn',
         () {
-          final controller = GameController(players: [alice, bob]);
+          final controller = GameController(
+            players: [alice, bob],
+            drawPile: [sausages],
+          );
 
           expect(controller.currentPlayerIndex, 0);
           expect(controller.currentPlayer, alice);
@@ -50,42 +60,7 @@ void main() {
       );
 
       test(
-        'defaults the draw pile to the full deck',
-        () {
-          final controller = GameController(players: [alice, bob]);
-
-          expect(controller.drawPile, unorderedEquals(buildDeck()));
-        },
-      );
-
-      test(
-        'shuffles the default draw pile with the given random',
-        () {
-          final first = GameController(
-            players: [alice, bob],
-            random: Random(42),
-          );
-          final second = GameController(
-            players: [alice, bob],
-            random: Random(42),
-          );
-
-          expect(first.drawPile, second.drawPile);
-          expect(first.drawPile, isNot(buildDeck()));
-        },
-      );
-
-      test(
-        'defaults to an empty discard pile',
-        () {
-          final controller = GameController(players: [alice, bob]);
-
-          expect(controller.discardPile, isEmpty);
-        },
-      );
-
-      test(
-        'can be given specific draw and discard piles',
+        'holds the given draw and discard piles as-is',
         () {
           final controller = GameController(
             players: [alice, bob],
@@ -95,6 +70,18 @@ void main() {
 
           expect(controller.drawPile, [sausages]);
           expect(controller.discardPile, [milk]);
+        },
+      );
+
+      test(
+        'defaults to an empty discard pile',
+        () {
+          final controller = GameController(
+            players: [alice, bob],
+            drawPile: [sausages],
+          );
+
+          expect(controller.discardPile, isEmpty);
         },
       );
 
@@ -134,6 +121,58 @@ void main() {
           expect(() => controller.discardPile.clear(), throwsUnsupportedError);
         },
       );
+    },
+  );
+
+  group(
+    'GameController.start',
+    () {
+      test(
+        'holds the players in turn order',
+        () {
+          final controller = GameController.start([alice, bob]);
+
+          expect(controller.players, [alice, bob]);
+        },
+      );
+
+      test(
+        'starts with the first player taking the first turn',
+        () {
+          final controller = GameController.start([alice, bob]);
+
+          expect(controller.currentPlayer, alice);
+        },
+      );
+
+      test(
+        'puts the full deck into the draw pile',
+        () {
+          final controller = GameController.start([alice, bob]);
+
+          expect(controller.drawPile, unorderedEquals(buildDeck()));
+        },
+      );
+
+      test(
+        'shuffles the draw pile with the given random',
+        () {
+          final first = GameController.start([alice, bob], random: Random(42));
+          final second = GameController.start([alice, bob], random: Random(42));
+
+          expect(first.drawPile, second.drawPile);
+          expect(first.drawPile, isNot(buildDeck()));
+        },
+      );
+
+      test(
+        'starts with an empty discard pile',
+        () {
+          final controller = GameController.start([alice, bob]);
+
+          expect(controller.discardPile, isEmpty);
+        },
+      );
 
       test(
         'accepts between minPlayers and maxPlayers players',
@@ -141,12 +180,8 @@ void main() {
           for (var count = GameController.minPlayers;
               count <= GameController.maxPlayers;
               count++) {
-            final players = [
-              for (var i = 0; i < count; i++) Player(name: 'Player $i'),
-            ];
-
             expect(
-              GameController(players: players).players,
+              GameController.start(playersOf(count)).players,
               hasLength(count),
             );
           }
@@ -157,11 +192,8 @@ void main() {
         'throws if there are fewer than minPlayers players',
         () {
           expect(
-            () => GameController(
-              players: [
-                for (var i = 0; i < GameController.minPlayers - 1; i++)
-                  Player(name: 'Player $i'),
-              ],
+            () => GameController.start(
+              playersOf(GameController.minPlayers - 1),
             ),
             throwsArgumentError,
           );
@@ -172,11 +204,8 @@ void main() {
         'throws if there are more than maxPlayers players',
         () {
           expect(
-            () => GameController(
-              players: [
-                for (var i = 0; i < GameController.maxPlayers + 1; i++)
-                  Player(name: 'Player $i'),
-              ],
+            () => GameController.start(
+              playersOf(GameController.maxPlayers + 1),
             ),
             throwsArgumentError,
           );

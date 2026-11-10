@@ -20,27 +20,29 @@ class GameController {
   final List<Card> _discardPile;
   final int _currentPlayerIndex;
 
-  /// Starts a new game for [players], in turn order, with the first player
-  /// taking the first turn.
+  /// Holds the given state as-is, with the first player taking the first
+  /// turn.
   ///
-  /// The draw pile defaults to the full deck from [buildDeck], shuffled
-  /// with [random] (pass a seeded [Random] for a reproducible game). Pass
-  /// [drawPile] to use a specific pile as-is instead, e.g. in tests; the
-  /// top of the pile is its last card. The discard pile starts empty unless
-  /// [discardPile] is given.
+  /// [players] are in turn order, and the top of each pile is its last
+  /// card. To set up a new game, use [GameController.start] instead.
+  GameController({
+    required List<Player> players,
+    required List<Card> drawPile,
+    List<Card> discardPile = const [],
+  })  : _players = List.unmodifiable(players),
+        _drawPile = List.of(drawPile),
+        _discardPile = List.of(discardPile),
+        _currentPlayerIndex = 0;
+
+  /// Sets up a new game for [players], in turn order, with the full deck
+  /// from [buildDeck] shuffled into the draw pile and an empty discard
+  /// pile.
+  ///
+  /// Pass a seeded [random] for a reproducible game.
   ///
   /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
   /// than [maxPlayers] players.
-  GameController({
-    required List<Player> players,
-    List<Card>? drawPile,
-    List<Card>? discardPile,
-    Random? random,
-  })  : _players = List.unmodifiable(players),
-        _drawPile =
-            drawPile != null ? List.of(drawPile) : _shuffledDeck(random),
-        _discardPile = [...?discardPile],
-        _currentPlayerIndex = 0 {
+  factory GameController.start(List<Player> players, {Random? random}) {
     if (players.length < minPlayers || players.length > maxPlayers) {
       throw ArgumentError.value(
         players.length,
@@ -48,6 +50,11 @@ class GameController {
         'Must have between $minPlayers and $maxPlayers players',
       );
     }
+
+    final deck = buildDeck();
+    shuffle(deck, random);
+
+    return GameController(players: players, drawPile: deck);
   }
 
   /// The players in turn order.
@@ -64,10 +71,4 @@ class GameController {
 
   /// The player whose turn it is.
   Player get currentPlayer => _players[_currentPlayerIndex];
-
-  static List<Card> _shuffledDeck(Random? random) {
-    final deck = buildDeck();
-    shuffle(deck, random);
-    return deck;
-  }
 }
