@@ -136,9 +136,11 @@ void main() {
       );
 
       test(
-        'accepts between 2 and 4 players',
+        'accepts between minPlayers and maxPlayers players',
         () {
-          for (var count = 2; count <= 4; count++) {
+          for (var count = GameController.minPlayers;
+              count <= GameController.maxPlayers;
+              count++) {
             final players = [
               for (var i = 0; i < count; i++) Player(name: 'Player $i'),
             ];
@@ -152,22 +154,28 @@ void main() {
       );
 
       test(
-        'throws if there are fewer than 2 players',
+        'throws if there are fewer than minPlayers players',
         () {
           expect(
-            () => GameController(players: [alice]),
+            () => GameController(
+              players: [
+                for (var i = 0; i < GameController.minPlayers - 1; i++)
+                  Player(name: 'Player $i'),
+              ],
+            ),
             throwsArgumentError,
           );
         },
       );
 
       test(
-        'throws if there are more than 4 players',
+        'throws if there are more than maxPlayers players',
         () {
           expect(
             () => GameController(
               players: [
-                for (var i = 0; i < 5; i++) Player(name: 'Player $i'),
+                for (var i = 0; i < GameController.maxPlayers + 1; i++)
+                  Player(name: 'Player $i'),
               ],
             ),
             throwsArgumentError,
