@@ -42,7 +42,10 @@ class GameController {
   ///
   /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
   /// than [maxPlayers] players.
-  factory GameController.start(List<Player> players, {Random? random}) {
+  factory GameController.start(
+    List<Player> players, {
+    Random? random,
+  }) {
     if (players.length < minPlayers || players.length > maxPlayers) {
       throw ArgumentError.value(
         players.length,
