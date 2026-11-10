@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'card.dart';
@@ -53,10 +54,10 @@ class GameController {
   List<Player> get players => _players;
 
   /// The cards still to be drawn, with the top of the pile last.
-  List<Card> get drawPile => List.unmodifiable(_drawPile);
+  List<Card> get drawPile => UnmodifiableListView(_drawPile);
 
   /// The discarded cards, with the most recently discarded card last.
-  List<Card> get discardPile => List.unmodifiable(_discardPile);
+  List<Card> get discardPile => UnmodifiableListView(_discardPile);
 
   /// The index into [players] of the player whose turn it is.
   int get currentPlayerIndex => _currentPlayerIndex;
