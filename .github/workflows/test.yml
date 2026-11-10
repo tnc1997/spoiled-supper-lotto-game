@@ -19,9 +19,15 @@ jobs:
         with:
           cache: true
           channel: beta
-      - name: Install dependencies
+      - name: Install app dependencies
         run: flutter pub get
         working-directory: app
-      - name: Test
+      - name: Test app
         run: flutter test
         working-directory: app
+      - name: Install game_engine dependencies
+        run: dart pub get
+        working-directory: packages/game_engine
+      - name: Test game_engine
+        run: dart test
+        working-directory: packages/game_engine
