@@ -38,7 +38,7 @@ class GameController {
   })  : _players = List.unmodifiable(players),
         _drawPile =
             drawPile != null ? List.of(drawPile) : _shuffledDeck(random),
-        _discardPile = List.of(discardPile ?? const <Card>[]),
+        _discardPile = [...?discardPile],
         _currentPlayerIndex = 0 {
     if (players.length < minPlayers || players.length > maxPlayers) {
       throw ArgumentError.value(
