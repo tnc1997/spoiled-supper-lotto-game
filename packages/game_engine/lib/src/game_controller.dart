@@ -74,4 +74,16 @@ class GameController {
 
   /// The player whose turn it is.
   Player get currentPlayer => _players[_currentPlayerIndex];
+
+  /// Removes the top card from the draw pile and returns it, revealing it
+  /// to the current player.
+  ///
+  /// Throws a [StateError] if the draw pile is empty.
+  Card drawFromPile() {
+    if (_drawPile.isEmpty) {
+      throw StateError('Cannot draw from an empty draw pile');
+    }
+
+    return _drawPile.removeLast();
+  }
 }

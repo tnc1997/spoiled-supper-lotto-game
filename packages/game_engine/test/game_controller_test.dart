@@ -213,6 +213,79 @@ void main() {
           );
         },
       );
+
+      group(
+        'drawFromPile',
+        () {
+          test(
+            'returns the top card of the draw pile',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk, sausages],
+              );
+
+              expect(controller.drawFromPile(), sausages);
+            },
+          );
+
+          test(
+            'removes the drawn card from the draw pile',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk, sausages],
+              );
+
+              controller.drawFromPile();
+
+              expect(controller.drawPile, [milk]);
+            },
+          );
+
+          test(
+            'draws successive cards from the top down',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk, sausages],
+              );
+
+              expect(controller.drawFromPile(), sausages);
+              expect(controller.drawFromPile(), milk);
+              expect(controller.drawPile, isEmpty);
+            },
+          );
+
+          test(
+            'does not change the discard pile or the current player',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+              );
+
+              controller.drawFromPile();
+
+              expect(controller.discardPile, [milk]);
+              expect(controller.currentPlayer, alice);
+            },
+          );
+
+          test(
+            'throws if the draw pile is empty',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+              );
+
+              expect(controller.drawFromPile, throwsStateError);
+            },
+          );
+        },
+      );
     },
   );
 }
