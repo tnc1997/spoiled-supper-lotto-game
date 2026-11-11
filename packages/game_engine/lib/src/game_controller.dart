@@ -19,20 +19,25 @@ class GameController {
   final List<Card> _drawPile;
   final List<Card> _discardPile;
   final int _currentPlayerIndex;
+  Card? _drawnCard;
 
   /// Holds the given state as-is, with the first player taking the first
   /// turn.
   ///
   /// [players] are in turn order, and the top of each pile is its last
-  /// card. To set up a new game, use [GameController.start] instead.
+  /// card. [drawnCard] is a card the current player has already drawn and
+  /// not yet played. To set up a new game, use [GameController.start]
+  /// instead.
   GameController({
     required List<Player> players,
     required List<Card> drawPile,
     List<Card> discardPile = const [],
+    Card? drawnCard,
   })  : _players = List.unmodifiable(players),
         _drawPile = List.of(drawPile),
         _discardPile = List.of(discardPile),
-        _currentPlayerIndex = 0;
+        _currentPlayerIndex = 0,
+        _drawnCard = drawnCard;
 
   /// Sets up a new game for [players], in turn order, with the full deck
   /// from [buildDeck] shuffled into the draw pile and an empty discard
@@ -75,15 +80,24 @@ class GameController {
   /// The player whose turn it is.
   Player get currentPlayer => _players[_currentPlayerIndex];
 
-  /// Removes the top card from the draw pile and returns it, revealing it
-  /// to the current player.
+  /// The card the current player has drawn and not yet played, or `null`
+  /// if they haven't drawn one.
+  Card? get drawnCard => _drawnCard;
+
+  /// Removes the top card from the draw pile and holds it as the
+  /// [drawnCard] until the current player plays it.
   ///
-  /// Throws a [StateError] if the draw pile is empty.
-  Card drawFromPile() {
+  /// Throws a [StateError] if a card has already been drawn and not yet
+  /// played, or if the draw pile is empty.
+  void drawFromPile() {
+    if (_drawnCard != null) {
+      throw StateError('A drawn card must be played before drawing another');
+    }
+
     if (_drawPile.isEmpty) {
       throw StateError('Cannot draw from an empty draw pile');
     }
 
-    return _drawPile.removeLast();
+    _drawnCard = _drawPile.removeLast();
   }
 }
