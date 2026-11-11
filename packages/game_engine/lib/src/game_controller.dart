@@ -89,7 +89,7 @@ class GameController {
   ///
   /// Throws a [StateError] if a card has already been drawn and not yet
   /// played, or if the draw pile is empty.
-  void drawFromPile() {
+  void drawFromDrawPile() {
     if (_drawnCard != null) {
       throw StateError('A drawn card must be played before drawing another');
     }

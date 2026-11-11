@@ -249,7 +249,7 @@ void main() {
       );
 
       group(
-        'drawFromPile',
+        'drawFromDrawPile',
         () {
           test(
             'holds the top card of the draw pile as the drawn card',
@@ -259,7 +259,7 @@ void main() {
                 drawPile: [milk, sausages],
               );
 
-              controller.drawFromPile();
+              controller.drawFromDrawPile();
 
               expect(controller.drawnCard, sausages);
             },
@@ -273,7 +273,7 @@ void main() {
                 drawPile: [milk, sausages],
               );
 
-              controller.drawFromPile();
+              controller.drawFromDrawPile();
 
               expect(controller.drawPile, [milk]);
             },
@@ -287,7 +287,7 @@ void main() {
                 drawPile: [sausages],
               );
 
-              controller.drawFromPile();
+              controller.drawFromDrawPile();
 
               expect(controller.drawnCard, sausages);
               expect(controller.drawPile, isEmpty);
@@ -303,7 +303,7 @@ void main() {
                 discardPile: [milk],
               );
 
-              controller.drawFromPile();
+              controller.drawFromDrawPile();
 
               expect(controller.discardPile, [milk]);
               expect(controller.currentPlayer, alice);
@@ -319,7 +319,7 @@ void main() {
                 drawnCard: milk,
               );
 
-              expect(controller.drawFromPile, throwsStateError);
+              expect(controller.drawFromDrawPile, throwsStateError);
               expect(controller.drawnCard, milk);
               expect(controller.drawPile, [sausages]);
             },
@@ -333,7 +333,7 @@ void main() {
                 drawPile: [],
               );
 
-              expect(controller.drawFromPile, throwsStateError);
+              expect(controller.drawFromDrawPile, throwsStateError);
               expect(controller.drawnCard, isNull);
             },
           );
