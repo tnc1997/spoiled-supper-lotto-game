@@ -86,6 +86,31 @@ void main() {
       );
 
       test(
+        'defaults to no drawn card',
+        () {
+          final controller = GameController(
+            players: [alice, bob],
+            drawPile: [sausages],
+          );
+
+          expect(controller.drawnCard, isNull);
+        },
+      );
+
+      test(
+        'holds the given drawn card as-is',
+        () {
+          final controller = GameController(
+            players: [alice, bob],
+            drawPile: [sausages],
+            drawnCard: milk,
+          );
+
+          expect(controller.drawnCard, milk);
+        },
+      );
+
+      test(
         'is not affected by later changes to the lists it was given',
         () {
           final players = [alice, bob];
@@ -175,6 +200,15 @@ void main() {
           );
 
           test(
+            'starts with no drawn card',
+            () {
+              final controller = GameController.start([alice, bob]);
+
+              expect(controller.drawnCard, isNull);
+            },
+          );
+
+          test(
             'accepts between minPlayers and maxPlayers players',
             () {
               for (var count = GameController.minPlayers;
@@ -209,6 +243,98 @@ void main() {
                 ),
                 throwsArgumentError,
               );
+            },
+          );
+        },
+      );
+
+      group(
+        'drawFromDrawPile',
+        () {
+          test(
+            'holds the top card of the draw pile as the drawn card',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk, sausages],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.drawnCard, sausages);
+            },
+          );
+
+          test(
+            'removes the drawn card from the draw pile',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk, sausages],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.drawPile, [milk]);
+            },
+          );
+
+          test(
+            'can draw the last card of the draw pile',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.drawnCard, sausages);
+              expect(controller.drawPile, isEmpty);
+            },
+          );
+
+          test(
+            'does not change the discard pile or the current player',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.discardPile, [milk]);
+              expect(controller.currentPlayer, alice);
+            },
+          );
+
+          test(
+            'throws if a drawn card has not yet been played',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                drawnCard: milk,
+              );
+
+              expect(controller.drawFromDrawPile, throwsStateError);
+              expect(controller.drawnCard, milk);
+              expect(controller.drawPile, [sausages]);
+            },
+          );
+
+          test(
+            'throws if the draw pile is empty',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+              );
+
+              expect(controller.drawFromDrawPile, throwsStateError);
+              expect(controller.drawnCard, isNull);
             },
           );
         },
