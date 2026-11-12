@@ -33,6 +33,16 @@ class Plate {
     _slots[card.category] = card;
   }
 
+  /// Places [card] into the slot matching its category, replacing any card
+  /// already there.
+  ///
+  /// Returns the card that was replaced, or `null` if the slot was empty.
+  Card? replace(Card card) {
+    final replaced = _slots[card.category];
+    _slots[card.category] = card;
+    return replaced;
+  }
+
   /// Whether every slot has a card, i.e. the meal is complete.
   bool get isFull => _slots.values.every((card) => card != null);
 }

@@ -150,6 +150,47 @@ void main() {
       );
 
       test(
+        'replaces a card into an empty slot and returns null',
+        () {
+          const card = Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.drink,
+            name: 'Milk',
+          );
+
+          final plate = Plate();
+
+          expect(plate.replace(card), isNull);
+          expect(plate[Category.drink], card);
+        },
+      );
+
+      test(
+        'replaces the card already in a slot and returns it',
+        () {
+          const first = Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.drink,
+            name: 'Milk',
+          );
+          const second = Card(
+            id: '2',
+            type: CardType.standard,
+            category: Category.drink,
+            name: 'Water',
+          );
+
+          final plate = Plate(drink: first);
+
+          expect(plate.replace(second), first);
+          expect(plate[Category.drink], second);
+          expect(plate[Category.main], isNull);
+        },
+      );
+
+      test(
         'is not full until every slot has a card',
         () {
           final plate = Plate();
