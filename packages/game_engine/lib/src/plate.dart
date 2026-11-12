@@ -22,9 +22,16 @@ class Plate {
   /// The card occupying [category]'s slot, or `null` if it's empty.
   Card? operator [](Category category) => _slots[category];
 
-  /// Places [card] into the slot matching its category, overwriting any card
-  /// already there.
-  void place(Card card) => _slots[card.category] = card;
+  /// Places [card] into the slot matching its category.
+  ///
+  /// Throws a [StateError] if that slot already has a card.
+  void place(Card card) {
+    if (_slots[card.category] != null) {
+      throw StateError('The ${card.category.name} slot is already filled');
+    }
+
+    _slots[card.category] = card;
+  }
 
   /// Whether every slot has a card, i.e. the meal is complete.
   bool get isFull => _slots.values.every((card) => card != null);

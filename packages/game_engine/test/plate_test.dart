@@ -127,7 +127,7 @@ void main() {
       );
 
       test(
-        'placing a card overwrites any card already in that slot',
+        'throws if the slot for the card is already filled',
         () {
           const first = Card(
             id: '1',
@@ -142,11 +142,10 @@ void main() {
             name: 'Pond Water',
           );
 
-          final plate = Plate()
-            ..place(first)
-            ..place(second);
+          final plate = Plate(drink: first);
 
-          expect(plate[Category.drink], second);
+          expect(() => plate.place(second), throwsStateError);
+          expect(plate[Category.drink], first);
         },
       );
 
