@@ -339,6 +339,102 @@ void main() {
           );
         },
       );
+
+      group(
+        'takeFromDiscardPile',
+        () {
+          test(
+            'holds the top card of the discard pile as the drawn card',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk, sausages],
+              );
+
+              controller.takeFromDiscardPile();
+
+              expect(controller.drawnCard, sausages);
+            },
+          );
+
+          test(
+            'removes the taken card from the discard pile',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk, sausages],
+              );
+
+              controller.takeFromDiscardPile();
+
+              expect(controller.discardPile, [milk]);
+            },
+          );
+
+          test(
+            'can take the last card of the discard pile',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [sausages],
+              );
+
+              controller.takeFromDiscardPile();
+
+              expect(controller.drawnCard, sausages);
+              expect(controller.discardPile, isEmpty);
+            },
+          );
+
+          test(
+            'does not change the draw pile or the current player',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                discardPile: [sausages],
+              );
+
+              controller.takeFromDiscardPile();
+
+              expect(controller.drawPile, [milk]);
+              expect(controller.currentPlayer, alice);
+            },
+          );
+
+          test(
+            'throws if a drawn card has not yet been played',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [sausages],
+                drawnCard: milk,
+              );
+
+              expect(controller.takeFromDiscardPile, throwsStateError);
+              expect(controller.drawnCard, milk);
+              expect(controller.discardPile, [sausages]);
+            },
+          );
+
+          test(
+            'throws if the discard pile is empty',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.takeFromDiscardPile, throwsStateError);
+              expect(controller.drawnCard, isNull);
+            },
+          );
+        },
+      );
     },
   );
 }

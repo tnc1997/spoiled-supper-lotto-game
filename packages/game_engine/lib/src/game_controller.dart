@@ -80,8 +80,8 @@ class GameController {
   /// The player whose turn it is.
   Player get currentPlayer => _players[_currentPlayerIndex];
 
-  /// The card the current player has drawn and not yet played, or `null`
-  /// if they haven't drawn one.
+  /// The card the current player has drawn or taken and not yet played, or
+  /// `null` if they haven't drawn or taken one.
   Card? get drawnCard => _drawnCard;
 
   /// Removes the top card from the draw pile and holds it as the
@@ -90,14 +90,33 @@ class GameController {
   /// Throws a [StateError] if a card has already been drawn and not yet
   /// played, or if the draw pile is empty.
   void drawFromDrawPile() {
-    if (_drawnCard != null) {
-      throw StateError('A drawn card must be played before drawing another');
-    }
+    _ensureNoDrawnCard();
 
     if (_drawPile.isEmpty) {
       throw StateError('Cannot draw from an empty draw pile');
     }
 
     _drawnCard = _drawPile.removeLast();
+  }
+
+  /// Removes the top card from the discard pile and holds it as the
+  /// [drawnCard] until the current player plays it.
+  ///
+  /// Throws a [StateError] if a card has already been drawn and not yet
+  /// played, or if the discard pile is empty.
+  void takeFromDiscardPile() {
+    _ensureNoDrawnCard();
+
+    if (_discardPile.isEmpty) {
+      throw StateError('Cannot take from an empty discard pile');
+    }
+
+    _drawnCard = _discardPile.removeLast();
+  }
+
+  void _ensureNoDrawnCard() {
+    if (_drawnCard != null) {
+      throw StateError('A drawn card must be played before drawing another');
+    }
   }
 }
