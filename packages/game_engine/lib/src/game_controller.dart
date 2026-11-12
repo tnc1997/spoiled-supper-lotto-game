@@ -85,6 +85,25 @@ class GameController {
   /// if they haven't drawn one.
   Card? get drawnCard => _drawnCard;
 
+  /// Whether [placeDrawnCard] can be called, i.e. a card has been drawn
+  /// and it's either a [CardType.standard] card or its slot on the current
+  /// player's plate is empty.
+  bool get canPlaceDrawnCard {
+    final card = _drawnCard;
+
+    return card != null &&
+        (card.type == CardType.standard ||
+            currentPlayer.plate[card.category] == null);
+  }
+
+  /// Whether [discardDrawnCard] can be called, i.e. a card has been drawn
+  /// and its slot on the current player's plate is filled.
+  bool get canDiscardDrawnCard {
+    final card = _drawnCard;
+
+    return card != null && currentPlayer.plate[card.category] != null;
+  }
+
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
@@ -123,14 +142,23 @@ class GameController {
   /// player's plate.
   ///
   /// If the slot already has a card, the player has chosen to keep the
-  /// drawn card instead, so the card it replaces goes on top of the discard
-  /// pile. Either way, the current player no longer holds a drawn card.
+  /// drawn food card instead, so the card it replaces goes on top of the
+  /// discard pile. Either way, the current player no longer holds a drawn
+  /// card.
   ///
-  /// Throws a [StateError] if no card has been drawn. Playing a
-  /// [CardType.spoiled] card is not yet supported: it throws an
-  /// [UnimplementedError] and the current player still holds the card.
+  /// Throws a [StateError] if no card has been drawn, or if the drawn card
+  /// is [CardType.spoiled] and the slot already has a card, since a spoiled
+  /// card can only go into an empty slot.
   void placeDrawnCard() {
-    final card = _requirePlayableDrawnCard();
+    final card = _requireDrawnCard();
+
+    if (!canPlaceDrawnCard) {
+      throw StateError(
+        'A spoiled card must be discarded if the '
+        '${card.category.name} slot is filled',
+      );
+    }
+
     final replaced = currentPlayer.plate.place(card);
 
     if (replaced != null) {
@@ -144,13 +172,11 @@ class GameController {
   /// already in the slot for its category on the current player's plate.
   ///
   /// Throws a [StateError] if no card has been drawn, or if the slot for
-  /// its category is empty, since a card that fits must be placed. Playing
-  /// a [CardType.spoiled] card is not yet supported: it throws an
-  /// [UnimplementedError] and the current player still holds the card.
+  /// its category is empty, since a card that fits must be placed.
   void discardDrawnCard() {
-    final card = _requirePlayableDrawnCard();
+    final card = _requireDrawnCard();
 
-    if (currentPlayer.plate[card.category] == null) {
+    if (!canDiscardDrawnCard) {
       throw StateError(
         'A card must be placed if the ${card.category.name} slot is empty',
       );
@@ -160,16 +186,12 @@ class GameController {
     _drawnCard = null;
   }
 
-  /// Returns the [drawnCard], checking that it can be played.
-  Card _requirePlayableDrawnCard() {
+  /// Returns the [drawnCard], checking that one has been drawn.
+  Card _requireDrawnCard() {
     final card = _drawnCard;
 
     if (card == null) {
       throw StateError('A card must be drawn before it can be played');
-    }
-
-    if (card.type == CardType.spoiled) {
-      throw UnimplementedError('Playing a spoiled card is not yet supported');
     }
 
     return card;
