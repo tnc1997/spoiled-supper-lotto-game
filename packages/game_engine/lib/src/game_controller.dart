@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'card.dart';
+import 'card_type.dart';
 import 'deck.dart';
 import 'player.dart';
 import 'shuffle.dart';
@@ -116,5 +117,35 @@ class GameController {
     }
 
     _drawnCard = _discardPile.removeLast();
+  }
+
+  /// Plays the [drawnCard] for the current player.
+  ///
+  /// A [CardType.standard] card is placed on the current player's plate if
+  /// the slot for its category is empty; otherwise the slot is blocked, so
+  /// the card goes on top of the discard pile instead. Either way, the
+  /// current player no longer holds a drawn card.
+  ///
+  /// Throws a [StateError] if no card has been drawn.
+  void playDrawnCard() {
+    final card = _drawnCard;
+
+    if (card == null) {
+      throw StateError('A card must be drawn before it can be played');
+    }
+
+    if (card.type == CardType.spoiled) {
+      throw UnimplementedError('Playing a spoiled card is not yet supported');
+    }
+
+    final plate = currentPlayer.plate;
+
+    if (plate[card.category] == null) {
+      plate.place(card);
+    } else {
+      _discardPile.add(card);
+    }
+
+    _drawnCard = null;
   }
 }
