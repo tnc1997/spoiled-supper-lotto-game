@@ -90,7 +90,15 @@ class GameController {
   /// Throws a [StateError] if a card has already been drawn and not yet
   /// played, or if the draw pile is empty.
   void drawFromDrawPile() {
-    _drawTopCard(_drawPile, 'Cannot draw from an empty draw pile');
+    if (_drawnCard != null) {
+      throw StateError('A drawn card must be played before drawing another');
+    }
+
+    if (_drawPile.isEmpty) {
+      throw StateError('Cannot draw from an empty draw pile');
+    }
+
+    _drawnCard = _drawPile.removeLast();
   }
 
   /// Removes the top card from the discard pile and holds it as the
@@ -99,18 +107,14 @@ class GameController {
   /// Throws a [StateError] if a card has already been drawn and not yet
   /// played, or if the discard pile is empty.
   void drawFromDiscardPile() {
-    _drawTopCard(_discardPile, 'Cannot draw from an empty discard pile');
-  }
-
-  void _drawTopCard(List<Card> pile, String emptyMessage) {
     if (_drawnCard != null) {
       throw StateError('A drawn card must be played before drawing another');
     }
 
-    if (pile.isEmpty) {
-      throw StateError(emptyMessage);
+    if (_discardPile.isEmpty) {
+      throw StateError('Cannot draw from an empty discard pile');
     }
 
-    _drawnCard = pile.removeLast();
+    _drawnCard = _discardPile.removeLast();
   }
 }
