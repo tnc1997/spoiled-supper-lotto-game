@@ -770,6 +770,162 @@ void main() {
           );
         },
       );
+
+      group(
+        'canPlaceDrawnCard',
+        () {
+          GameController holding(Card drawnCard) => GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: drawnCard,
+              );
+
+          test(
+            'is false if no card has been drawn',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.canPlaceDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'is true for a food card if its slot is empty',
+            () {
+              expect(holding(sausages).canPlaceDrawnCard, isTrue);
+            },
+          );
+
+          test(
+            'is true for a food card if its slot is filled',
+            () {
+              alice.plate.place(fishFingers);
+
+              expect(holding(sausages).canPlaceDrawnCard, isTrue);
+            },
+          );
+
+          test(
+            'is true for a food card if its slot has a spoiled card',
+            () {
+              alice.plate.place(leatherBoot);
+
+              expect(holding(sausages).canPlaceDrawnCard, isTrue);
+            },
+          );
+
+          test(
+            'is true for a spoiled card if its slot is empty',
+            () {
+              expect(holding(fishBone).canPlaceDrawnCard, isTrue);
+            },
+          );
+
+          test(
+            'is false for a spoiled card if its slot has a food card',
+            () {
+              alice.plate.place(fishFingers);
+
+              expect(holding(fishBone).canPlaceDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'is false for a spoiled card if its slot has a spoiled card',
+            () {
+              alice.plate.place(leatherBoot);
+
+              expect(holding(fishBone).canPlaceDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            "only uses the current player's plate",
+            () {
+              bob.plate.place(fishFingers);
+
+              expect(holding(fishBone).canPlaceDrawnCard, isTrue);
+            },
+          );
+        },
+      );
+
+      group(
+        'canDiscardDrawnCard',
+        () {
+          GameController holding(Card drawnCard) => GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: drawnCard,
+              );
+
+          test(
+            'is false if no card has been drawn',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.canDiscardDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'is false for a food card if its slot is empty',
+            () {
+              expect(holding(sausages).canDiscardDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'is false for a spoiled card if its slot is empty',
+            () {
+              expect(holding(fishBone).canDiscardDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'is true for a food card if its slot is filled',
+            () {
+              alice.plate.place(fishFingers);
+
+              expect(holding(sausages).canDiscardDrawnCard, isTrue);
+            },
+          );
+
+          test(
+            'is true for a food card if its slot has a spoiled card',
+            () {
+              alice.plate.place(leatherBoot);
+
+              expect(holding(sausages).canDiscardDrawnCard, isTrue);
+            },
+          );
+
+          test(
+            'is true for a spoiled card if its slot is filled',
+            () {
+              alice.plate.place(fishFingers);
+
+              expect(holding(fishBone).canDiscardDrawnCard, isTrue);
+            },
+          );
+
+          test(
+            "only uses the current player's plate",
+            () {
+              bob.plate.place(fishFingers);
+
+              expect(holding(sausages).canDiscardDrawnCard, isFalse);
+            },
+          );
+        },
+      );
     },
   );
 }

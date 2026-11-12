@@ -85,6 +85,25 @@ class GameController {
   /// if they haven't drawn one.
   Card? get drawnCard => _drawnCard;
 
+  /// Whether [placeDrawnCard] can be called, i.e. a card has been drawn
+  /// and it's either a [CardType.standard] card or its slot on the current
+  /// player's plate is empty.
+  bool get canPlaceDrawnCard {
+    final card = _drawnCard;
+
+    return card != null &&
+        (card.type == CardType.standard ||
+            currentPlayer.plate[card.category] == null);
+  }
+
+  /// Whether [discardDrawnCard] can be called, i.e. a card has been drawn
+  /// and its slot on the current player's plate is filled.
+  bool get canDiscardDrawnCard {
+    final card = _drawnCard;
+
+    return card != null && currentPlayer.plate[card.category] != null;
+  }
+
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
@@ -132,17 +151,15 @@ class GameController {
   /// card can only go into an empty slot.
   void placeDrawnCard() {
     final card = _requireDrawnCard();
-    final plate = currentPlayer.plate;
-    final existing = plate[card.category];
 
-    if (card.type == CardType.spoiled && existing != null) {
+    if (!canPlaceDrawnCard) {
       throw StateError(
         'A spoiled card must be discarded if the '
         '${card.category.name} slot is filled',
       );
     }
 
-    final replaced = plate.place(card);
+    final replaced = currentPlayer.plate.place(card);
 
     if (replaced != null) {
       _discardPile.add(replaced);
@@ -159,7 +176,7 @@ class GameController {
   void discardDrawnCard() {
     final card = _requireDrawnCard();
 
-    if (currentPlayer.plate[card.category] == null) {
+    if (!canDiscardDrawnCard) {
       throw StateError(
         'A card must be placed if the ${card.category.name} slot is empty',
       );
