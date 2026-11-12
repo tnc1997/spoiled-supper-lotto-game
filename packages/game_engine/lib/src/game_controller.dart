@@ -109,11 +109,16 @@ class GameController {
     return card != null && currentPlayer.plate[card.category] != null;
   }
 
+  /// Whether [drawFromDrawPile] can be called, i.e. no card has been drawn
+  /// yet and either the draw pile or the discard pile has cards in it.
+  bool get canDrawFromDrawPile =>
+      _drawnCard == null && (_drawPile.isNotEmpty || _discardPile.isNotEmpty);
+
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
-  /// If the draw pile is empty, the discard pile is first shuffled into it,
-  /// leaving the discard pile empty.
+  /// If the draw pile is empty, the whole discard pile, including its top
+  /// card, is first shuffled into it, leaving the discard pile empty.
   ///
   /// Throws a [StateError] if a card has already been drawn and not yet
   /// played, or if both the draw pile and the discard pile are empty.
