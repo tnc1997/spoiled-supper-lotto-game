@@ -22,22 +22,11 @@ class Plate {
   /// The card occupying [category]'s slot, or `null` if it's empty.
   Card? operator [](Category category) => _slots[category];
 
-  /// Places [card] into the slot matching its category.
-  ///
-  /// Throws a [StateError] if that slot already has a card.
-  void place(Card card) {
-    if (_slots[card.category] != null) {
-      throw StateError('The ${card.category.name} slot is already filled');
-    }
-
-    _slots[card.category] = card;
-  }
-
   /// Places [card] into the slot matching its category, replacing any card
   /// already there.
   ///
   /// Returns the card that was replaced, or `null` if the slot was empty.
-  Card? replace(Card card) {
+  Card? place(Card card) {
     final replaced = _slots[card.category];
     _slots[card.category] = card;
     return replaced;

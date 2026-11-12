@@ -131,7 +131,7 @@ class GameController {
   /// [UnimplementedError] and the current player still holds the card.
   void placeDrawnCard() {
     final card = _requirePlayableDrawnCard();
-    final replaced = currentPlayer.plate.replace(card);
+    final replaced = currentPlayer.plate.place(card);
 
     if (replaced != null) {
       _discardPile.add(replaced);

@@ -127,30 +127,7 @@ void main() {
       );
 
       test(
-        'throws if the slot for the card is already filled',
-        () {
-          const first = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.drink,
-            name: 'Milk',
-          );
-          const second = Card(
-            id: '2',
-            type: CardType.spoiled,
-            category: Category.drink,
-            name: 'Pond Water',
-          );
-
-          final plate = Plate(drink: first);
-
-          expect(() => plate.place(second), throwsStateError);
-          expect(plate[Category.drink], first);
-        },
-      );
-
-      test(
-        'replaces a card into an empty slot and returns null',
+        'placing a card into an empty slot returns null',
         () {
           const card = Card(
             id: '1',
@@ -161,13 +138,13 @@ void main() {
 
           final plate = Plate();
 
-          expect(plate.replace(card), isNull);
+          expect(plate.place(card), isNull);
           expect(plate[Category.drink], card);
         },
       );
 
       test(
-        'replaces the card already in a slot and returns it',
+        'placing a card replaces any card already in that slot and returns it',
         () {
           const first = Card(
             id: '1',
@@ -184,7 +161,7 @@ void main() {
 
           final plate = Plate(drink: first);
 
-          expect(plate.replace(second), first);
+          expect(plate.place(second), first);
           expect(plate[Category.drink], second);
           expect(plate[Category.main], isNull);
         },
