@@ -25,9 +25,9 @@ class GameController {
   /// turn.
   ///
   /// [players] are in turn order, and the top of each pile is its last
-  /// card. [drawnCard] is a card the current player has already drawn and
-  /// not yet played. To set up a new game, use [GameController.start]
-  /// instead.
+  /// card. [drawnCard] is a card the current player has already drawn or
+  /// taken and not yet played. To set up a new game, use
+  /// [GameController.start] instead.
   GameController({
     required List<Player> players,
     required List<Card> drawPile,
@@ -87,36 +87,30 @@ class GameController {
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
-  /// Throws a [StateError] if a card has already been drawn and not yet
-  /// played, or if the draw pile is empty.
+  /// Throws a [StateError] if a card has already been drawn or taken and
+  /// not yet played, or if the draw pile is empty.
   void drawFromDrawPile() {
-    _ensureNoDrawnCard();
-
-    if (_drawPile.isEmpty) {
-      throw StateError('Cannot draw from an empty draw pile');
-    }
-
-    _drawnCard = _drawPile.removeLast();
+    _holdTopCard(_drawPile, 'Cannot draw from an empty draw pile');
   }
 
   /// Removes the top card from the discard pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
-  /// Throws a [StateError] if a card has already been drawn and not yet
-  /// played, or if the discard pile is empty.
+  /// Throws a [StateError] if a card has already been drawn or taken and
+  /// not yet played, or if the discard pile is empty.
   void takeFromDiscardPile() {
-    _ensureNoDrawnCard();
-
-    if (_discardPile.isEmpty) {
-      throw StateError('Cannot take from an empty discard pile');
-    }
-
-    _drawnCard = _discardPile.removeLast();
+    _holdTopCard(_discardPile, 'Cannot take from an empty discard pile');
   }
 
-  void _ensureNoDrawnCard() {
+  void _holdTopCard(List<Card> pile, String emptyMessage) {
     if (_drawnCard != null) {
-      throw StateError('A drawn card must be played before drawing another');
+      throw StateError('The held card must be played before taking another');
     }
+
+    if (pile.isEmpty) {
+      throw StateError(emptyMessage);
+    }
+
+    _drawnCard = pile.removeLast();
   }
 }

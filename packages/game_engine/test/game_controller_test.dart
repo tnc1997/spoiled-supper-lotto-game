@@ -431,6 +431,7 @@ void main() {
 
               expect(controller.takeFromDiscardPile, throwsStateError);
               expect(controller.drawnCard, isNull);
+              expect(controller.drawPile, [sausages]);
             },
           );
         },
