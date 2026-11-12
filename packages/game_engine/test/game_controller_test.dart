@@ -344,7 +344,103 @@ void main() {
           );
 
           test(
-            'throws if the draw pile is empty',
+            'reshuffles the discard pile into the draw pile if it is empty',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [sausages, milk, fishFingers],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.discardPile, isEmpty);
+              expect(
+                [...controller.drawPile, controller.drawnCard],
+                unorderedEquals([sausages, milk, fishFingers]),
+              );
+              expect(controller.drawPile, hasLength(2));
+            },
+          );
+
+          test(
+            'reshuffles the discard pile with the given random',
+            () {
+              final deck = buildDeck();
+
+              GameController reshuffle() {
+                final controller = GameController(
+                  players: [alice, bob],
+                  drawPile: [],
+                  discardPile: deck,
+                  random: Random(42),
+                );
+
+                controller.drawFromDrawPile();
+
+                return controller;
+              }
+
+              final first = reshuffle();
+              final second = reshuffle();
+
+              expect(first.drawnCard, second.drawnCard);
+              expect(first.drawPile, second.drawPile);
+              expect(
+                [...first.drawPile, first.drawnCard],
+                isNot(deck),
+              );
+            },
+          );
+
+          test(
+            'shares the random from start with reshuffles',
+            () {
+              GameController playUntilReshuffle() {
+                final controller =
+                    GameController.start(playersOf(2), random: Random(42));
+
+                while (controller.drawPile.isNotEmpty) {
+                  controller.drawFromDrawPile();
+
+                  if (controller.canDiscardDrawnCard) {
+                    controller.discardDrawnCard();
+                  } else {
+                    controller.placeDrawnCard();
+                  }
+                }
+
+                controller.drawFromDrawPile();
+
+                return controller;
+              }
+
+              final first = playUntilReshuffle();
+              final second = playUntilReshuffle();
+
+              expect(first.drawnCard, second.drawnCard);
+              expect(first.drawPile, second.drawPile);
+            },
+          );
+
+          test(
+            'does not reshuffle if the draw pile has cards',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk, fishFingers],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.drawPile, isEmpty);
+              expect(controller.discardPile, [milk, fishFingers]);
+            },
+          );
+
+          test(
+            'throws if both the draw pile and the discard pile are empty',
             () {
               final controller = GameController(
                 players: [alice, bob],
