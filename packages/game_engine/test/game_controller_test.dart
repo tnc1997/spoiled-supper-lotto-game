@@ -751,6 +751,7 @@ void main() {
 
               expect(alice.plate[Category.main], fishBone);
               expect(controller.discardPile, [sausages]);
+              expect(controller.drawnCard, isNull);
             },
           );
 
