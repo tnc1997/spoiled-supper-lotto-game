@@ -119,18 +119,49 @@ class GameController {
     _drawnCard = _discardPile.removeLast();
   }
 
-  /// Plays the [drawnCard] for the current player.
+  /// Places the [drawnCard] into the slot for its category on the current
+  /// player's plate.
   ///
-  /// A [CardType.standard] card is placed on the current player's plate if
-  /// the slot for its category is empty; otherwise the slot is blocked, so
-  /// the card goes on top of the discard pile instead. Either way, the
-  /// current player no longer holds a drawn card.
+  /// If the slot already has a card, the player has chosen to keep the
+  /// drawn card instead, so the card it replaces goes on top of the discard
+  /// pile. Either way, the current player no longer holds a drawn card.
   ///
-  /// Playing a [CardType.spoiled] card is not yet supported: it throws an
+  /// Throws a [StateError] if no card has been drawn. Playing a
+  /// [CardType.spoiled] card is not yet supported: it throws an
   /// [UnimplementedError] and the current player still holds the card.
+  void placeDrawnCard() {
+    final card = _requirePlayableDrawnCard();
+    final replaced = currentPlayer.plate.replace(card);
+
+    if (replaced != null) {
+      _discardPile.add(replaced);
+    }
+
+    _drawnCard = null;
+  }
+
+  /// Puts the [drawnCard] on top of the discard pile, keeping the card
+  /// already in the slot for its category on the current player's plate.
   ///
-  /// Throws a [StateError] if no card has been drawn.
-  void playDrawnCard() {
+  /// Throws a [StateError] if no card has been drawn, or if the slot for
+  /// its category is empty, since a card that fits must be placed. Playing
+  /// a [CardType.spoiled] card is not yet supported: it throws an
+  /// [UnimplementedError] and the current player still holds the card.
+  void discardDrawnCard() {
+    final card = _requirePlayableDrawnCard();
+
+    if (currentPlayer.plate[card.category] == null) {
+      throw StateError(
+        'A card must be placed if the ${card.category.name} slot is empty',
+      );
+    }
+
+    _discardPile.add(card);
+    _drawnCard = null;
+  }
+
+  /// Returns the [drawnCard], checking that it can be played.
+  Card _requirePlayableDrawnCard() {
     final card = _drawnCard;
 
     if (card == null) {
@@ -141,14 +172,6 @@ class GameController {
       throw UnimplementedError('Playing a spoiled card is not yet supported');
     }
 
-    final plate = currentPlayer.plate;
-
-    if (plate[card.category] == null) {
-      plate.place(card);
-    } else {
-      _discardPile.add(card);
-    }
-
-    _drawnCard = null;
+    return card;
   }
 }
