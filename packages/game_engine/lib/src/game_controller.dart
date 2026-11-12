@@ -133,8 +133,9 @@ class GameController {
   void placeDrawnCard() {
     final card = _requireDrawnCard();
     final plate = currentPlayer.plate;
+    final existing = plate[card.category];
 
-    if (card.type == CardType.spoiled && plate[card.category] != null) {
+    if (card.type == CardType.spoiled && existing != null) {
       throw StateError(
         'A spoiled card must be discarded if the '
         '${card.category.name} slot is filled',
