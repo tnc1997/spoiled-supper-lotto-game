@@ -341,7 +341,7 @@ void main() {
       );
 
       group(
-        'takeFromDiscardPile',
+        'drawFromDiscardPile',
         () {
           test(
             'holds the top card of the discard pile as the drawn card',
@@ -352,14 +352,14 @@ void main() {
                 discardPile: [milk, sausages],
               );
 
-              controller.takeFromDiscardPile();
+              controller.drawFromDiscardPile();
 
               expect(controller.drawnCard, sausages);
             },
           );
 
           test(
-            'removes the taken card from the discard pile',
+            'removes the drawn card from the discard pile',
             () {
               final controller = GameController(
                 players: [alice, bob],
@@ -367,14 +367,14 @@ void main() {
                 discardPile: [milk, sausages],
               );
 
-              controller.takeFromDiscardPile();
+              controller.drawFromDiscardPile();
 
               expect(controller.discardPile, [milk]);
             },
           );
 
           test(
-            'can take the last card of the discard pile',
+            'can draw the last card of the discard pile',
             () {
               final controller = GameController(
                 players: [alice, bob],
@@ -382,7 +382,7 @@ void main() {
                 discardPile: [sausages],
               );
 
-              controller.takeFromDiscardPile();
+              controller.drawFromDiscardPile();
 
               expect(controller.drawnCard, sausages);
               expect(controller.discardPile, isEmpty);
@@ -398,7 +398,7 @@ void main() {
                 discardPile: [sausages],
               );
 
-              controller.takeFromDiscardPile();
+              controller.drawFromDiscardPile();
 
               expect(controller.drawPile, [milk]);
               expect(controller.currentPlayer, alice);
@@ -415,7 +415,7 @@ void main() {
                 drawnCard: milk,
               );
 
-              expect(controller.takeFromDiscardPile, throwsStateError);
+              expect(controller.drawFromDiscardPile, throwsStateError);
               expect(controller.drawnCard, milk);
               expect(controller.discardPile, [sausages]);
             },
@@ -429,7 +429,7 @@ void main() {
                 drawPile: [sausages],
               );
 
-              expect(controller.takeFromDiscardPile, throwsStateError);
+              expect(controller.drawFromDiscardPile, throwsStateError);
               expect(controller.drawnCard, isNull);
               expect(controller.drawPile, [sausages]);
             },
