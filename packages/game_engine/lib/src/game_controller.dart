@@ -126,12 +126,21 @@ class GameController {
   /// drawn card instead, so the card it replaces goes on top of the discard
   /// pile. Either way, the current player no longer holds a drawn card.
   ///
-  /// Throws a [StateError] if no card has been drawn. Playing a
-  /// [CardType.spoiled] card is not yet supported: it throws an
-  /// [UnimplementedError] and the current player still holds the card.
+  /// Throws a [StateError] if no card has been drawn, or if the drawn card
+  /// is [CardType.spoiled] and the slot already has a card, since a spoiled
+  /// card can only go into an empty slot.
   void placeDrawnCard() {
-    final card = _requirePlayableDrawnCard();
-    final replaced = currentPlayer.plate.place(card);
+    final card = _requireDrawnCard();
+    final plate = currentPlayer.plate;
+
+    if (card.type == CardType.spoiled && plate[card.category] != null) {
+      throw StateError(
+        'A spoiled card must be discarded if the '
+        '${card.category.name} slot is filled',
+      );
+    }
+
+    final replaced = plate.place(card);
 
     if (replaced != null) {
       _discardPile.add(replaced);
@@ -144,11 +153,9 @@ class GameController {
   /// already in the slot for its category on the current player's plate.
   ///
   /// Throws a [StateError] if no card has been drawn, or if the slot for
-  /// its category is empty, since a card that fits must be placed. Playing
-  /// a [CardType.spoiled] card is not yet supported: it throws an
-  /// [UnimplementedError] and the current player still holds the card.
+  /// its category is empty, since a card that fits must be placed.
   void discardDrawnCard() {
-    final card = _requirePlayableDrawnCard();
+    final card = _requireDrawnCard();
 
     if (currentPlayer.plate[card.category] == null) {
       throw StateError(
@@ -160,16 +167,12 @@ class GameController {
     _drawnCard = null;
   }
 
-  /// Returns the [drawnCard], checking that it can be played.
-  Card _requirePlayableDrawnCard() {
+  /// Returns the [drawnCard], checking that one has been drawn.
+  Card _requireDrawnCard() {
     final card = _drawnCard;
 
     if (card == null) {
       throw StateError('A card must be drawn before it can be played');
-    }
-
-    if (card.type == CardType.spoiled) {
-      throw UnimplementedError('Playing a spoiled card is not yet supported');
     }
 
     return card;

@@ -188,6 +188,28 @@ void main() {
           expect(plate.isFull, isTrue);
         },
       );
+
+      test(
+        'is not full while a slot has a spoiled card',
+        () {
+          final plate = Plate();
+
+          for (final category in Category.values) {
+            plate.place(
+              Card(
+                id: category.name,
+                type: category == Category.main
+                    ? CardType.spoiled
+                    : CardType.standard,
+                category: category,
+                name: category.name,
+              ),
+            );
+          }
+
+          expect(plate.isFull, isFalse);
+        },
+      );
     },
   );
 }

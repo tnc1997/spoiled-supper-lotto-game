@@ -1,4 +1,5 @@
 import 'card.dart';
+import 'card_type.dart';
 import 'category.dart';
 
 /// A player's place-setting board, with one slot per [Category].
@@ -32,6 +33,8 @@ class Plate {
     return replaced;
   }
 
-  /// Whether every slot has a card, i.e. the meal is complete.
-  bool get isFull => _slots.values.every((card) => card != null);
+  /// Whether every slot has a [CardType.standard] card, i.e. the meal is
+  /// complete. A [CardType.spoiled] card keeps its slot from counting.
+  bool get isFull =>
+      _slots.values.every((card) => card?.type == CardType.standard);
 }
