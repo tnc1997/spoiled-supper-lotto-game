@@ -127,7 +127,24 @@ void main() {
       );
 
       test(
-        'placing a card overwrites any card already in that slot',
+        'placing a card into an empty slot returns null',
+        () {
+          const card = Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.drink,
+            name: 'Milk',
+          );
+
+          final plate = Plate();
+
+          expect(plate.place(card), isNull);
+          expect(plate[Category.drink], card);
+        },
+      );
+
+      test(
+        'placing a card replaces any card already in that slot and returns it',
         () {
           const first = Card(
             id: '1',
@@ -137,16 +154,16 @@ void main() {
           );
           const second = Card(
             id: '2',
-            type: CardType.spoiled,
+            type: CardType.standard,
             category: Category.drink,
-            name: 'Pond Water',
+            name: 'Water',
           );
 
-          final plate = Plate()
-            ..place(first)
-            ..place(second);
+          final plate = Plate(drink: first);
 
+          expect(plate.place(second), first);
           expect(plate[Category.drink], second);
+          expect(plate[Category.main], isNull);
         },
       );
 

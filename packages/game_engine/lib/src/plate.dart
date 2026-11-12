@@ -22,9 +22,15 @@ class Plate {
   /// The card occupying [category]'s slot, or `null` if it's empty.
   Card? operator [](Category category) => _slots[category];
 
-  /// Places [card] into the slot matching its category, overwriting any card
+  /// Places [card] into the slot matching its category, replacing any card
   /// already there.
-  void place(Card card) => _slots[card.category] = card;
+  ///
+  /// Returns the card that was replaced, or `null` if the slot was empty.
+  Card? place(Card card) {
+    final replaced = _slots[card.category];
+    _slots[card.category] = card;
+    return replaced;
+  }
 
   /// Whether every slot has a card, i.e. the meal is complete.
   bool get isFull => _slots.values.every((card) => card != null);

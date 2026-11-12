@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'card.dart';
+import 'card_type.dart';
 import 'deck.dart';
 import 'player.dart';
 import 'shuffle.dart';
@@ -116,5 +117,61 @@ class GameController {
     }
 
     _drawnCard = _discardPile.removeLast();
+  }
+
+  /// Places the [drawnCard] into the slot for its category on the current
+  /// player's plate.
+  ///
+  /// If the slot already has a card, the player has chosen to keep the
+  /// drawn card instead, so the card it replaces goes on top of the discard
+  /// pile. Either way, the current player no longer holds a drawn card.
+  ///
+  /// Throws a [StateError] if no card has been drawn. Playing a
+  /// [CardType.spoiled] card is not yet supported: it throws an
+  /// [UnimplementedError] and the current player still holds the card.
+  void placeDrawnCard() {
+    final card = _requirePlayableDrawnCard();
+    final replaced = currentPlayer.plate.place(card);
+
+    if (replaced != null) {
+      _discardPile.add(replaced);
+    }
+
+    _drawnCard = null;
+  }
+
+  /// Puts the [drawnCard] on top of the discard pile, keeping the card
+  /// already in the slot for its category on the current player's plate.
+  ///
+  /// Throws a [StateError] if no card has been drawn, or if the slot for
+  /// its category is empty, since a card that fits must be placed. Playing
+  /// a [CardType.spoiled] card is not yet supported: it throws an
+  /// [UnimplementedError] and the current player still holds the card.
+  void discardDrawnCard() {
+    final card = _requirePlayableDrawnCard();
+
+    if (currentPlayer.plate[card.category] == null) {
+      throw StateError(
+        'A card must be placed if the ${card.category.name} slot is empty',
+      );
+    }
+
+    _discardPile.add(card);
+    _drawnCard = null;
+  }
+
+  /// Returns the [drawnCard], checking that it can be played.
+  Card _requirePlayableDrawnCard() {
+    final card = _drawnCard;
+
+    if (card == null) {
+      throw StateError('A card must be drawn before it can be played');
+    }
+
+    if (card.type == CardType.spoiled) {
+      throw UnimplementedError('Playing a spoiled card is not yet supported');
+    }
+
+    return card;
   }
 }

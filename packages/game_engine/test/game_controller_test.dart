@@ -19,6 +19,18 @@ void main() {
         category: Category.drink,
         name: 'Milk',
       );
+      const fishFingers = Card(
+        id: '3',
+        type: CardType.standard,
+        category: Category.main,
+        name: 'Fish Fingers',
+      );
+      const fishBone = Card(
+        id: '4',
+        type: CardType.spoiled,
+        category: Category.main,
+        name: 'Fish Bone',
+      );
 
       late Player alice;
       late Player bob;
@@ -432,6 +444,216 @@ void main() {
               expect(controller.drawFromDiscardPile, throwsStateError);
               expect(controller.drawnCard, isNull);
               expect(controller.drawPile, [sausages]);
+            },
+          );
+        },
+      );
+
+      group(
+        'placeDrawnCard',
+        () {
+          test(
+            'places the drawn card on the plate if its slot is empty',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(alice.plate[Category.main], sausages);
+              expect(controller.discardPile, isEmpty);
+              expect(controller.drawnCard, isNull);
+            },
+          );
+
+          test(
+            'replaces the card in a filled slot and discards it',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(alice.plate[Category.main], sausages);
+              expect(controller.discardPile, [milk, fishFingers]);
+              expect(controller.drawnCard, isNull);
+            },
+          );
+
+          test(
+            "only uses the current player's plate",
+            () {
+              bob.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(alice.plate[Category.main], sausages);
+              expect(bob.plate[Category.main], fishFingers);
+              expect(controller.discardPile, isEmpty);
+            },
+          );
+
+          test(
+            'does not change the draw pile or the current player',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(controller.drawPile, [milk]);
+              expect(controller.currentPlayer, alice);
+            },
+          );
+
+          test(
+            'does not yet support placing a spoiled card',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+                drawnCard: fishBone,
+              );
+
+              expect(controller.placeDrawnCard, throwsUnimplementedError);
+              expect(controller.drawnCard, fishBone);
+              expect(alice.plate[Category.main], isNull);
+              expect(controller.discardPile, [milk]);
+            },
+          );
+
+          test(
+            'throws if no card has been drawn',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.placeDrawnCard, throwsStateError);
+              expect(alice.plate[Category.main], isNull);
+              expect(controller.discardPile, isEmpty);
+            },
+          );
+        },
+      );
+
+      group(
+        'discardDrawnCard',
+        () {
+          test(
+            'discards the drawn card and keeps the card in a filled slot',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.discardDrawnCard();
+
+              expect(alice.plate[Category.main], fishFingers);
+              expect(controller.discardPile, [milk, sausages]);
+              expect(controller.drawnCard, isNull);
+            },
+          );
+
+          test(
+            'does not change the draw pile or the current player',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.discardDrawnCard();
+
+              expect(controller.drawPile, [milk]);
+              expect(controller.currentPlayer, alice);
+            },
+          );
+
+          test(
+            'throws if the slot for the drawn card is empty',
+            () {
+              alice.plate.place(milk);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: sausages,
+              );
+
+              expect(controller.discardDrawnCard, throwsStateError);
+              expect(controller.drawnCard, sausages);
+              expect(alice.plate[Category.main], isNull);
+              expect(controller.discardPile, isEmpty);
+            },
+          );
+
+          test(
+            "only uses the current player's plate",
+            () {
+              bob.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: sausages,
+              );
+
+              expect(controller.discardDrawnCard, throwsStateError);
+              expect(controller.drawnCard, sausages);
+            },
+          );
+
+          test(
+            'does not yet support discarding a spoiled card',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: fishBone,
+              );
+
+              expect(controller.discardDrawnCard, throwsUnimplementedError);
+              expect(controller.drawnCard, fishBone);
+              expect(alice.plate[Category.main], fishFingers);
+              expect(controller.discardPile, isEmpty);
+            },
+          );
+
+          test(
+            'throws if no card has been drawn',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.discardDrawnCard, throwsStateError);
+              expect(controller.discardPile, isEmpty);
             },
           );
         },
