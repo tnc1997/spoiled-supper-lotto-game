@@ -20,8 +20,8 @@ class GameController {
   final List<Card> _drawPile;
   final List<Card> _discardPile;
   final int _currentPlayerIndex;
-  final Random? _random;
   Card? _drawnCard;
+  final Random? _random;
 
   /// Holds the given state as-is, with the first player taking the first
   /// turn.
@@ -41,8 +41,8 @@ class GameController {
         _drawPile = List.of(drawPile),
         _discardPile = List.of(discardPile),
         _currentPlayerIndex = 0,
-        _random = random,
-        _drawnCard = drawnCard;
+        _drawnCard = drawnCard,
+        _random = random;
 
   /// Sets up a new game for [players], in turn order, with the full deck
   /// from [buildDeck] shuffled into the draw pile and an empty discard
