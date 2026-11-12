@@ -21,30 +21,35 @@ class GameController {
   final List<Card> _discardPile;
   final int _currentPlayerIndex;
   Card? _drawnCard;
+  final Random? _random;
 
   /// Holds the given state as-is, with the first player taking the first
   /// turn.
   ///
   /// [players] are in turn order, and the top of each pile is its last
   /// card. [drawnCard] is a card the current player has already drawn and
-  /// not yet played. To set up a new game, use [GameController.start]
+  /// not yet played. Pass a seeded [random] for reproducible reshuffles of
+  /// the discard pile. To set up a new game, use [GameController.start]
   /// instead.
   GameController({
     required List<Player> players,
     required List<Card> drawPile,
     List<Card> discardPile = const [],
     Card? drawnCard,
+    Random? random,
   })  : _players = List.unmodifiable(players),
         _drawPile = List.of(drawPile),
         _discardPile = List.of(discardPile),
         _currentPlayerIndex = 0,
-        _drawnCard = drawnCard;
+        _drawnCard = drawnCard,
+        _random = random;
 
   /// Sets up a new game for [players], in turn order, with the full deck
   /// from [buildDeck] shuffled into the draw pile and an empty discard
   /// pile.
   ///
-  /// Pass a seeded [random] for a reproducible game.
+  /// Pass a seeded [random] for a reproducible game, including any
+  /// reshuffles of the discard pile.
   ///
   /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
   /// than [maxPlayers] players.
@@ -63,7 +68,7 @@ class GameController {
     final deck = buildDeck();
     shuffle(deck, random);
 
-    return GameController(players: players, drawPile: deck);
+    return GameController(players: players, drawPile: deck, random: random);
   }
 
   /// The players in turn order.
@@ -104,18 +109,34 @@ class GameController {
     return card != null && currentPlayer.plate[card.category] != null;
   }
 
+  /// Whether [drawFromDrawPile] can be called, i.e. no card has been drawn
+  /// yet and either the draw pile or the discard pile has cards in it.
+  bool get canDrawFromDrawPile =>
+      _drawnCard == null && (_drawPile.isNotEmpty || _discardPile.isNotEmpty);
+
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
+  /// If the draw pile is empty, the whole discard pile, including its top
+  /// card, is first shuffled into it, leaving the discard pile empty.
+  ///
   /// Throws a [StateError] if a card has already been drawn and not yet
-  /// played, or if the draw pile is empty.
+  /// played, or if both the draw pile and the discard pile are empty.
   void drawFromDrawPile() {
     if (_drawnCard != null) {
       throw StateError('A drawn card must be played before drawing another');
     }
 
     if (_drawPile.isEmpty) {
-      throw StateError('Cannot draw from an empty draw pile');
+      if (_discardPile.isEmpty) {
+        throw StateError(
+          'Cannot draw when both the draw and discard piles are empty',
+        );
+      }
+
+      _drawPile.addAll(_discardPile);
+      _discardPile.clear();
+      shuffle(_drawPile, _random);
     }
 
     _drawnCard = _drawPile.removeLast();
