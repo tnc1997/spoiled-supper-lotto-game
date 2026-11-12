@@ -381,45 +381,54 @@ void main() {
                 return controller;
               }
 
-              final first = reshuffle();
-              final second = reshuffle();
+              final controller = reshuffle();
 
-              expect(first.drawnCard, second.drawnCard);
-              expect(first.drawPile, second.drawPile);
-              expect(
-                [...first.drawPile, first.drawnCard],
-                isNot(deck),
-              );
+              final expected = List.of(deck);
+              shuffle(expected, Random(42));
+
+              expect([...controller.drawPile, controller.drawnCard], expected);
+              expect(expected, isNot(deck));
             },
           );
 
           test(
             'shares the random from start with reshuffles',
             () {
-              GameController playUntilReshuffle() {
-                final controller =
-                    GameController.start(playersOf(2), random: Random(42));
+              // Every slot holds a spoiled card, so each drawn card can be
+              // discarded and no player can complete a meal.
+              Player withSpoiledPlate(String name) {
+                final plate = Plate();
 
-                while (controller.drawPile.isNotEmpty) {
-                  controller.drawFromDrawPile();
-
-                  if (controller.canDiscardDrawnCard) {
-                    controller.discardDrawnCard();
-                  } else {
-                    controller.placeDrawnCard();
+                for (final card in buildDeck()) {
+                  if (card.type == CardType.spoiled) {
+                    plate.place(card);
                   }
                 }
 
-                controller.drawFromDrawPile();
-
-                return controller;
+                return Player(name: name, plate: plate);
               }
 
-              final first = playUntilReshuffle();
-              final second = playUntilReshuffle();
+              final controller = GameController.start(
+                [withSpoiledPlate('Alice'), withSpoiledPlate('Bob')],
+                random: Random(42),
+              );
 
-              expect(first.drawnCard, second.drawnCard);
-              expect(first.drawPile, second.drawPile);
+              while (controller.drawPile.isNotEmpty) {
+                controller.drawFromDrawPile();
+                controller.discardDrawnCard();
+              }
+
+              controller.drawFromDrawPile();
+
+              // The deal and the reshuffle draw from the same Random, so
+              // replay both with a fresh Random(42).
+              final random = Random(42);
+              final dealt = buildDeck();
+              shuffle(dealt, random);
+              final expected = dealt.reversed.toList();
+              shuffle(expected, random);
+
+              expect([...controller.drawPile, controller.drawnCard], expected);
             },
           );
 
@@ -862,6 +871,62 @@ void main() {
 
               expect(controller.discardDrawnCard, throwsStateError);
               expect(controller.discardPile, isEmpty);
+            },
+          );
+        },
+      );
+
+      group(
+        'canDrawFromDrawPile',
+        () {
+          test(
+            'is true if the draw pile has cards',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.canDrawFromDrawPile, isTrue);
+            },
+          );
+
+          test(
+            'is true if only the discard pile has cards',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+              );
+
+              expect(controller.canDrawFromDrawPile, isTrue);
+            },
+          );
+
+          test(
+            'is false if both the draw pile and the discard pile are empty',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+              );
+
+              expect(controller.canDrawFromDrawPile, isFalse);
+            },
+          );
+
+          test(
+            'is false if a drawn card has not yet been played',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+                drawnCard: fishFingers,
+              );
+
+              expect(controller.canDrawFromDrawPile, isFalse);
             },
           );
         },
