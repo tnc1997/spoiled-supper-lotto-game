@@ -123,8 +123,9 @@ class GameController {
   /// player's plate.
   ///
   /// If the slot already has a card, the player has chosen to keep the
-  /// drawn card instead, so the card it replaces goes on top of the discard
-  /// pile. Either way, the current player no longer holds a drawn card.
+  /// drawn food card instead, so the card it replaces goes on top of the
+  /// discard pile. Either way, the current player no longer holds a drawn
+  /// card.
   ///
   /// Throws a [StateError] if no card has been drawn, or if the drawn card
   /// is [CardType.spoiled] and the slot already has a card, since a spoiled
