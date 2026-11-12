@@ -90,7 +90,7 @@ class GameController {
   /// Throws a [StateError] if a card has already been drawn and not yet
   /// played, or if the draw pile is empty.
   void drawFromDrawPile() {
-    _holdTopCard(_drawPile, 'Cannot draw from an empty draw pile');
+    _drawTopCard(_drawPile, 'Cannot draw from an empty draw pile');
   }
 
   /// Removes the top card from the discard pile and holds it as the
@@ -99,10 +99,10 @@ class GameController {
   /// Throws a [StateError] if a card has already been drawn and not yet
   /// played, or if the discard pile is empty.
   void drawFromDiscardPile() {
-    _holdTopCard(_discardPile, 'Cannot draw from an empty discard pile');
+    _drawTopCard(_discardPile, 'Cannot draw from an empty discard pile');
   }
 
-  void _holdTopCard(List<Card> pile, String emptyMessage) {
+  void _drawTopCard(List<Card> pile, String emptyMessage) {
     if (_drawnCard != null) {
       throw StateError('A drawn card must be played before drawing another');
     }
