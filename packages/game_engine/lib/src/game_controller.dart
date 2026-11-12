@@ -126,6 +126,9 @@ class GameController {
   /// the card goes on top of the discard pile instead. Either way, the
   /// current player no longer holds a drawn card.
   ///
+  /// Playing a [CardType.spoiled] card is not yet supported: it throws an
+  /// [UnimplementedError] and the current player still holds the card.
+  ///
   /// Throws a [StateError] if no card has been drawn.
   void playDrawnCard() {
     final card = _drawnCard;

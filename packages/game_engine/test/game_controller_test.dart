@@ -495,8 +495,14 @@ void main() {
 
               controller.playDrawnCard();
 
-              expect(alice.plate[Category.drink], isNull);
+              expect(alice.plate[Category.main], fishFingers);
+              for (final category in Category.values) {
+                if (category != Category.main) {
+                  expect(alice.plate[category], isNull);
+                }
+              }
               expect(controller.discardPile, [sausages]);
+              expect(controller.drawnCard, isNull);
             },
           );
 
@@ -531,6 +537,29 @@ void main() {
 
               expect(controller.drawPile, [milk]);
               expect(controller.currentPlayer, alice);
+            },
+          );
+
+          test(
+            'does not yet support playing a spoiled card',
+            () {
+              const fishBone = Card(
+                id: '4',
+                type: CardType.spoiled,
+                category: Category.main,
+                name: 'Fish Bone',
+              );
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+                drawnCard: fishBone,
+              );
+
+              expect(controller.playDrawnCard, throwsUnimplementedError);
+              expect(controller.drawnCard, fishBone);
+              expect(alice.plate[Category.main], isNull);
+              expect(controller.discardPile, [milk]);
             },
           );
 
