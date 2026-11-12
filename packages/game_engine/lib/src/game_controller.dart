@@ -100,4 +100,21 @@ class GameController {
 
     _drawnCard = _drawPile.removeLast();
   }
+
+  /// Removes the top card from the discard pile and holds it as the
+  /// [drawnCard] until the current player plays it.
+  ///
+  /// Throws a [StateError] if a card has already been drawn and not yet
+  /// played, or if the discard pile is empty.
+  void drawFromDiscardPile() {
+    if (_drawnCard != null) {
+      throw StateError('A drawn card must be played before drawing another');
+    }
+
+    if (_discardPile.isEmpty) {
+      throw StateError('Cannot draw from an empty discard pile');
+    }
+
+    _drawnCard = _discardPile.removeLast();
+  }
 }
