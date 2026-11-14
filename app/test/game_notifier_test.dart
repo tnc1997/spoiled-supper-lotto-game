@@ -49,9 +49,12 @@ void main() {
       );
 
       test(
-        'exposes the controller it was given as a read-only game',
+        'exposes the game it was given read-only',
         () {
-          expect(notifier.game, same(controller));
+          notifier.drawFromDrawPile();
+
+          expect(notifier.game, isNot(isA<GameController>()));
+          expect(notifier.game.drawnCard, sausages);
         },
       );
 
