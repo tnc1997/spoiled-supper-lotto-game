@@ -1,10 +1,11 @@
 import 'card.dart';
 import 'card_type.dart';
 import 'game_controller.dart';
+import 'plate.dart';
 import 'player.dart';
 
-/// A read-only view of a single game: its players, the draw and discard
-/// piles, and whose turn it is.
+/// A read-only view of a single game: its players and their plates, the
+/// draw and discard piles, and whose turn it is.
 ///
 /// What this returns is the game's current state, not a snapshot of it.
 /// Read it from the game each time it's needed, such as on each build, and
@@ -14,11 +15,18 @@ import 'player.dart';
 /// To make moves, use a [GameController], which implements this.
 abstract interface class Game {
   /// The players in turn order.
-  ///
-  /// Their plates can still be changed directly, which bypasses the rules
-  /// and doesn't tell anything that's listening, so make moves through
-  /// whatever owns the game instead, such as the app's `GameNotifier`.
   List<Player> get players;
+
+  /// The plate of [player], who is looked up by identity.
+  ///
+  /// Unlike [drawPile] and [discardPile], which show the piles as they are
+  /// now, a [Plate] can't change: each card placed gives the player a new
+  /// plate, and one that's held on to keeps showing the cards it was built
+  /// with. Compare plates with `==` to tell whether a player's plate has
+  /// changed.
+  ///
+  /// Throws an [ArgumentError] if [player] isn't one of [players].
+  Plate plateOf(Player player);
 
   /// The cards still to be drawn, with the top of the pile last.
   List<Card> get drawPile;
@@ -56,7 +64,7 @@ abstract interface class Game {
   /// no one has won yet.
   ///
   /// This is recorded when a placed card fills the current player's plate,
-  /// and doesn't change once set, even if a plate is changed directly.
+  /// and doesn't change once set.
   Player? get winner;
 
   /// Whether the game has ended because a player has won, after which no
