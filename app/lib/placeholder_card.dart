@@ -40,14 +40,15 @@ class PlaceholderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    var base = HSLColor.fromColor(card.category.color);
+    var baseColor = HSLColor.fromColor(card.category.color);
     if (_isSpoiled) {
-      base = base.withSaturation(base.saturation * 0.6);
+      baseColor = baseColor.withSaturation(baseColor.saturation * 0.6);
     }
 
-    final background = Color.lerp(Colors.white, base.toColor(), 0.35)!;
-    final border = base.withLightness(0.35).toColor();
-    final foreground = base.withLightness(0.2).toColor();
+    final backgroundColor =
+        Color.lerp(Colors.white, baseColor.toColor(), 0.35)!;
+    final borderColor = baseColor.withLightness(0.35).toColor();
+    final foregroundColor = baseColor.withLightness(0.2).toColor();
 
     return Semantics(
       container: true,
@@ -64,8 +65,8 @@ class PlaceholderCard extends StatelessWidget {
           height: size.height,
           padding: _padding,
           decoration: BoxDecoration(
-            color: background,
-            border: Border.all(color: border, width: _borderWidth),
+            color: backgroundColor,
+            border: Border.all(color: borderColor, width: _borderWidth),
             borderRadius: BorderRadius.circular(8),
           ),
           // Shrinks the text only if it doesn't fit, e.g. at a large system
@@ -81,16 +82,19 @@ class PlaceholderCard extends StatelessWidget {
                   if (_isSpoiled)
                     Text(
                       'SPOILED',
-                      style: textTheme.labelSmall?.copyWith(color: foreground),
+                      style: textTheme.labelSmall
+                          ?.copyWith(color: foregroundColor),
                     ),
                   Text(
                     card.name,
                     textAlign: TextAlign.center,
-                    style: textTheme.titleMedium?.copyWith(color: foreground),
+                    style:
+                        textTheme.titleMedium?.copyWith(color: foregroundColor),
                   ),
                   Text(
                     card.category.label,
-                    style: textTheme.labelSmall?.copyWith(color: foreground),
+                    style:
+                        textTheme.labelSmall?.copyWith(color: foregroundColor),
                   ),
                 ],
               ),
