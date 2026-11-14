@@ -92,7 +92,7 @@ void main() {
           testWidgets(
             'throws if there is no GameScope above the context',
             (tester) async {
-              late Object error;
+              Object? error;
 
               await tester.pumpWidget(
                 Builder(
