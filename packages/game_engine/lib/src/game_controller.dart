@@ -4,17 +4,11 @@ import 'dart:math';
 import 'card.dart';
 import 'card_type.dart';
 import 'deck.dart';
-import 'listeners.dart';
 import 'player.dart';
 import 'shuffle.dart';
 
 /// Holds the state of a single game: its players, the draw and discard
 /// piles, and whose turn it is.
-///
-/// Listeners are notified once after each move, i.e. each successful call
-/// to [drawFromDrawPile], [drawFromDiscardPile], [placeDrawnCard] or
-/// [discardDrawnCard], and whenever a card is placed directly on one of
-/// the players' plates. A move that throws doesn't notify them.
 class GameController {
   /// The fewest players a game can be started with.
   static const minPlayers = 2;
@@ -30,8 +24,6 @@ class GameController {
   int? _winnerIndex;
   Card? _drawnCard;
   final Random? _random;
-  bool _isMakingMove = false;
-  final _listeners = Listeners();
 
   /// Holds the given state as-is.
   ///
@@ -89,10 +81,6 @@ class GameController {
 
       _currentPlayerIndex = winnerIndex;
     }
-
-    for (final player in _players) {
-      player.plate.addListener(_handlePlateChanged);
-    }
   }
 
   /// Sets up a new game for [players], in turn order, with the full deck
@@ -117,17 +105,6 @@ class GameController {
 
   /// The players in turn order.
   List<Player> get players => _players;
-
-  /// Calls [listener] after each move and whenever a card is placed
-  /// directly on one of the players' plates.
-  ///
-  /// Adding the same listener more than once means it's called once per
-  /// time it was added.
-  void addListener(void Function() listener) => _listeners.add(listener);
-
-  /// Stops calling [listener] when the game changes, once for each time it
-  /// was added.
-  void removeListener(void Function() listener) => _listeners.remove(listener);
 
   /// The cards still to be drawn, with the top of the pile last.
   List<Card> get drawPile => UnmodifiableListView(_drawPile);
@@ -250,7 +227,6 @@ class GameController {
     }
 
     _drawnCard = _drawPile.removeLast();
-    _listeners.notify();
   }
 
   /// Removes the top card from the discard pile and holds it as the
@@ -270,7 +246,6 @@ class GameController {
     }
 
     _drawnCard = _discardPile.removeLast();
-    _listeners.notify();
   }
 
   /// Places the [drawnCard] into the slot for its category on the current
@@ -297,14 +272,7 @@ class GameController {
       );
     }
 
-    final Card? replaced;
-    _isMakingMove = true;
-
-    try {
-      replaced = currentPlayer.plate.place(card);
-    } finally {
-      _isMakingMove = false;
-    }
+    final replaced = currentPlayer.plate.place(card);
 
     if (replaced != null) {
       _discardPile.add(replaced);
@@ -340,8 +308,7 @@ class GameController {
   ///
   /// If their plate is now full, they are the [winner] and the game is
   /// over. Otherwise, the turn passes to the next player in turn order,
-  /// going back to the first player after the last. Either way, listeners
-  /// are then notified.
+  /// going back to the first player after the last.
   void _finishPlay() {
     _drawnCard = null;
     _lastPlayerIndex = _currentPlayerIndex;
@@ -350,18 +317,6 @@ class GameController {
       _winnerIndex = _currentPlayerIndex;
     } else {
       _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
-    }
-
-    _listeners.notify();
-  }
-
-  /// Notifies listeners of a card placed directly on a player's plate.
-  ///
-  /// A card placed by [placeDrawnCard] is skipped, since listeners are
-  /// notified once the whole move has finished.
-  void _handlePlateChanged() {
-    if (!_isMakingMove) {
-      _listeners.notify();
     }
   }
 
