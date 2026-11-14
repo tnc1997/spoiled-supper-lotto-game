@@ -22,7 +22,7 @@ class GameController {
   int _currentPlayerIndex;
   int? _lastPlayerIndex;
   Card? _drawnCard;
-  Player? _winner;
+  int? _winnerIndex;
   final Random? _random;
 
   /// Holds the given state as-is.
@@ -52,7 +52,7 @@ class GameController {
         _discardPile = List.of(discardPile),
         _currentPlayerIndex = currentPlayerIndex ?? 0,
         _drawnCard = drawnCard,
-        _winner = _findWinner(players),
+        _winnerIndex = _findWinnerIndex(players),
         _random = random {
     if (_players.length < minPlayers || _players.length > maxPlayers) {
       throw ArgumentError.value(
@@ -68,16 +68,14 @@ class GameController {
       'currentPlayerIndex',
     );
 
-    final winner = _winner;
+    final winnerIndex = _winnerIndex;
 
-    if (winner != null) {
-      final winnerIndex = _players.indexOf(winner);
-
+    if (winnerIndex != null) {
       if (currentPlayerIndex != null && currentPlayerIndex != winnerIndex) {
         throw ArgumentError.value(
           currentPlayerIndex,
           'currentPlayerIndex',
-          'Must be the index of the winner, ${winner.name}',
+          'Must be the index of the winner, ${_players[winnerIndex].name}',
         );
       }
 
@@ -144,17 +142,25 @@ class GameController {
   /// if they haven't drawn one.
   Card? get drawnCard => _drawnCard;
 
+  /// The index into [players] of the player who completed their meal and
+  /// won the game, or `null` if no one has won yet.
+  int? get winnerIndex => _winnerIndex;
+
   /// The player who completed their meal and won the game, or `null` if
   /// no one has won yet.
   ///
   /// This is recorded when [placeDrawnCard] fills the current player's
   /// plate, and doesn't change once set, even if a plate is changed
   /// directly.
-  Player? get winner => _winner;
+  Player? get winner {
+    final index = _winnerIndex;
+
+    return index == null ? null : _players[index];
+  }
 
   /// Whether the game has ended because a player has won, after which no
   /// more cards can be drawn, placed or discarded.
-  bool get isGameOver => _winner != null;
+  bool get isGameOver => _winnerIndex != null;
 
   /// Whether [placeDrawnCard] can be called, i.e. the game isn't over, a
   /// card has been drawn and it's either a [CardType.standard] card or its
@@ -308,34 +314,42 @@ class GameController {
     _lastPlayerIndex = _currentPlayerIndex;
 
     if (currentPlayer.plate.isFull) {
-      _winner = currentPlayer;
+      _winnerIndex = _currentPlayerIndex;
     } else {
       _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
     }
   }
 
-  /// Returns the player in [players] whose plate is full, or `null` if no
-  /// one's is.
+  /// Returns the index into [players] of the player whose plate is full,
+  /// or `null` if no one's is.
   ///
   /// Throws an [ArgumentError] if more than one player's plate is full.
-  static Player? _findWinner(List<Player> players) {
-    final winners = players.where((player) => player.plate.isFull).toList();
+  static int? _findWinnerIndex(List<Player> players) {
+    int? winnerIndex;
 
-    if (winners.length > 1) {
-      throw ArgumentError.value(
-        players,
-        'players',
-        'Only one player can have a full plate',
-      );
+    for (var i = 0; i < players.length; i++) {
+      if (!players[i].plate.isFull) {
+        continue;
+      }
+
+      if (winnerIndex != null) {
+        throw ArgumentError.value(
+          players,
+          'players',
+          'Only one player can have a full plate',
+        );
+      }
+
+      winnerIndex = i;
     }
 
-    return winners.firstOrNull;
+    return winnerIndex;
   }
 
   /// Checks that the game isn't over, since no more moves can be made once
   /// a player has won.
   void _requireGameNotOver() {
-    final winner = _winner;
+    final winner = this.winner;
 
     if (winner != null) {
       throw StateError('The game is over because ${winner.name} has won');

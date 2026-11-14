@@ -1506,6 +1506,7 @@ void main() {
                 random: Random(0),
               );
 
+              expect(controller.winnerIndex, isNull);
               expect(controller.winner, isNull);
               expect(controller.isGameOver, isFalse);
             },
@@ -1552,6 +1553,7 @@ void main() {
 
               controller.placeDrawnCard();
 
+              expect(controller.winnerIndex, 0);
               expect(controller.winner, alice);
               expect(controller.isGameOver, isTrue);
             },
@@ -1620,6 +1622,7 @@ void main() {
                 drawPile: [fishFingers],
               );
 
+              expect(controller.winnerIndex, 1);
               expect(controller.winner, bob);
               expect(controller.isGameOver, isTrue);
             },
