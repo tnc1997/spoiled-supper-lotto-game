@@ -1231,8 +1231,7 @@ void main() {
             GameController.maxPlayers,
           ]) {
             test(
-              'passes the turn to each of $count players in order and '
-              'back to the first',
+              'passes the turn through $count players and back to the first',
               () {
                 final players = spoiledPlayersOf(count);
                 final controller = GameController(
@@ -1357,8 +1356,7 @@ void main() {
           );
 
           test(
-            'is the current player once a food card replaces their last '
-            'spoiled card',
+            'is the current player once a food card replaces a spoiled card',
             () {
               fillAllButMain(alice);
               alice.plate.place(fishBone);
