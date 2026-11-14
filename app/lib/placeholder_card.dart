@@ -84,6 +84,7 @@ class PlaceholderCard extends StatelessWidget {
               child: IntrinsicWidth(
                 child: IntrinsicHeight(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Holds the tag's space on standard cards too, so that
                       // every name sits at the same height.
@@ -91,14 +92,11 @@ class PlaceholderCard extends StatelessWidget {
                         visible: _isSpoiled,
                         child: Text('SPOILED', style: labelStyle),
                       ),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            for (final word in card.name.split(' '))
-                              Text(word, style: nameStyle),
-                          ],
-                        ),
+                      Column(
+                        children: [
+                          for (final word in card.name.split(' '))
+                            Text(word, style: nameStyle),
+                        ],
                       ),
                       Text(card.category.label, style: labelStyle),
                     ],
