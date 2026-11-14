@@ -24,9 +24,9 @@ class PlaceholderCard extends StatelessWidget {
   /// an image take up the same space.
   static const size = Size(100, 160);
 
-  static const _border = 2.5;
+  static const _borderWidth = 2.5;
 
-  static const _padding = 8.0;
+  static const _padding = EdgeInsets.all(8);
 
   /// The card to show.
   final Card card;
@@ -62,10 +62,10 @@ class PlaceholderCard extends StatelessWidget {
         child: Container(
           width: size.width,
           height: size.height,
-          padding: const EdgeInsets.all(_padding),
+          padding: _padding,
           decoration: BoxDecoration(
             color: background,
-            border: Border.all(color: border, width: _border),
+            border: Border.all(color: border, width: _borderWidth),
             borderRadius: BorderRadius.circular(8),
           ),
           // Shrinks the text only if it doesn't fit, e.g. at a large system
@@ -74,7 +74,7 @@ class PlaceholderCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: SizedBox(
               // The container's padding includes its border.
-              width: size.width - 2 * (_border + _padding),
+              width: size.width - _padding.horizontal - 2 * _borderWidth,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
