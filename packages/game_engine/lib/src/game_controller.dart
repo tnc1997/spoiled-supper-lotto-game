@@ -147,6 +147,9 @@ class GameController implements Game {
   @override
   Card? get drawnCard => _drawnCard;
 
+  /// Whether [placeDrawnCard] can be called, i.e. the game isn't over, a
+  /// card has been drawn and it's either a [CardType.standard] card or its
+  /// slot on the current player's plate is empty.
   @override
   bool get canPlaceDrawnCard {
     final card = _drawnCard;
@@ -157,6 +160,9 @@ class GameController implements Game {
             currentPlayer.plate[card.category] == null);
   }
 
+  /// Whether [discardDrawnCard] can be called, i.e. the game isn't over, a
+  /// card has been drawn and its slot on the current player's plate is
+  /// filled.
   @override
   bool get canDiscardDrawnCard {
     final card = _drawnCard;
@@ -166,12 +172,17 @@ class GameController implements Game {
         currentPlayer.plate[card.category] != null;
   }
 
+  /// Whether [drawFromDrawPile] can be called, i.e. the game isn't over, no
+  /// card has been drawn yet and either the draw pile or the discard pile
+  /// has cards in it.
   @override
   bool get canDrawFromDrawPile =>
       !isGameOver &&
       _drawnCard == null &&
       (_drawPile.isNotEmpty || _discardPile.isNotEmpty);
 
+  /// Whether [drawFromDiscardPile] can be called, i.e. the game isn't over,
+  /// no card has been drawn yet and the discard pile has cards in it.
   @override
   bool get canDrawFromDiscardPile =>
       !isGameOver && _drawnCard == null && _discardPile.isNotEmpty;

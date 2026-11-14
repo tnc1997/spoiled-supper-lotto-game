@@ -1,5 +1,6 @@
 import 'card.dart';
 import 'card_type.dart';
+import 'game_controller.dart';
 import 'player.dart';
 
 /// A read-only view of a single game: its players, the draw and discard
@@ -14,8 +15,9 @@ import 'player.dart';
 abstract interface class Game {
   /// The players in turn order.
   ///
-  /// Their plates can still be changed directly, which bypasses the rules,
-  /// so make moves through a [GameController] instead.
+  /// Their plates can still be changed directly, which bypasses the rules
+  /// and doesn't tell anything that's listening, so make moves through
+  /// whatever owns the game instead, such as the app's `GameNotifier`.
   List<Player> get players;
 
   /// The cards still to be drawn, with the top of the pile last.
