@@ -1,77 +1,44 @@
 import 'package:flutter/widgets.dart';
-import 'package:game_engine/game_engine.dart';
 
-/// Exposes a [GameController] to the widgets below it, rebuilding the ones
-/// that depend on it whenever the game changes.
+import 'game_notifier.dart';
+
+/// Exposes a [GameNotifier] to the widgets below it, rebuilding the ones
+/// that depend on it whenever a move is made through it.
 ///
-/// Read the game and make moves on it with `GameScope.of(context)`. Since
-/// the controller notifies its listeners of every change, including a card
-/// placed directly on a player's plate, dependents rebuild however the game
-/// is changed, e.g. by a tap, a computer opponent or the server.
-class GameScope extends InheritedNotifier<_GameControllerListenable> {
-  /// Exposes [controller] to [child].
+/// Read the game with `GameScope.of(context).controller`, and make moves
+/// with the [GameNotifier] methods, such as [GameNotifier.drawFromDrawPile].
+class GameScope extends InheritedNotifier<GameNotifier> {
+  /// Exposes [notifier] to [child].
   ///
-  /// Pass a different controller, e.g. to start a new game, and dependents
+  /// Pass a different notifier, e.g. to start a new game, and dependents
   /// rebuild with it.
-  GameScope({
+  const GameScope({
     super.key,
-    required GameController controller,
+    required GameNotifier super.notifier,
     required super.child,
-  }) : super(notifier: _GameControllerListenable(controller));
+  });
 
-  /// Returns the game of the closest [GameScope] above [context], and
-  /// rebuilds [context] whenever the game changes.
+  /// Returns the notifier of the closest [GameScope] above [context], and
+  /// rebuilds [context] whenever a move is made through it.
   ///
   /// Throws a [FlutterError] if there is no [GameScope] above [context].
-  static GameController of(BuildContext context) {
-    final controller = maybeOf(context);
+  static GameNotifier of(BuildContext context) {
+    final notifier = maybeOf(context);
 
-    if (controller == null) {
+    if (notifier == null) {
       throw FlutterError(
         'GameScope.of() called with a context that does not contain a '
         'GameScope.',
       );
     }
 
-    return controller;
+    return notifier;
   }
 
-  /// Returns the game of the closest [GameScope] above [context], or `null`
-  /// if there isn't one, and rebuilds [context] whenever the game changes.
-  static GameController? maybeOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<GameScope>()
-        ?.notifier
-        ?.controller;
+  /// Returns the notifier of the closest [GameScope] above [context], or
+  /// `null` if there isn't one, and rebuilds [context] whenever a move is
+  /// made through it.
+  static GameNotifier? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<GameScope>()?.notifier;
   }
-}
-
-/// Adapts a [GameController]'s listeners to a [Listenable], since the
-/// engine is pure Dart and can't implement Flutter's interface itself.
-///
-/// Adapters for the same controller are equal, so rebuilding a [GameScope]
-/// with the same controller doesn't rebuild its dependents.
-class _GameControllerListenable implements Listenable {
-  final GameController controller;
-
-  const _GameControllerListenable(this.controller);
-
-  @override
-  void addListener(VoidCallback listener) {
-    controller.addListener(listener);
-  }
-
-  @override
-  void removeListener(VoidCallback listener) {
-    controller.removeListener(listener);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is _GameControllerListenable &&
-        identical(other.controller, controller);
-  }
-
-  @override
-  int get hashCode => identityHashCode(controller);
 }

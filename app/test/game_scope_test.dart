@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart';
+import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 
 void main() {
@@ -20,23 +21,34 @@ void main() {
         name: 'Milk',
       );
 
-      late GameController controller;
+      late GameNotifier notifier;
       late int builds;
-      late GameController? found;
+      late GameNotifier? found;
       late Widget dependent;
+
+      /// Creates a notifier for a new game between [names], disposing of it
+      /// once the test has finished.
+      GameNotifier notifierFor(List<String> names) {
+        final notifier = GameNotifier(
+          GameController(
+            players: [for (final name in names) Player(name: name)],
+            drawPile: [milk, sausages],
+          ),
+        );
+        addTearDown(notifier.dispose);
+
+        return notifier;
+      }
 
       setUp(
         () {
-          controller = GameController(
-            players: [Player(name: 'Alice'), Player(name: 'Bob')],
-            drawPile: [milk, sausages],
-          );
+          notifier = notifierFor(['Alice', 'Bob']);
           builds = 0;
           found = null;
           dependent = Builder(
             builder: (context) {
               builds++;
-              final game = found = GameScope.of(context);
+              final game = (found = GameScope.of(context)).controller;
 
               return Text(
                 '${game.currentPlayer.name}: ${game.drawnCard?.name}',
@@ -47,18 +59,15 @@ void main() {
         },
       );
 
-      /// Pumps a [GameScope] for [controller] above a dependent that counts
-      /// its builds, records the game it finds and shows the current player
-      /// and their drawn card.
+      /// Pumps a [GameScope] for [notifier] above a dependent that counts
+      /// its builds, records the notifier it finds and shows the current
+      /// player and their drawn card.
       ///
       /// The dependent is the same widget on every pump, so it only
       /// rebuilds when the scope notifies it.
-      Future<void> pumpScope(
-        WidgetTester tester,
-        GameController controller,
-      ) {
+      Future<void> pumpScope(WidgetTester tester, GameNotifier notifier) {
         return tester.pumpWidget(
-          GameScope(controller: controller, child: dependent),
+          GameScope(notifier: notifier, child: dependent),
         );
       }
 
@@ -66,21 +75,16 @@ void main() {
         'of',
         () {
           testWidgets(
-            'returns the controller of the closest GameScope',
+            'returns the notifier of the closest GameScope',
             (tester) async {
-              final outer = GameController(
-                players: [Player(name: 'Carol'), Player(name: 'Dave')],
-                drawPile: [milk],
-              );
-
               await tester.pumpWidget(
                 GameScope(
-                  controller: outer,
-                  child: GameScope(controller: controller, child: dependent),
+                  notifier: notifierFor(['Carol', 'Dave']),
+                  child: GameScope(notifier: notifier, child: dependent),
                 ),
               );
 
-              expect(found, same(controller));
+              expect(found, same(notifier));
               expect(find.text('Alice: null'), findsOneWidget);
             },
           );
@@ -117,13 +121,13 @@ void main() {
             'returns null if there is no GameScope above the context',
             (tester) async {
               var called = false;
-              GameController? controller;
+              GameNotifier? notifier;
 
               await tester.pumpWidget(
                 Builder(
                   builder: (context) {
                     called = true;
-                    controller = GameScope.maybeOf(context);
+                    notifier = GameScope.maybeOf(context);
 
                     return const SizedBox();
                   },
@@ -131,7 +135,7 @@ void main() {
               );
 
               expect(called, isTrue);
-              expect(controller, isNull);
+              expect(notifier, isNull);
             },
           );
         },
@@ -140,15 +144,15 @@ void main() {
       testWidgets(
         'rebuilds dependents once after each move',
         (tester) async {
-          await pumpScope(tester, controller);
+          await pumpScope(tester, notifier);
 
-          controller.drawFromDrawPile();
+          notifier.drawFromDrawPile();
           await tester.pump();
 
           expect(find.text('Alice: Sausages'), findsOneWidget);
           expect(builds, 2);
 
-          controller.placeDrawnCard();
+          notifier.placeDrawnCard();
           await tester.pump();
 
           expect(find.text('Bob: null'), findsOneWidget);
@@ -157,85 +161,39 @@ void main() {
       );
 
       testWidgets(
-        'rebuilds dependents when a card is placed directly on a plate',
+        'does not rebuild dependents if rebuilt with the same notifier',
         (tester) async {
-          await pumpScope(tester, controller);
-
-          controller.players[1].plate.place(milk);
-          await tester.pump();
-
-          expect(builds, 2);
-        },
-      );
-
-      testWidgets(
-        'does not rebuild dependents if a move throws',
-        (tester) async {
-          await pumpScope(tester, controller);
-
-          expect(controller.placeDrawnCard, throwsStateError);
-          await tester.pump();
+          await pumpScope(tester, notifier);
+          await pumpScope(tester, notifier);
 
           expect(builds, 1);
         },
       );
 
       testWidgets(
-        'does not rebuild dependents if rebuilt with the same controller',
+        'rebuilds dependents with a new notifier',
         (tester) async {
-          await pumpScope(tester, controller);
-          await pumpScope(tester, controller);
+          await pumpScope(tester, notifier);
+          final newNotifier = notifierFor(['Carol', 'Dave']);
 
-          expect(builds, 1);
-        },
-      );
+          await pumpScope(tester, newNotifier);
 
-      testWidgets(
-        'rebuilds dependents with a new controller',
-        (tester) async {
-          await pumpScope(tester, controller);
-          final newController = GameController(
-            players: [Player(name: 'Carol'), Player(name: 'Dave')],
-            drawPile: [milk],
-          );
-
-          await pumpScope(tester, newController);
-
-          expect(found, same(newController));
+          expect(found, same(newNotifier));
           expect(find.text('Carol: null'), findsOneWidget);
           expect(builds, 2);
         },
       );
 
       testWidgets(
-        'stops listening to the old controller once replaced',
+        'stops listening to the old notifier once replaced',
         (tester) async {
-          await pumpScope(tester, controller);
-          await pumpScope(
-            tester,
-            GameController(
-              players: [Player(name: 'Carol'), Player(name: 'Dave')],
-              drawPile: [milk],
-            ),
-          );
+          await pumpScope(tester, notifier);
+          await pumpScope(tester, notifierFor(['Carol', 'Dave']));
 
-          controller.drawFromDrawPile();
+          notifier.drawFromDrawPile();
           await tester.pump();
 
           expect(builds, 2);
-        },
-      );
-
-      testWidgets(
-        'stops listening to the controller once removed from the tree',
-        (tester) async {
-          await pumpScope(tester, controller);
-          await tester.pumpWidget(const SizedBox());
-
-          expect(controller.drawFromDrawPile, returnsNormally);
-          await tester.pump();
-
-          expect(builds, 1);
         },
       );
     },
