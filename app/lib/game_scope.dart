@@ -5,7 +5,7 @@ import 'game_notifier.dart';
 /// Exposes a [GameNotifier] to the widgets below it, rebuilding the ones
 /// that depend on it whenever a move is made through it.
 ///
-/// Read the game with `GameScope.of(context).controller`, and make moves
+/// Read the game with `GameScope.of(context).game`, and make moves
 /// with the [GameNotifier] methods, such as [GameNotifier.drawFromDrawPile].
 class GameScope extends InheritedNotifier<GameNotifier> {
   /// Exposes [notifier] to [child].

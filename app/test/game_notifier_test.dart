@@ -49,9 +49,9 @@ void main() {
       );
 
       test(
-        'exposes the controller it was given',
+        'exposes the controller it was given as a read-only game',
         () {
-          expect(notifier.controller, same(controller));
+          expect(notifier.game, same(controller));
         },
       );
 

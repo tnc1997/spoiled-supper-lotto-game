@@ -4,12 +4,15 @@ import 'dart:math';
 import 'card.dart';
 import 'card_type.dart';
 import 'deck.dart';
+import 'game.dart';
 import 'player.dart';
 import 'shuffle.dart';
 
-/// Holds the state of a single game: its players, the draw and discard
-/// piles, and whose turn it is.
-class GameController {
+/// Holds the state of a single game and makes moves in it, following the
+/// rules.
+///
+/// Pass this around as a [Game] wherever the game should only be read.
+class GameController implements Game {
   /// The fewest players a game can be started with.
   static const minPlayers = 2;
 
@@ -103,68 +106,51 @@ class GameController {
     return GameController(players: players, drawPile: deck, random: random);
   }
 
-  /// The players in turn order.
+  @override
   List<Player> get players => _players;
 
-  /// The cards still to be drawn, with the top of the pile last.
+  @override
   List<Card> get drawPile => UnmodifiableListView(_drawPile);
 
-  /// The discarded cards, with the most recently discarded card last.
+  @override
   List<Card> get discardPile => UnmodifiableListView(_discardPile);
 
-  /// The index into [players] of the player whose turn it is. Once the
-  /// game is over, this stays as the [winner]'s index.
+  @override
   int get currentPlayerIndex => _currentPlayerIndex;
 
-  /// The player whose turn it is. Once the game is over, this stays as the
-  /// [winner].
+  @override
   Player get currentPlayer => _players[_currentPlayerIndex];
 
-  /// The index into [players] of the player who most recently played a
-  /// drawn card, by placing or discarding it, or `null` if no card has been
-  /// played since this controller was created.
+  @override
   int? get lastPlayerIndex => _lastPlayerIndex;
 
-  /// The player who most recently played a drawn card, by placing or
-  /// discarding it, or `null` if no card has been played since this
-  /// controller was created.
-  ///
-  /// Use this to show the result of a play once the turn has passed to the
-  /// next player. After a winning play, this is the [winner], since the
-  /// turn doesn't pass.
+  @override
   Player? get lastPlayer {
     final index = _lastPlayerIndex;
 
     return index == null ? null : _players[index];
   }
 
-  /// The index into [players] of the player who completed their meal and
-  /// won the game, or `null` if no one has won yet.
+  @override
   int? get winnerIndex => _winnerIndex;
 
-  /// The player who completed their meal and won the game, or `null` if
-  /// no one has won yet.
-  ///
-  /// This is recorded when [placeDrawnCard] fills the current player's
-  /// plate, and doesn't change once set, even if a plate is changed
-  /// directly.
+  @override
   Player? get winner {
     final index = _winnerIndex;
 
     return index == null ? null : _players[index];
   }
 
-  /// Whether the game has ended because a player has won, after which no
-  /// more cards can be drawn, placed or discarded.
+  @override
   bool get isGameOver => _winnerIndex != null;
 
-  /// The card the current player has drawn and not yet played, or `null`
-  /// if they haven't drawn one.
+  @override
   Card? get drawnCard => _drawnCard;
 
   /// Whether [placeDrawnCard] can be called, i.e. the game isn't over, a
   /// card has been drawn and it's either a [CardType.standard] card or its
   /// slot on the current player's plate is empty.
+  @override
   bool get canPlaceDrawnCard {
     final card = _drawnCard;
 
@@ -177,6 +163,7 @@ class GameController {
   /// Whether [discardDrawnCard] can be called, i.e. the game isn't over, a
   /// card has been drawn and its slot on the current player's plate is
   /// filled.
+  @override
   bool get canDiscardDrawnCard {
     final card = _drawnCard;
 
@@ -188,6 +175,7 @@ class GameController {
   /// Whether [drawFromDrawPile] can be called, i.e. the game isn't over, no
   /// card has been drawn yet and either the draw pile or the discard pile
   /// has cards in it.
+  @override
   bool get canDrawFromDrawPile =>
       !isGameOver &&
       _drawnCard == null &&
@@ -195,6 +183,7 @@ class GameController {
 
   /// Whether [drawFromDiscardPile] can be called, i.e. the game isn't over,
   /// no card has been drawn yet and the discard pile has cards in it.
+  @override
   bool get canDrawFromDiscardPile =>
       !isGameOver && _drawnCard == null && _discardPile.isNotEmpty;
 
