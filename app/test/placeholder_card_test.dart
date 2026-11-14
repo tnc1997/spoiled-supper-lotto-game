@@ -219,6 +219,53 @@ void main() {
       );
 
       testWidgets(
+        'keeps a long name on the card at a large text size',
+        (tester) async {
+          tester.platformDispatcher.textScaleFactorTestValue = 3;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+          await pumpCard(
+            tester,
+            const Card(
+              id: '3',
+              type: CardType.spoiled,
+              category: Category.carbohydrate,
+              name: 'Potato Peelings',
+            ),
+            width: 100,
+          );
+
+          final card = tester.getRect(find.byType(PlaceholderCard));
+          final name = tester.getRect(find.text('Potato Peelings'));
+
+          expect(card.expandToInclude(name), card);
+        },
+      );
+
+      testWidgets(
+        'follows the system text size while the name fits',
+        (tester) async {
+          const milk = Card(
+            id: '4',
+            type: CardType.standard,
+            category: Category.drink,
+            name: 'Milk',
+          );
+
+          await pumpCard(tester, milk);
+          final normal = tester.getRect(find.text('Milk')).height;
+
+          tester.platformDispatcher.textScaleFactorTestValue = 1.25;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          await pumpCard(tester, milk);
+          final larger = tester.getRect(find.text('Milk')).height;
+
+          // The test font rounds line heights to whole pixels.
+          expect(larger, closeTo(normal * 1.25, 1));
+        },
+      );
+
+      testWidgets(
         'mutes the colour of a Spoiled card',
         (tester) async {
           await pumpCard(tester, sausages);
