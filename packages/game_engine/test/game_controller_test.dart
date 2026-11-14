@@ -1358,6 +1358,7 @@ void main() {
                 drawPile: [sausages],
               );
 
+              expect(controller.lastPlayerIndex, isNull);
               expect(controller.lastPlayer, isNull);
             },
           );
@@ -1372,6 +1373,7 @@ void main() {
 
               controller.drawFromDrawPile();
 
+              expect(controller.lastPlayerIndex, isNull);
               expect(controller.lastPlayer, isNull);
             },
           );
@@ -1387,6 +1389,7 @@ void main() {
 
               controller.placeDrawnCard();
 
+              expect(controller.lastPlayerIndex, 0);
               expect(controller.lastPlayer, alice);
               expect(controller.currentPlayer, bob);
             },
@@ -1404,6 +1407,7 @@ void main() {
 
               controller.discardDrawnCard();
 
+              expect(controller.lastPlayerIndex, 0);
               expect(controller.lastPlayer, alice);
               expect(controller.currentPlayer, bob);
             },
@@ -1425,6 +1429,7 @@ void main() {
                 ..placeDrawnCard();
 
               expect(controller.winner, bob);
+              expect(controller.lastPlayerIndex, 1);
               expect(controller.lastPlayer, bob);
             },
           );
@@ -1442,6 +1447,7 @@ void main() {
               controller.drawFromDrawPile();
 
               expect(controller.discardDrawnCard, throwsStateError);
+              expect(controller.lastPlayerIndex, 0);
               expect(controller.lastPlayer, alice);
             },
           );
