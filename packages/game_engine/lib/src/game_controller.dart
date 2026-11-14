@@ -21,34 +21,60 @@ class GameController {
   final List<Card> _discardPile;
   int _currentPlayerIndex;
   Card? _drawnCard;
+  Player? _lastPlayer;
   Player? _winner;
   final Random? _random;
 
-  /// Holds the given state as-is, with the first player taking the first
-  /// turn.
+  /// Holds the given state as-is.
   ///
   /// [players] are in turn order, and the top of each pile is its last
-  /// card. [drawnCard] is a card the current player has already drawn and
-  /// not yet played. A player whose plate is already full is the [winner],
-  /// so the game is over. Pass a seeded [random] for reproducible
-  /// reshuffles of the discard pile. To set up a new game, use
-  /// [GameController.start] instead.
+  /// card. [currentPlayerIndex] is the index into [players] of the player
+  /// whose turn it is, and [drawnCard] is a card they have already drawn
+  /// and not yet played. A player whose plate is already full is the
+  /// [winner], so the game is over and [currentPlayerIndex] defaults to
+  /// theirs; otherwise it defaults to the first player's. Pass a seeded
+  /// [random] for reproducible reshuffles of the discard pile. To set up a
+  /// new game, use [GameController.start] instead.
   ///
   /// Throws an [ArgumentError] if more than one player's plate is full,
-  /// since a game can only have one winner.
+  /// since a game can only have one winner, if [currentPlayerIndex] is out
+  /// of range, or if it isn't the winner's index once the game is over.
   GameController({
     required List<Player> players,
     required List<Card> drawPile,
     List<Card> discardPile = const [],
+    int? currentPlayerIndex,
     Card? drawnCard,
     Random? random,
   })  : _players = List.unmodifiable(players),
         _drawPile = List.of(drawPile),
         _discardPile = List.of(discardPile),
-        _currentPlayerIndex = 0,
+        _currentPlayerIndex = currentPlayerIndex ?? 0,
         _drawnCard = drawnCard,
         _winner = _findWinner(players),
-        _random = random;
+        _random = random {
+    RangeError.checkValidIndex(
+      _currentPlayerIndex,
+      _players,
+      'currentPlayerIndex',
+    );
+
+    final winner = _winner;
+
+    if (winner != null) {
+      final winnerIndex = _players.indexOf(winner);
+
+      if (currentPlayerIndex != null && currentPlayerIndex != winnerIndex) {
+        throw ArgumentError.value(
+          currentPlayerIndex,
+          'currentPlayerIndex',
+          'Must be the index of the winner, ${winner.name}',
+        );
+      }
+
+      _currentPlayerIndex = winnerIndex;
+    }
+  }
 
   /// Sets up a new game for [players], in turn order, with the full deck
   /// from [buildDeck] shuffled into the draw pile and an empty discard
@@ -86,15 +112,26 @@ class GameController {
   /// The discarded cards, with the most recently discarded card last.
   List<Card> get discardPile => UnmodifiableListView(_discardPile);
 
-  /// The index into [players] of the player whose turn it is.
+  /// The index into [players] of the player whose turn it is. Once the
+  /// game is over, this stays as the [winner]'s index.
   int get currentPlayerIndex => _currentPlayerIndex;
 
-  /// The player whose turn it is.
+  /// The player whose turn it is. Once the game is over, this stays as the
+  /// [winner].
   Player get currentPlayer => _players[_currentPlayerIndex];
 
   /// The card the current player has drawn and not yet played, or `null`
   /// if they haven't drawn one.
   Card? get drawnCard => _drawnCard;
+
+  /// The player who most recently played a drawn card, by placing or
+  /// discarding it, or `null` if no card has been played since this
+  /// controller was created.
+  ///
+  /// Use this to show the result of a play once the turn has passed to the
+  /// next player. After a winning play, this is the [winner], since the
+  /// turn doesn't pass.
+  Player? get lastPlayer => _lastPlayer;
 
   /// The player who completed their meal and won the game, or `null` if
   /// no one has won yet.
@@ -224,13 +261,7 @@ class GameController {
       _discardPile.add(replaced);
     }
 
-    _drawnCard = null;
-
-    if (currentPlayer.plate.isFull) {
-      _winner = currentPlayer;
-    } else {
-      _endTurn();
-    }
+    _finishPlay();
   }
 
   /// Puts the [drawnCard] on top of the discard pile, keeping the card
@@ -252,14 +283,24 @@ class GameController {
     }
 
     _discardPile.add(card);
-    _drawnCard = null;
-    _endTurn();
+    _finishPlay();
   }
 
-  /// Passes the turn to the next player in turn order, going back to the
-  /// first player after the last.
-  void _endTurn() {
-    _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
+  /// Finishes the current player's play once their drawn card has been
+  /// placed or discarded.
+  ///
+  /// If their plate is now full, they are the [winner] and the game is
+  /// over. Otherwise, the turn passes to the next player in turn order,
+  /// going back to the first player after the last.
+  void _finishPlay() {
+    _drawnCard = null;
+    _lastPlayer = currentPlayer;
+
+    if (currentPlayer.plate.isFull) {
+      _winner = currentPlayer;
+    } else {
+      _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
+    }
   }
 
   /// Returns the player in [players] whose plate is full, or `null` if no

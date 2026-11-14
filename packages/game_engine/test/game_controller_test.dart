@@ -1190,8 +1190,8 @@ void main() {
         'currentPlayer',
         () {
           /// Draws the top card of the draw pile and discards it, which every
-          /// player can do while their plate holds a spoiled card in every
-          /// slot.
+          /// player can do while their main slot holds a spoiled card, since
+          /// every card drawn is a main.
           void takeTurn(GameController controller) {
             controller
               ..drawFromDrawPile()
@@ -1199,17 +1199,8 @@ void main() {
           }
 
           List<Player> spoiledPlayersOf(int count) => [
-                for (var i = 0; i < count; i++)
-                  Player(
-                    name: 'Player $i',
-                    plate: Plate(
-                      dessert: fishBone,
-                      vegetable: fishBone,
-                      main: fishBone,
-                      carbohydrate: fishBone,
-                      drink: fishBone,
-                    ),
-                  ),
+                for (final player in playersOf(count))
+                  player..plate.place(fishBone),
               ];
 
           test(
@@ -1225,6 +1216,68 @@ void main() {
             },
           );
 
+          test(
+            'is the player at the given index',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                currentPlayerIndex: 1,
+              );
+
+              expect(controller.currentPlayerIndex, 1);
+              expect(controller.currentPlayer, bob);
+            },
+          );
+
+          test(
+            'throws if the given index is out of range',
+            () {
+              for (final index in [-1, 2]) {
+                expect(
+                  () => GameController(
+                    players: [alice, bob],
+                    drawPile: [sausages],
+                    currentPlayerIndex: index,
+                  ),
+                  throwsRangeError,
+                );
+              }
+            },
+          );
+
+          test(
+            'is the winner if a plate is full when the game is set up',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+              );
+
+              expect(controller.currentPlayerIndex, 1);
+              expect(controller.currentPlayer, bob);
+            },
+          );
+
+          test(
+            "throws if the given index isn't the winner's",
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+
+              expect(
+                () => GameController(
+                  players: [alice, bob],
+                  drawPile: [fishFingers],
+                  currentPlayerIndex: 0,
+                ),
+                throwsArgumentError,
+              );
+            },
+          );
+
           for (final count in [
             GameController.minPlayers,
             3,
@@ -1236,7 +1289,7 @@ void main() {
                 final players = spoiledPlayersOf(count);
                 final controller = GameController(
                   players: players,
-                  drawPile: List.filled(count + 1, leatherBoot),
+                  drawPile: List.filled(count, leatherBoot),
                 );
 
                 final order = <Player>[controller.currentPlayer];
@@ -1247,7 +1300,6 @@ void main() {
                 }
 
                 expect(order, [...players, players.first]);
-                expect(controller.currentPlayerIndex, 0);
               },
             );
           }
@@ -1266,6 +1318,8 @@ void main() {
               expect(controller.currentPlayer, alice);
 
               controller.discardDrawnCard();
+              expect(controller.currentPlayer, bob);
+
               controller.drawFromDiscardPile();
               expect(controller.currentPlayer, bob);
             },
@@ -1288,6 +1342,107 @@ void main() {
               expect(alice.plate[Category.main], sausages);
               expect(bob.plate[Category.main], fishFingers);
               expect(controller.currentPlayer, alice);
+            },
+          );
+        },
+      );
+
+      group(
+        'lastPlayer',
+        () {
+          test(
+            'is null before any card has been played',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.lastPlayer, isNull);
+            },
+          );
+
+          test(
+            'is not set by drawing a card',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.lastPlayer, isNull);
+            },
+          );
+
+          test(
+            'is the player who placed a card once the turn has passed',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(controller.lastPlayer, alice);
+              expect(controller.currentPlayer, bob);
+            },
+          );
+
+          test(
+            'is the player who discarded a card once the turn has passed',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.discardDrawnCard();
+
+              expect(controller.lastPlayer, alice);
+              expect(controller.currentPlayer, bob);
+            },
+          );
+
+          test(
+            'is the winner after a winning play',
+            () {
+              fillAllButMain(bob);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers, sausages],
+              );
+
+              controller
+                ..drawFromDrawPile()
+                ..placeDrawnCard()
+                ..drawFromDrawPile()
+                ..placeDrawnCard();
+
+              expect(controller.winner, bob);
+              expect(controller.lastPlayer, bob);
+            },
+          );
+
+          test(
+            'does not change if a move throws',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+              controller.discardDrawnCard();
+              controller.drawFromDrawPile();
+
+              expect(controller.discardDrawnCard, throwsStateError);
+              expect(controller.lastPlayer, alice);
             },
           );
         },
@@ -1409,7 +1564,7 @@ void main() {
           );
 
           test(
-            'is a player other than the current one if their plate is full',
+            'is the player whose plate is full when the game is set up',
             () {
               fillAllButMain(bob);
               bob.plate.place(sausages);
