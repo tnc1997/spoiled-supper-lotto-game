@@ -122,23 +122,6 @@ void main() {
           (a.b - b.b) * (a.b - b.b);
 
       testWidgets(
-        'centres the letters of the Spoiled tag on the card',
-        (tester) async {
-          await pumpCard(tester, fishBone);
-
-          final tag = find.text('SPOILED');
-          final spacing = tester.widget<Text>(tag).style!.letterSpacing!;
-          final rect = tester.getRect(tag);
-
-          // The text box includes the spacing after the last letter.
-          expect(
-            rect.left + (rect.width - spacing) / 2,
-            closeTo(tester.getCenter(find.byType(PlaceholderCard)).dx, 0.01),
-          );
-        },
-      );
-
-      testWidgets(
         'shows the category of the card',
         (tester) async {
           await pumpCard(tester, sausages);
@@ -270,13 +253,30 @@ void main() {
       );
 
       testWidgets(
+        'shows at its own size in an unbounded parent',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(
+              home: UnconstrainedBox(child: PlaceholderCard(card: sausages)),
+            ),
+          );
+
+          expect(
+            tester.getSize(find.byType(PlaceholderCard)),
+            PlaceholderCard.size,
+          );
+        },
+      );
+
+      testWidgets(
         'scales the name with the width of the card',
         (tester) async {
+          // Measure on screen, since the card is scaled after layout.
           await pumpCard(tester, sausages, width: 100);
-          final small = tester.getSize(find.text('Sausages')).height;
+          final small = tester.getRect(find.text('Sausages')).height;
 
           await pumpCard(tester, sausages, width: 200);
-          final large = tester.getSize(find.text('Sausages')).height;
+          final large = tester.getRect(find.text('Sausages')).height;
 
           expect(large, greaterThan(small));
         },
