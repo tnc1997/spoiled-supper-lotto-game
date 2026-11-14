@@ -122,6 +122,23 @@ void main() {
           (a.b - b.b) * (a.b - b.b);
 
       testWidgets(
+        'centres the letters of the Spoiled tag on the card',
+        (tester) async {
+          await pumpCard(tester, fishBone);
+
+          final tag = find.text('SPOILED');
+          final spacing = tester.widget<Text>(tag).style!.letterSpacing!;
+          final rect = tester.getRect(tag);
+
+          // The text box includes the spacing after the last letter.
+          expect(
+            rect.left + (rect.width - spacing) / 2,
+            closeTo(tester.getCenter(find.byType(PlaceholderCard)).dx, 0.01),
+          );
+        },
+      );
+
+      testWidgets(
         'shows the category of the card',
         (tester) async {
           await pumpCard(tester, sausages);

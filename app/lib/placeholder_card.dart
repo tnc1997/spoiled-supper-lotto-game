@@ -54,6 +54,7 @@ class PlaceholderCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
+            final tagLetterSpacing = width * 0.01;
             final captionStyle = textTheme.labelSmall?.copyWith(
               color: foreground,
               fontSize: width * 0.09,
@@ -72,11 +73,16 @@ class PlaceholderCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_isSpoiled)
-                      Text(
-                        'SPOILED',
-                        textScaler: TextScaler.noScaling,
-                        style: captionStyle?.copyWith(
-                          letterSpacing: width * 0.01,
+                      // Letter spacing is also added after the last letter,
+                      // so balance it on the left to keep the tag centred.
+                      Padding(
+                        padding: EdgeInsets.only(left: tagLetterSpacing),
+                        child: Text(
+                          'SPOILED',
+                          textScaler: TextScaler.noScaling,
+                          style: captionStyle?.copyWith(
+                            letterSpacing: tagLetterSpacing,
+                          ),
                         ),
                       ),
                     Text(
