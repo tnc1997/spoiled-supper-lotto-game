@@ -1,40 +1,27 @@
 import 'card.dart';
 import 'card_type.dart';
 import 'category.dart';
+import 'game_controller.dart';
 
-/// A player's place-setting board, with one slot per [Category].
+/// A read-only view of a player's place-setting board, with one slot per
+/// [Category].
+///
+/// Like `UnmodifiableListView`, this reflects later changes to the map it
+/// wraps, but can't be used to change it. A game's plates are changed only
+/// by its [GameController], so read them from the game each time they're
+/// needed, such as on each build, rather than holding on to them.
 class Plate {
-  final Map<Category, Card?> _slots;
+  final Map<Category, Card> _cards;
 
-  Plate({
-    Card? dessert,
-    Card? vegetable,
-    Card? main,
-    Card? carbohydrate,
-    Card? drink,
-  }) : _slots = {
-          Category.dessert: dessert,
-          Category.vegetable: vegetable,
-          Category.main: main,
-          Category.carbohydrate: carbohydrate,
-          Category.drink: drink,
-        };
+  /// Creates a view of [cards], which maps each category to the card in its
+  /// slot. A category without an entry is an empty slot.
+  Plate(Map<Category, Card> cards) : _cards = cards;
 
   /// The card occupying [category]'s slot, or `null` if it's empty.
-  Card? operator [](Category category) => _slots[category];
-
-  /// Places [card] into the slot matching its category, replacing any card
-  /// already there.
-  ///
-  /// Returns the card that was replaced, or `null` if the slot was empty.
-  Card? place(Card card) {
-    final replaced = _slots[card.category];
-    _slots[card.category] = card;
-    return replaced;
-  }
+  Card? operator [](Category category) => _cards[category];
 
   /// Whether every slot has a [CardType.standard] card, i.e. the meal is
   /// complete. A [CardType.spoiled] card keeps its slot from counting.
-  bool get isFull =>
-      _slots.values.every((card) => card?.type == CardType.standard);
+  bool get isFull => Category.values
+      .every((category) => _cards[category]?.type == CardType.standard);
 }
