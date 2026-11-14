@@ -47,7 +47,7 @@ class GameController {
         _discardPile = List.of(discardPile),
         _currentPlayerIndex = 0,
         _drawnCard = drawnCard,
-        _winner = _onlyFullPlateOwner(players),
+        _winner = _findWinner(players),
         _random = random;
 
   /// Sets up a new game for [players], in turn order, with the full deck
@@ -250,12 +250,14 @@ class GameController {
     _drawnCard = null;
   }
 
-  /// Returns the only player in [players] whose plate is full, or `null` if
-  /// no one's is, checking that there aren't more than one.
-  static Player? _onlyFullPlateOwner(List<Player> players) {
-    final owners = players.where((player) => player.plate.isFull).toList();
+  /// Returns the player in [players] whose plate is full, or `null` if no
+  /// one's is.
+  ///
+  /// Throws an [ArgumentError] if more than one player's plate is full.
+  static Player? _findWinner(List<Player> players) {
+    final winners = players.where((player) => player.plate.isFull).toList();
 
-    if (owners.length > 1) {
+    if (winners.length > 1) {
       throw ArgumentError.value(
         players,
         'players',
@@ -263,7 +265,7 @@ class GameController {
       );
     }
 
-    return owners.firstOrNull;
+    return winners.firstOrNull;
   }
 
   /// Checks that the game isn't over, since no more moves can be made once
