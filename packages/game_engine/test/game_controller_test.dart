@@ -93,19 +93,6 @@ void main() {
       );
 
       test(
-        'starts with the first player taking the first turn',
-        () {
-          final controller = GameController(
-            players: [alice, bob],
-            drawPile: [sausages],
-          );
-
-          expect(controller.currentPlayerIndex, 0);
-          expect(controller.currentPlayer, alice);
-        },
-      );
-
-      test(
         'holds the given draw and discard piles as-is',
         () {
           final controller = GameController(
@@ -206,7 +193,7 @@ void main() {
           );
 
           test(
-            'starts with the first player taking the first turn',
+            'is the first player at the start of a game',
             () {
               final controller = GameController.start([alice, bob]);
 
@@ -1200,7 +1187,7 @@ void main() {
       );
 
       group(
-        'turn order',
+        'currentPlayer',
         () {
           /// Draws the top card of the draw pile and discards it, which every
           /// player can do while their plate holds a spoiled card in every
@@ -1224,6 +1211,19 @@ void main() {
                     ),
                   ),
               ];
+
+          test(
+            'is the first player at the start of a game',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.currentPlayerIndex, 0);
+              expect(controller.currentPlayer, alice);
+            },
+          );
 
           for (final count in [
             GameController.minPlayers,
