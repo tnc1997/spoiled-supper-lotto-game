@@ -255,13 +255,13 @@ void main() {
           await pumpCard(tester, milk);
           final normal = tester.getRect(find.text('Milk')).height;
 
-          tester.platformDispatcher.textScaleFactorTestValue = 1.25;
+          tester.platformDispatcher.textScaleFactorTestValue = 1.2;
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
           await pumpCard(tester, milk);
           final larger = tester.getRect(find.text('Milk')).height;
 
           // The test font rounds line heights to whole pixels.
-          expect(larger, closeTo(normal * 1.25, 1));
+          expect(larger, closeTo(normal * 1.2, 1));
         },
       );
 

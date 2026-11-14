@@ -49,12 +49,6 @@ class PlaceholderCard extends StatelessWidget {
     final border = base.withLightness(0.35).toColor();
     final foreground = base.withLightness(0.2).toColor();
 
-    final caption = textTheme.labelSmall?.copyWith(
-      color: foreground,
-      fontSize: 9,
-      fontWeight: FontWeight.w600,
-    );
-
     return Semantics(
       container: true,
       excludeSemantics: true,
@@ -84,18 +78,20 @@ class PlaceholderCard extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_isSpoiled) Text('SPOILED', style: caption),
+                  if (_isSpoiled)
+                    Text(
+                      'SPOILED',
+                      style: textTheme.labelSmall?.copyWith(color: foreground),
+                    ),
                   Text(
                     card.name,
                     textAlign: TextAlign.center,
-                    style: textTheme.titleMedium?.copyWith(
-                      color: foreground,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: 1.1,
-                    ),
+                    style: textTheme.titleMedium?.copyWith(color: foreground),
                   ),
-                  Text(card.category.label, style: caption),
+                  Text(
+                    card.category.label,
+                    style: textTheme.labelSmall?.copyWith(color: foreground),
+                  ),
                 ],
               ),
             ),
