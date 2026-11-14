@@ -779,6 +779,42 @@ void main() {
               expect(controller.discardPile, isEmpty);
             },
           );
+
+          test(
+            'throws once a player has won',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: fishFingers,
+              );
+
+              expect(controller.placeDrawnCard, throwsStateError);
+              expect(controller.drawnCard, fishFingers);
+              expect(alice.plate[Category.main], isNull);
+              expect(controller.winner, bob);
+            },
+          );
+
+          test(
+            'does not change the winner if another plate is filled after',
+            () {
+              fillAllButMain(alice);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: sausages,
+              );
+              controller.placeDrawnCard();
+
+              fillAllButMain(bob);
+              bob.plate.place(fishFingers);
+
+              expect(controller.winner, alice);
+            },
+          );
         },
       );
 
@@ -937,6 +973,24 @@ void main() {
               expect(controller.discardPile, isEmpty);
             },
           );
+
+          test(
+            'throws once a player has won',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: sausages,
+              );
+
+              expect(controller.discardDrawnCard, throwsStateError);
+              expect(controller.drawnCard, sausages);
+              expect(controller.discardPile, isEmpty);
+            },
+          );
         },
       );
 
@@ -1006,6 +1060,65 @@ void main() {
               );
 
               expect(controller.canDrawFromDrawPile, isFalse);
+            },
+          );
+        },
+      );
+
+      group(
+        'canDrawFromDiscardPile',
+        () {
+          test(
+            'is true if the discard pile has cards',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+              );
+
+              expect(controller.canDrawFromDiscardPile, isTrue);
+            },
+          );
+
+          test(
+            'is false if the discard pile is empty',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.canDrawFromDiscardPile, isFalse);
+            },
+          );
+
+          test(
+            'is false if a drawn card has not yet been played',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+                drawnCard: fishFingers,
+              );
+
+              expect(controller.canDrawFromDiscardPile, isFalse);
+            },
+          );
+
+          test(
+            'is false once a player has won',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [milk],
+              );
+
+              expect(controller.canDrawFromDiscardPile, isFalse);
             },
           );
         },
@@ -1141,6 +1254,21 @@ void main() {
               expect(controller.isGameOver, isTrue);
             },
           );
+
+          test(
+            'throws an ArgumentError if more than one plate is full',
+            () {
+              fillAllButMain(alice);
+              alice.plate.place(fishFingers);
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+
+              expect(
+                () => GameController(players: [alice, bob], drawPile: []),
+                throwsArgumentError,
+              );
+            },
+          );
         },
       );
 
@@ -1223,6 +1351,16 @@ void main() {
               expect(holding(fishBone).canPlaceDrawnCard, isTrue);
             },
           );
+
+          test(
+            'is false once a player has won',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+
+              expect(holding(fishFingers).canPlaceDrawnCard, isFalse);
+            },
+          );
         },
       );
 
@@ -1293,6 +1431,17 @@ void main() {
             "only uses the current player's plate",
             () {
               bob.plate.place(fishFingers);
+
+              expect(holding(sausages).canDiscardDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'is false once a player has won',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+              alice.plate.place(fishFingers);
 
               expect(holding(sausages).canDiscardDrawnCard, isFalse);
             },

@@ -21,6 +21,7 @@ class GameController {
   final List<Card> _discardPile;
   final int _currentPlayerIndex;
   Card? _drawnCard;
+  Player? _winner;
   final Random? _random;
 
   /// Holds the given state as-is, with the first player taking the first
@@ -28,9 +29,13 @@ class GameController {
   ///
   /// [players] are in turn order, and the top of each pile is its last
   /// card. [drawnCard] is a card the current player has already drawn and
-  /// not yet played. Pass a seeded [random] for reproducible reshuffles of
-  /// the discard pile. To set up a new game, use [GameController.start]
-  /// instead.
+  /// not yet played. A player whose plate is already full is the [winner],
+  /// so the game is over. Pass a seeded [random] for reproducible
+  /// reshuffles of the discard pile. To set up a new game, use
+  /// [GameController.start] instead.
+  ///
+  /// Throws an [ArgumentError] if more than one player's plate is full,
+  /// since a game can only have one winner.
   GameController({
     required List<Player> players,
     required List<Card> drawPile,
@@ -42,6 +47,7 @@ class GameController {
         _discardPile = List.of(discardPile),
         _currentPlayerIndex = 0,
         _drawnCard = drawnCard,
+        _winner = _onlyFullPlateOwner(players),
         _random = random;
 
   /// Sets up a new game for [players], in turn order, with the full deck
@@ -90,39 +96,39 @@ class GameController {
   /// if they haven't drawn one.
   Card? get drawnCard => _drawnCard;
 
-  /// The player whose plate is full, i.e. who has completed their meal and
-  /// won the game, or `null` if no one has won yet.
-  Player? get winner {
-    for (final player in _players) {
-      if (player.plate.isFull) {
-        return player;
-      }
-    }
-
-    return null;
-  }
+  /// The player who completed their meal and won the game, or `null` if
+  /// no one has won yet.
+  ///
+  /// This is recorded when [placeDrawnCard] fills the current player's
+  /// plate, and doesn't change once set, even if a plate is changed
+  /// directly.
+  Player? get winner => _winner;
 
   /// Whether the game has ended because a player has won, after which no
-  /// more cards can be drawn.
-  bool get isGameOver => winner != null;
+  /// more cards can be drawn, placed or discarded.
+  bool get isGameOver => _winner != null;
 
-  /// Whether [placeDrawnCard] can be called, i.e. a card has been drawn
-  /// and it's either a [CardType.standard] card or its slot on the current
-  /// player's plate is empty.
+  /// Whether [placeDrawnCard] can be called, i.e. the game isn't over, a
+  /// card has been drawn and it's either a [CardType.standard] card or its
+  /// slot on the current player's plate is empty.
   bool get canPlaceDrawnCard {
     final card = _drawnCard;
 
-    return card != null &&
+    return !isGameOver &&
+        card != null &&
         (card.type == CardType.standard ||
             currentPlayer.plate[card.category] == null);
   }
 
-  /// Whether [discardDrawnCard] can be called, i.e. a card has been drawn
-  /// and its slot on the current player's plate is filled.
+  /// Whether [discardDrawnCard] can be called, i.e. the game isn't over, a
+  /// card has been drawn and its slot on the current player's plate is
+  /// filled.
   bool get canDiscardDrawnCard {
     final card = _drawnCard;
 
-    return card != null && currentPlayer.plate[card.category] != null;
+    return !isGameOver &&
+        card != null &&
+        currentPlayer.plate[card.category] != null;
   }
 
   /// Whether [drawFromDrawPile] can be called, i.e. the game isn't over, no
@@ -132,6 +138,11 @@ class GameController {
       !isGameOver &&
       _drawnCard == null &&
       (_drawPile.isNotEmpty || _discardPile.isNotEmpty);
+
+  /// Whether [drawFromDiscardPile] can be called, i.e. the game isn't over,
+  /// no card has been drawn yet and the discard pile has cards in it.
+  bool get canDrawFromDiscardPile =>
+      !isGameOver && _drawnCard == null && _discardPile.isNotEmpty;
 
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
@@ -192,10 +203,11 @@ class GameController {
   /// card. If this completes their meal, they are the [winner] and the
   /// game is over.
   ///
-  /// Throws a [StateError] if no card has been drawn, or if the drawn card
-  /// is [CardType.spoiled] and the slot already has a card, since a spoiled
-  /// card can only go into an empty slot.
+  /// Throws a [StateError] if the game is over, if no card has been drawn,
+  /// or if the drawn card is [CardType.spoiled] and the slot already has a
+  /// card, since a spoiled card can only go into an empty slot.
   void placeDrawnCard() {
+    _requireGameNotOver();
     final card = _requireDrawnCard();
 
     if (!canPlaceDrawnCard) {
@@ -212,14 +224,20 @@ class GameController {
     }
 
     _drawnCard = null;
+
+    if (currentPlayer.plate.isFull) {
+      _winner = currentPlayer;
+    }
   }
 
   /// Puts the [drawnCard] on top of the discard pile, keeping the card
   /// already in the slot for its category on the current player's plate.
   ///
-  /// Throws a [StateError] if no card has been drawn, or if the slot for
-  /// its category is empty, since a card that fits must be placed.
+  /// Throws a [StateError] if the game is over, if no card has been drawn,
+  /// or if the slot for its category is empty, since a card that fits must
+  /// be placed.
   void discardDrawnCard() {
+    _requireGameNotOver();
     final card = _requireDrawnCard();
 
     if (!canDiscardDrawnCard) {
@@ -232,11 +250,29 @@ class GameController {
     _drawnCard = null;
   }
 
-  /// Checks that the game isn't over, since no more cards can be drawn
-  /// once a player has won.
+  /// Returns the only player in [players] whose plate is full, or `null` if
+  /// no one's is, checking that there aren't more than one.
+  static Player? _onlyFullPlateOwner(List<Player> players) {
+    final owners = players.where((player) => player.plate.isFull).toList();
+
+    if (owners.length > 1) {
+      throw ArgumentError.value(
+        players,
+        'players',
+        'Only one player can have a full plate',
+      );
+    }
+
+    return owners.firstOrNull;
+  }
+
+  /// Checks that the game isn't over, since no more moves can be made once
+  /// a player has won.
   void _requireGameNotOver() {
-    if (isGameOver) {
-      throw StateError('Cannot draw once ${winner!.name} has won the game');
+    final winner = _winner;
+
+    if (winner != null) {
+      throw StateError('The game is over because ${winner.name} has won');
     }
   }
 
