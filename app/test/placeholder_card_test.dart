@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:material_ui/material_ui.dart' hide Card;
@@ -32,7 +33,9 @@ void main() {
           MaterialApp(
             theme: ThemeData(
               textTheme: const TextTheme(
-                labelSmall: TextStyle(fontFamily: 'Fredoka'),
+                // Smaller than the default 11, since every letter of the
+                // square test font is much wider than Fredoka's.
+                labelSmall: TextStyle(fontFamily: 'Fredoka', fontSize: 8),
                 titleMedium: TextStyle(fontFamily: 'Fredoka'),
               ),
             ),
@@ -84,7 +87,14 @@ void main() {
         (tester) async {
           await pumpCard(tester, sausages);
 
-          expect(find.text('SPOILED'), findsNothing);
+          final tag = tester.widget<Visibility>(
+            find.ancestor(
+              of: find.text('SPOILED'),
+              matching: find.byType(Visibility),
+            ),
+          );
+
+          expect(tag.visible, isFalse);
         },
       );
 
@@ -219,7 +229,60 @@ void main() {
       );
 
       testWidgets(
-        'keeps a long name on the card at a large text size',
+        'keeps every line of every card on the card at a large text size',
+        (tester) async {
+          tester.platformDispatcher.textScaleFactorTestValue = 3;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+          final offCard = <String>[];
+          for (final card in buildDeck()) {
+            await pumpCard(tester, card, width: 100);
+
+            final bounds = tester.getRect(find.byType(PlaceholderCard));
+            for (final element in find.byType(Text).evaluate()) {
+              final rect = tester.getRect(find.byWidget(element.widget));
+              if (bounds.expandToInclude(rect) != bounds) {
+                offCard.add('${card.name}: ${(element.widget as Text).data}');
+              }
+            }
+          }
+
+          expect(offCard, isEmpty);
+        },
+      );
+
+      testWidgets(
+        'never splits a word across lines at a large text size',
+        (tester) async {
+          tester.platformDispatcher.textScaleFactorTestValue = 3;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+          final split = <String>[];
+          for (final card in buildDeck()) {
+            await pumpCard(tester, card, width: 100);
+
+            for (final paragraph in tester.renderObjectList<RenderParagraph>(
+              find.byType(RichText),
+            )) {
+              final text = paragraph.text.toPlainText();
+              final lines = paragraph
+                  .getBoxesForSelection(
+                    TextSelection(baseOffset: 0, extentOffset: text.length),
+                  )
+                  .map((box) => box.top)
+                  .toSet();
+              if (lines.length > 1) {
+                split.add('${card.name}: $text');
+              }
+            }
+          }
+
+          expect(split, isEmpty);
+        },
+      );
+
+      testWidgets(
+        'keeps the name larger than the category at a large text size',
         (tester) async {
           tester.platformDispatcher.textScaleFactorTestValue = 3;
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -227,18 +290,77 @@ void main() {
           await pumpCard(
             tester,
             const Card(
-              id: '3',
-              type: CardType.spoiled,
-              category: Category.carbohydrate,
-              name: 'Potato Peelings',
+              id: '6',
+              type: CardType.standard,
+              category: Category.dessert,
+              name: 'Strawberries',
             ),
-            width: 100,
           );
 
-          final card = tester.getRect(find.byType(PlaceholderCard));
-          final name = tester.getRect(find.text('Potato Peelings'));
+          expect(
+            tester.getRect(find.text('Strawberries')).height,
+            greaterThan(tester.getRect(find.text('Dessert')).height),
+          );
+        },
+      );
 
-          expect(card.expandToInclude(name), card);
+      testWidgets(
+        'puts the Spoiled tag at the top of the card',
+        (tester) async {
+          await pumpCard(tester, fishBone);
+
+          // The card is laid out 100 wide with 8 padding, shown 200 wide.
+          expect(
+            tester.getRect(find.text('SPOILED')).top,
+            closeTo(tester.getRect(find.byType(PlaceholderCard)).top + 16, 0.5),
+          );
+        },
+      );
+
+      testWidgets(
+        'puts the category at the bottom of the card',
+        (tester) async {
+          await pumpCard(tester, fishBone);
+
+          expect(
+            tester.getRect(find.text('Main')).bottom,
+            closeTo(
+              tester.getRect(find.byType(PlaceholderCard)).bottom - 16,
+              0.5,
+            ),
+          );
+        },
+      );
+
+      testWidgets(
+        'centres the name of a standard card on the card',
+        (tester) async {
+          await pumpCard(tester, sausages);
+
+          expect(
+            tester.getCenter(find.text('Sausages')).dy,
+            closeTo(tester.getCenter(find.byType(PlaceholderCard)).dy, 0.5),
+          );
+        },
+      );
+
+      testWidgets(
+        'shows each word of the name on its own line',
+        (tester) async {
+          await pumpCard(
+            tester,
+            const Card(
+              id: '5',
+              type: CardType.standard,
+              category: Category.main,
+              name: 'Fish Fingers',
+            ),
+          );
+
+          expect(
+            [find.text('Fish'), find.text('Fingers')],
+            everyElement(findsOneWidget),
+          );
         },
       );
 
