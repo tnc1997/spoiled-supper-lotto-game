@@ -5,15 +5,20 @@ void main() {
   group(
     'CardType',
     () {
-      test(
-        'has one value per card type',
+      group(
+        'values',
         () {
-          expect(
-            CardType.values,
-            [
-              CardType.standard,
-              CardType.spoiled,
-            ],
+          test(
+            'has one value per card type',
+            () {
+              expect(
+                CardType.values,
+                [
+                  CardType.standard,
+                  CardType.spoiled,
+                ],
+              );
+            },
           );
         },
       );
