@@ -19,7 +19,7 @@ class GameController {
   final List<Player> _players;
   final List<Card> _drawPile;
   final List<Card> _discardPile;
-  final int _currentPlayerIndex;
+  int _currentPlayerIndex;
   Card? _drawnCard;
   Player? _winner;
   final Random? _random;
@@ -201,7 +201,8 @@ class GameController {
   /// drawn food card instead, so the card it replaces goes on top of the
   /// discard pile. Either way, the current player no longer holds a drawn
   /// card. If this completes their meal, they are the [winner] and the
-  /// game is over.
+  /// game is over. Otherwise, their turn ends and the next player's turn
+  /// begins.
   ///
   /// Throws a [StateError] if the game is over, if no card has been drawn,
   /// or if the drawn card is [CardType.spoiled] and the slot already has a
@@ -227,11 +228,15 @@ class GameController {
 
     if (currentPlayer.plate.isFull) {
       _winner = currentPlayer;
+    } else {
+      _endTurn();
     }
   }
 
   /// Puts the [drawnCard] on top of the discard pile, keeping the card
   /// already in the slot for its category on the current player's plate.
+  /// The current player's turn then ends and the next player's turn
+  /// begins.
   ///
   /// Throws a [StateError] if the game is over, if no card has been drawn,
   /// or if the slot for its category is empty, since a card that fits must
@@ -248,6 +253,13 @@ class GameController {
 
     _discardPile.add(card);
     _drawnCard = null;
+    _endTurn();
+  }
+
+  /// Passes the turn to the next player in turn order, going back to the
+  /// first player after the last.
+  void _endTurn() {
+    _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
   }
 
   /// Returns the player in [players] whose plate is full, or `null` if no

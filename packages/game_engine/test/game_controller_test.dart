@@ -682,7 +682,7 @@ void main() {
           );
 
           test(
-            'does not change the draw pile or the current player',
+            'does not change the draw pile',
             () {
               final controller = GameController(
                 players: [alice, bob],
@@ -693,6 +693,52 @@ void main() {
               controller.placeDrawnCard();
 
               expect(controller.drawPile, [milk]);
+            },
+          );
+
+          test(
+            "ends the current player's turn",
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(controller.currentPlayer, bob);
+            },
+          );
+
+          test(
+            "does not end the current player's turn if they win",
+            () {
+              fillAllButMain(alice);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(controller.winner, alice);
+              expect(controller.currentPlayer, alice);
+            },
+          );
+
+          test(
+            "does not end the current player's turn if it throws",
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: fishBone,
+              );
+
+              expect(controller.placeDrawnCard, throwsStateError);
               expect(controller.currentPlayer, alice);
             },
           );
@@ -841,7 +887,7 @@ void main() {
           );
 
           test(
-            'does not change the draw pile or the current player',
+            'does not change the draw pile',
             () {
               alice.plate.place(fishFingers);
               final controller = GameController(
@@ -853,6 +899,35 @@ void main() {
               controller.discardDrawnCard();
 
               expect(controller.drawPile, [milk]);
+            },
+          );
+
+          test(
+            "ends the current player's turn",
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              controller.discardDrawnCard();
+
+              expect(controller.currentPlayer, bob);
+            },
+          );
+
+          test(
+            "does not end the current player's turn if it throws",
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [milk],
+                drawnCard: sausages,
+              );
+
+              expect(controller.discardDrawnCard, throwsStateError);
               expect(controller.currentPlayer, alice);
             },
           );
@@ -1119,6 +1194,101 @@ void main() {
               );
 
               expect(controller.canDrawFromDiscardPile, isFalse);
+            },
+          );
+        },
+      );
+
+      group(
+        'turn order',
+        () {
+          /// Draws the top card of the draw pile and discards it, which every
+          /// player can do while their plate holds a spoiled card in every
+          /// slot.
+          void takeTurn(GameController controller) {
+            controller
+              ..drawFromDrawPile()
+              ..discardDrawnCard();
+          }
+
+          List<Player> spoiledPlayersOf(int count) => [
+                for (var i = 0; i < count; i++)
+                  Player(
+                    name: 'Player $i',
+                    plate: Plate(
+                      dessert: fishBone,
+                      vegetable: fishBone,
+                      main: fishBone,
+                      carbohydrate: fishBone,
+                      drink: fishBone,
+                    ),
+                  ),
+              ];
+
+          for (final count in [
+            GameController.minPlayers,
+            3,
+            GameController.maxPlayers,
+          ]) {
+            test(
+              'passes the turn to each of $count players in order and '
+              'back to the first',
+              () {
+                final players = spoiledPlayersOf(count);
+                final controller = GameController(
+                  players: players,
+                  drawPile: List.filled(count + 1, leatherBoot),
+                );
+
+                final order = <Player>[controller.currentPlayer];
+
+                for (var i = 0; i < count; i++) {
+                  takeTurn(controller);
+                  order.add(controller.currentPlayer);
+                }
+
+                expect(order, [...players, players.first]);
+                expect(controller.currentPlayerIndex, 0);
+              },
+            );
+          }
+
+          test(
+            'does not pass the turn when a card is drawn',
+            () {
+              alice.plate.place(fishFingers);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+              );
+
+              controller.drawFromDrawPile();
+              expect(controller.currentPlayer, alice);
+
+              controller.discardDrawnCard();
+              controller.drawFromDiscardPile();
+              expect(controller.currentPlayer, bob);
+            },
+          );
+
+          test(
+            "uses the next player's plate once the turn has passed",
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers, sausages],
+              );
+
+              controller
+                ..drawFromDrawPile()
+                ..placeDrawnCard()
+                ..drawFromDrawPile()
+                ..placeDrawnCard();
+
+              expect(alice.plate[Category.main], sausages);
+              expect(bob.plate[Category.main], fishFingers);
+              expect(controller.currentPlayer, alice);
             },
           );
         },
