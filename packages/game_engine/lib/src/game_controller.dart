@@ -90,6 +90,22 @@ class GameController {
   /// if they haven't drawn one.
   Card? get drawnCard => _drawnCard;
 
+  /// The player whose plate is full, i.e. who has completed their meal and
+  /// won the game, or `null` if no one has won yet.
+  Player? get winner {
+    for (final player in _players) {
+      if (player.plate.isFull) {
+        return player;
+      }
+    }
+
+    return null;
+  }
+
+  /// Whether the game has ended because a player has won, after which no
+  /// more cards can be drawn.
+  bool get isGameOver => winner != null;
+
   /// Whether [placeDrawnCard] can be called, i.e. a card has been drawn
   /// and it's either a [CardType.standard] card or its slot on the current
   /// player's plate is empty.
@@ -109,10 +125,13 @@ class GameController {
     return card != null && currentPlayer.plate[card.category] != null;
   }
 
-  /// Whether [drawFromDrawPile] can be called, i.e. no card has been drawn
-  /// yet and either the draw pile or the discard pile has cards in it.
+  /// Whether [drawFromDrawPile] can be called, i.e. the game isn't over, no
+  /// card has been drawn yet and either the draw pile or the discard pile
+  /// has cards in it.
   bool get canDrawFromDrawPile =>
-      _drawnCard == null && (_drawPile.isNotEmpty || _discardPile.isNotEmpty);
+      !isGameOver &&
+      _drawnCard == null &&
+      (_drawPile.isNotEmpty || _discardPile.isNotEmpty);
 
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
@@ -120,9 +139,12 @@ class GameController {
   /// If the draw pile is empty, the whole discard pile, including its top
   /// card, is first shuffled into it, leaving the discard pile empty.
   ///
-  /// Throws a [StateError] if a card has already been drawn and not yet
-  /// played, or if both the draw pile and the discard pile are empty.
+  /// Throws a [StateError] if the game is over, if a card has already been
+  /// drawn and not yet played, or if both the draw pile and the discard
+  /// pile are empty.
   void drawFromDrawPile() {
+    _requireGameNotOver();
+
     if (_drawnCard != null) {
       throw StateError('A drawn card must be played before drawing another');
     }
@@ -145,9 +167,11 @@ class GameController {
   /// Removes the top card from the discard pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
-  /// Throws a [StateError] if a card has already been drawn and not yet
-  /// played, or if the discard pile is empty.
+  /// Throws a [StateError] if the game is over, if a card has already been
+  /// drawn and not yet played, or if the discard pile is empty.
   void drawFromDiscardPile() {
+    _requireGameNotOver();
+
     if (_drawnCard != null) {
       throw StateError('A drawn card must be played before drawing another');
     }
@@ -165,7 +189,8 @@ class GameController {
   /// If the slot already has a card, the player has chosen to keep the
   /// drawn food card instead, so the card it replaces goes on top of the
   /// discard pile. Either way, the current player no longer holds a drawn
-  /// card.
+  /// card. If this completes their meal, they are the [winner] and the
+  /// game is over.
   ///
   /// Throws a [StateError] if no card has been drawn, or if the drawn card
   /// is [CardType.spoiled] and the slot already has a card, since a spoiled
@@ -205,6 +230,14 @@ class GameController {
 
     _discardPile.add(card);
     _drawnCard = null;
+  }
+
+  /// Checks that the game isn't over, since no more cards can be drawn
+  /// once a player has won.
+  void _requireGameNotOver() {
+    if (isGameOver) {
+      throw StateError('Cannot draw once ${winner!.name} has won the game');
+    }
   }
 
   /// Returns the [drawnCard], checking that one has been drawn.

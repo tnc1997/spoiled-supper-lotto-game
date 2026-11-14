@@ -37,6 +37,24 @@ void main() {
         category: Category.main,
         name: 'Leather Boot',
       );
+      const jelly = Card(
+        id: '6',
+        type: CardType.standard,
+        category: Category.dessert,
+        name: 'Jelly',
+      );
+      const peas = Card(
+        id: '7',
+        type: CardType.standard,
+        category: Category.vegetable,
+        name: 'Peas',
+      );
+      const chips = Card(
+        id: '8',
+        type: CardType.standard,
+        category: Category.carbohydrate,
+        name: 'Chips',
+      );
 
       late Player alice;
       late Player bob;
@@ -47,6 +65,16 @@ void main() {
           bob = Player(name: 'Bob');
         },
       );
+
+      /// Fills every slot of [player]'s plate except the main with a food
+      /// card.
+      void fillAllButMain(Player player) {
+        player.plate
+          ..place(jelly)
+          ..place(peas)
+          ..place(chips)
+          ..place(milk);
+      }
 
       List<Player> playersOf(int count) => [
             for (var i = 0; i < count; i++) Player(name: 'Player $i'),
@@ -460,6 +488,23 @@ void main() {
               expect(controller.drawnCard, isNull);
             },
           );
+
+          test(
+            'throws once a player has won',
+            () {
+              fillAllButMain(alice);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+                drawnCard: sausages,
+              );
+              controller.placeDrawnCard();
+
+              expect(controller.drawFromDrawPile, throwsStateError);
+              expect(controller.drawnCard, isNull);
+              expect(controller.drawPile, [fishFingers]);
+            },
+          );
         },
       );
 
@@ -555,6 +600,25 @@ void main() {
               expect(controller.drawFromDiscardPile, throwsStateError);
               expect(controller.drawnCard, isNull);
               expect(controller.drawPile, [sausages]);
+            },
+          );
+
+          test(
+            'throws once a player has won',
+            () {
+              fillAllButMain(alice);
+              alice.plate.place(fishBone);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                drawnCard: sausages,
+              );
+              controller.placeDrawnCard();
+
+              expect(controller.discardPile, [fishBone]);
+              expect(controller.drawFromDiscardPile, throwsStateError);
+              expect(controller.drawnCard, isNull);
+              expect(controller.discardPile, [fishBone]);
             },
           );
         },
@@ -927,6 +991,154 @@ void main() {
               );
 
               expect(controller.canDrawFromDrawPile, isFalse);
+            },
+          );
+
+          test(
+            'is false once a player has won',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+                discardPile: [milk],
+              );
+
+              expect(controller.canDrawFromDrawPile, isFalse);
+            },
+          );
+        },
+      );
+
+      group(
+        'winner',
+        () {
+          test(
+            'is null at the start of a game',
+            () {
+              final controller = GameController.start(
+                [alice, bob],
+                random: Random(0),
+              );
+
+              expect(controller.winner, isNull);
+              expect(controller.isGameOver, isFalse);
+            },
+          );
+
+          test(
+            'is null while a plate is missing a card',
+            () {
+              fillAllButMain(alice);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.winner, isNull);
+              expect(controller.isGameOver, isFalse);
+            },
+          );
+
+          test(
+            'is null while a full plate has a spoiled card',
+            () {
+              fillAllButMain(alice);
+              alice.plate.place(fishBone);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.winner, isNull);
+              expect(controller.isGameOver, isFalse);
+            },
+          );
+
+          test(
+            'is the current player once placing a card completes their meal',
+            () {
+              fillAllButMain(alice);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(controller.winner, alice);
+              expect(controller.isGameOver, isTrue);
+            },
+          );
+
+          test(
+            'is the current player once a food card replaces their last '
+            'spoiled card',
+            () {
+              fillAllButMain(alice);
+              alice.plate.place(fishBone);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+                drawnCard: sausages,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(controller.winner, alice);
+              expect(controller.discardPile, [fishBone]);
+            },
+          );
+
+          test(
+            'is null once a spoiled card fills the last empty slot',
+            () {
+              fillAllButMain(alice);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+                drawnCard: fishBone,
+              );
+
+              controller.placeDrawnCard();
+
+              expect(controller.winner, isNull);
+              expect(controller.isGameOver, isFalse);
+            },
+          );
+
+          test(
+            'is null once a drawn card is discarded',
+            () {
+              fillAllButMain(alice);
+              alice.plate.place(fishBone);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+                drawnCard: leatherBoot,
+              );
+
+              controller.discardDrawnCard();
+
+              expect(controller.winner, isNull);
+              expect(controller.isGameOver, isFalse);
+            },
+          );
+
+          test(
+            'is a player other than the current one if their plate is full',
+            () {
+              fillAllButMain(bob);
+              bob.plate.place(sausages);
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [fishFingers],
+              );
+
+              expect(controller.winner, bob);
+              expect(controller.isGameOver, isTrue);
             },
           );
         },
