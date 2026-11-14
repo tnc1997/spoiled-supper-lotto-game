@@ -1,14 +1,13 @@
 import 'card.dart';
 import 'card_type.dart';
 import 'category.dart';
-import 'game_controller.dart';
 
 /// A read-only view of a player's place-setting board, with one slot per
 /// [Category].
 ///
 /// Like `UnmodifiableListView`, this reflects later changes to the map it
 /// wraps, but can't be used to change it. A game's plates are changed only
-/// by its [GameController], so read them from the game each time they're
+/// by its `GameController`, so read them from the game each time they're
 /// needed, such as on each build, rather than holding on to them.
 class Plate {
   final Map<Category, Card> _cards;

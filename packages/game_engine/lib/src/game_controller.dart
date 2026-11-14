@@ -119,7 +119,8 @@ class GameController implements Game {
   /// reshuffles of the discard pile.
   ///
   /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
-  /// than [maxPlayers] players, as the [GameController.new] constructor
+  /// than [maxPlayers] players, or if the same [Player] instance is in
+  /// [players] more than once, as the [GameController.new] constructor
   /// does.
   factory GameController.start(
     List<Player> players, {
@@ -432,7 +433,7 @@ class GameController implements Game {
 
       if (winnerIndex != null) {
         throw ArgumentError.value(
-          seats.map((seat) => seat.player.name).toList(),
+          [seats[winnerIndex].player.name, seats[i].player.name],
           'plates',
           'Only one player can have a full plate',
         );

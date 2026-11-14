@@ -622,9 +622,11 @@ void main() {
                 random: Random(42),
               );
 
-              // Keep each plate as it is wherever the rules allow, so that
-              // no one completes a meal before the draw pile runs out.
-              while (controller.drawPile.isNotEmpty) {
+              // A drawn card has to be placed in an empty slot, so whether
+              // anyone completes a meal before the draw pile runs out
+              // depends on the seed. Random(42) happens not to, which is
+              // checked so that a changed seed or deck fails clearly.
+              while (controller.drawPile.isNotEmpty && !controller.isGameOver) {
                 controller.drawFromDrawPile();
 
                 if (controller.canDiscardDrawnCard) {
@@ -633,6 +635,12 @@ void main() {
                   controller.placeDrawnCard();
                 }
               }
+
+              expect(
+                controller.isGameOver,
+                isFalse,
+                reason: 'The seed must not let anyone win before a reshuffle',
+              );
 
               final discarded = List.of(controller.discardPile);
               controller.drawFromDrawPile();
@@ -683,7 +691,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain]
+                  alice: [...allButMain],
                 },
                 drawPile: [fishFingers],
                 drawnCard: sausages,
@@ -799,7 +807,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain, fishBone]
+                  alice: [...allButMain, fishBone],
                 },
                 drawPile: [],
                 drawnCard: sausages,
@@ -841,7 +849,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [],
                 discardPile: [milk],
@@ -862,7 +870,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [fishFingers]
+                  bob: [fishFingers],
                 },
                 drawPile: [],
                 drawnCard: sausages,
@@ -912,7 +920,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain]
+                  alice: [...allButMain],
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
@@ -931,7 +939,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [milk],
                 drawnCard: fishBone,
@@ -965,7 +973,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishBone]
+                  alice: [fishBone],
                 },
                 drawPile: [],
                 drawnCard: sausages,
@@ -985,7 +993,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [],
                 drawnCard: fishBone,
@@ -1004,7 +1012,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [leatherBoot]
+                  alice: [leatherBoot],
                 },
                 drawPile: [],
                 drawnCard: fishBone,
@@ -1037,7 +1045,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [...allButMain, sausages]
+                  bob: [...allButMain, sausages],
                 },
                 drawPile: [],
                 drawnCard: fishFingers,
@@ -1061,7 +1069,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [],
                 discardPile: [milk],
@@ -1082,7 +1090,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
@@ -1100,7 +1108,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
@@ -1132,7 +1140,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [milk]
+                  alice: [milk],
                 },
                 drawPile: [],
                 drawnCard: sausages,
@@ -1151,7 +1159,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [fishFingers]
+                  bob: [fishFingers],
                 },
                 drawPile: [],
                 drawnCard: sausages,
@@ -1168,7 +1176,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [],
                 discardPile: [milk],
@@ -1189,7 +1197,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [leatherBoot]
+                  alice: [leatherBoot],
                 },
                 drawPile: [],
                 drawnCard: fishBone,
@@ -1225,7 +1233,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishBone]
+                  alice: [fishBone],
                 },
                 drawPile: [],
                 drawnCard: sausages,
@@ -1245,7 +1253,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [sausages],
               );
@@ -1262,7 +1270,7 @@ void main() {
                 players: [alice, bob],
                 plates: {
                   bob: [...allButMain, sausages],
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [],
                 drawnCard: sausages,
@@ -1336,7 +1344,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [...allButMain, sausages]
+                  bob: [...allButMain, sausages],
                 },
                 drawPile: [fishFingers],
                 discardPile: [milk],
@@ -1396,7 +1404,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [...allButMain, sausages]
+                  bob: [...allButMain, sausages],
                 },
                 drawPile: [],
                 discardPile: [milk],
@@ -1469,7 +1477,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [...allButMain, sausages]
+                  bob: [...allButMain, sausages],
                 },
                 drawPile: [fishFingers],
               );
@@ -1486,7 +1494,7 @@ void main() {
                 () => GameController(
                   players: [alice, bob],
                   plates: {
-                    bob: [...allButMain, sausages]
+                    bob: [...allButMain, sausages],
                   },
                   drawPile: [fishFingers],
                   currentPlayerIndex: 0,
@@ -1531,7 +1539,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [sausages],
                 discardPile: [milk],
@@ -1624,7 +1632,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
@@ -1644,7 +1652,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [...allButMain]
+                  bob: [...allButMain],
                 },
                 drawPile: [fishFingers, sausages],
               );
@@ -1667,7 +1675,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
@@ -1706,7 +1714,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain]
+                  alice: [...allButMain],
                 },
                 drawPile: [sausages],
               );
@@ -1722,7 +1730,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain, fishBone]
+                  alice: [...allButMain, fishBone],
                 },
                 drawPile: [sausages],
               );
@@ -1738,7 +1746,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain]
+                  alice: [...allButMain],
                 },
                 drawPile: [fishFingers],
                 drawnCard: sausages,
@@ -1758,7 +1766,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain, fishBone]
+                  alice: [...allButMain, fishBone],
                 },
                 drawPile: [fishFingers],
                 drawnCard: sausages,
@@ -1777,7 +1785,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain]
+                  alice: [...allButMain],
                 },
                 drawPile: [fishFingers],
                 drawnCard: fishBone,
@@ -1796,7 +1804,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [...allButMain, fishBone]
+                  alice: [...allButMain, fishBone],
                 },
                 drawPile: [fishFingers],
                 drawnCard: leatherBoot,
@@ -1815,7 +1823,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  bob: [...allButMain, sausages]
+                  bob: [...allButMain, sausages],
                 },
                 drawPile: [fishFingers],
               );
@@ -1830,13 +1838,14 @@ void main() {
             'throws an ArgumentError if more than one plate is full',
             () {
               expect(
-                () => GameController(players: [
-                  alice,
-                  bob
-                ], plates: {
-                  alice: [...allButMain, fishFingers],
-                  bob: [...allButMain, sausages]
-                }, drawPile: []),
+                () => GameController(
+                  players: [alice, bob],
+                  plates: {
+                    alice: [...allButMain, fishFingers],
+                    bob: [...allButMain, sausages],
+                  },
+                  drawPile: [],
+                ),
                 throwsArgumentError,
               );
             },
@@ -1880,22 +1889,28 @@ void main() {
           test(
             'is true for a food card if its slot is filled',
             () {
-              expect(
-                  holding(sausages, plates: {
-                    alice: [fishFingers]
-                  }).canPlaceDrawnCard,
-                  isTrue);
+              final controller = holding(
+                sausages,
+                plates: {
+                  alice: [fishFingers],
+                },
+              );
+
+              expect(controller.canPlaceDrawnCard, isTrue);
             },
           );
 
           test(
             'is true for a food card if its slot has a spoiled card',
             () {
-              expect(
-                  holding(sausages, plates: {
-                    alice: [leatherBoot]
-                  }).canPlaceDrawnCard,
-                  isTrue);
+              final controller = holding(
+                sausages,
+                plates: {
+                  alice: [leatherBoot],
+                },
+              );
+
+              expect(controller.canPlaceDrawnCard, isTrue);
             },
           );
 
@@ -1909,44 +1924,56 @@ void main() {
           test(
             'is false for a spoiled card if its slot has a food card',
             () {
-              expect(
-                  holding(fishBone, plates: {
-                    alice: [fishFingers]
-                  }).canPlaceDrawnCard,
-                  isFalse);
+              final controller = holding(
+                fishBone,
+                plates: {
+                  alice: [fishFingers],
+                },
+              );
+
+              expect(controller.canPlaceDrawnCard, isFalse);
             },
           );
 
           test(
             'is false for a spoiled card if its slot has a spoiled card',
             () {
-              expect(
-                  holding(fishBone, plates: {
-                    alice: [leatherBoot]
-                  }).canPlaceDrawnCard,
-                  isFalse);
+              final controller = holding(
+                fishBone,
+                plates: {
+                  alice: [leatherBoot],
+                },
+              );
+
+              expect(controller.canPlaceDrawnCard, isFalse);
             },
           );
 
           test(
             "only uses the current player's plate",
             () {
-              expect(
-                  holding(fishBone, plates: {
-                    bob: [fishFingers]
-                  }).canPlaceDrawnCard,
-                  isTrue);
+              final controller = holding(
+                fishBone,
+                plates: {
+                  bob: [fishFingers],
+                },
+              );
+
+              expect(controller.canPlaceDrawnCard, isTrue);
             },
           );
 
           test(
             'is false once a player has won',
             () {
-              expect(
-                  holding(fishFingers, plates: {
-                    bob: [...allButMain, sausages]
-                  }).canPlaceDrawnCard,
-                  isFalse);
+              final controller = holding(
+                fishFingers,
+                plates: {
+                  bob: [...allButMain, sausages],
+                },
+              );
+
+              expect(controller.canPlaceDrawnCard, isFalse);
             },
           );
         },
@@ -1972,7 +1999,7 @@ void main() {
               final controller = GameController(
                 players: [alice, bob],
                 plates: {
-                  alice: [fishFingers]
+                  alice: [fishFingers],
                 },
                 drawPile: [sausages],
               );
@@ -1998,56 +2025,71 @@ void main() {
           test(
             'is true for a food card if its slot is filled',
             () {
-              expect(
-                  holding(sausages, plates: {
-                    alice: [fishFingers]
-                  }).canDiscardDrawnCard,
-                  isTrue);
+              final controller = holding(
+                sausages,
+                plates: {
+                  alice: [fishFingers],
+                },
+              );
+
+              expect(controller.canDiscardDrawnCard, isTrue);
             },
           );
 
           test(
             'is true for a food card if its slot has a spoiled card',
             () {
-              expect(
-                  holding(sausages, plates: {
-                    alice: [leatherBoot]
-                  }).canDiscardDrawnCard,
-                  isTrue);
+              final controller = holding(
+                sausages,
+                plates: {
+                  alice: [leatherBoot],
+                },
+              );
+
+              expect(controller.canDiscardDrawnCard, isTrue);
             },
           );
 
           test(
             'is true for a spoiled card if its slot is filled',
             () {
-              expect(
-                  holding(fishBone, plates: {
-                    alice: [fishFingers]
-                  }).canDiscardDrawnCard,
-                  isTrue);
+              final controller = holding(
+                fishBone,
+                plates: {
+                  alice: [fishFingers],
+                },
+              );
+
+              expect(controller.canDiscardDrawnCard, isTrue);
             },
           );
 
           test(
             "only uses the current player's plate",
             () {
-              expect(
-                  holding(sausages, plates: {
-                    bob: [fishFingers]
-                  }).canDiscardDrawnCard,
-                  isFalse);
+              final controller = holding(
+                sausages,
+                plates: {
+                  bob: [fishFingers],
+                },
+              );
+
+              expect(controller.canDiscardDrawnCard, isFalse);
             },
           );
 
           test(
             'is false once a player has won',
             () {
-              expect(
-                  holding(sausages, plates: {
-                    bob: [...allButMain, sausages],
-                    alice: [fishFingers]
-                  }).canDiscardDrawnCard,
-                  isFalse);
+              final controller = holding(
+                sausages,
+                plates: {
+                  bob: [...allButMain, sausages],
+                  alice: [fishFingers],
+                },
+              );
+
+              expect(controller.canDiscardDrawnCard, isFalse);
             },
           );
         },
