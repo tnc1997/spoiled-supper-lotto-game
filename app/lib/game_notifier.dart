@@ -17,6 +17,8 @@ class GameNotifier extends ChangeNotifier {
   /// controller, or listeners won't be notified.
   final GameController controller;
 
+  bool _isDisposed = false;
+
   GameNotifier(this.controller);
 
   /// Draws the top card of the draw pile, as
@@ -34,12 +36,21 @@ class GameNotifier extends ChangeNotifier {
   /// Discards the drawn card, as [GameController.discardDrawnCard] does.
   void discardDrawnCard() => _play(controller.discardDrawnCard);
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
   /// Makes [move] and, once it has succeeded, notifies the listeners.
   ///
-  /// In debug builds, asserts that the notifier hasn't been disposed before
-  /// making the move, so a move can't be made and then fail to notify.
+  /// Throws a [StateError] without making the move if the notifier has been
+  /// disposed, so a move can't be made and then fail to notify.
   void _play(VoidCallback move) {
-    assert(ChangeNotifier.debugAssertNotDisposed(this));
+    if (_isDisposed) {
+      throw StateError('Cannot make a move once the GameNotifier is disposed');
+    }
+
     move();
     notifyListeners();
   }

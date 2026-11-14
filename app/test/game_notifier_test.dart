@@ -37,6 +37,7 @@ void main() {
             discardPile: [fishFingers],
           );
           notifier = GameNotifier(controller);
+          addTearDown(notifier.dispose);
           notifications = [];
           notifier.addListener(
             () => notifications.add(
@@ -120,19 +121,29 @@ void main() {
       );
 
       test(
-        'does not notify listeners if a move throws',
+        'does not notify listeners or change the game if a move throws',
         () {
-          expect(notifier.placeDrawnCard, throwsStateError);
+          notifier.drawFromDrawPile();
+          notifications.clear();
+
+          expect(notifier.drawFromDrawPile, throwsStateError);
+          expect(notifier.drawFromDiscardPile, throwsStateError);
+          expect(notifier.discardDrawnCard, throwsStateError);
+
           expect(notifications, isEmpty);
+          expect(controller.drawnCard, sausages);
+          expect(controller.drawPile, [milk]);
+          expect(controller.discardPile, [fishFingers]);
+          expect(controller.currentPlayerIndex, 0);
         },
       );
 
       test(
-        'asserts before making a move once disposed',
+        'throws before making a move once disposed',
         () {
-          notifier.dispose();
+          final notifier = GameNotifier(controller)..dispose();
 
-          expect(notifier.drawFromDrawPile, throwsFlutterError);
+          expect(notifier.drawFromDrawPile, throwsStateError);
           expect(controller.drawnCard, isNull);
           expect(controller.drawPile, [milk, sausages]);
         },
