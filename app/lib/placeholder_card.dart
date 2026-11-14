@@ -48,7 +48,7 @@ class PlaceholderCard extends StatelessWidget {
 
     var baseColor = HSLColor.fromColor(card.category.color);
     if (_isSpoiled) {
-      baseColor = baseColor.withSaturation(baseColor.saturation * 0.6);
+      baseColor = baseColor.withSaturation(0.4);
     }
 
     final backgroundColor =
