@@ -7,6 +7,10 @@ import 'category_label.dart';
 /// The default, original artwork for a [card]: a plain card in its
 /// category's colour, with its name and category as text.
 ///
+/// Like the card images that can replace it, it is a plain rectangle with
+/// no border or rounded corners, so that the parent can frame both alike,
+/// e.g. with a shadow.
+///
 /// Spoiled cards use a muted version of the colour and are tagged
 /// "Spoiled", so they can be told apart without relying on colour alone.
 ///
@@ -23,8 +27,6 @@ class PlaceholderCard extends StatelessWidget {
   /// are cropped to (see `tools/crop-cards.sh`), so that a placeholder and
   /// an image take up the same space.
   static const size = Size(100, 160);
-
-  static const _borderWidth = 2.5;
 
   static const _padding = EdgeInsets.all(8);
 
@@ -47,7 +49,6 @@ class PlaceholderCard extends StatelessWidget {
 
     final backgroundColor =
         Color.lerp(Colors.white, baseColor.toColor(), 0.35)!;
-    final borderColor = baseColor.withLightness(0.35).toColor();
     final foregroundColor = baseColor.withLightness(0.2).toColor();
 
     return Semantics(
@@ -64,18 +65,13 @@ class PlaceholderCard extends StatelessWidget {
           width: size.width,
           height: size.height,
           padding: _padding,
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            border: Border.all(color: borderColor, width: _borderWidth),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          color: backgroundColor,
           // Shrinks the text only if it doesn't fit, e.g. at a large system
           // text scale.
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: SizedBox(
-              // The container's padding includes its border.
-              width: size.width - _padding.horizontal - 2 * _borderWidth,
+              width: size.width - _padding.horizontal,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

@@ -49,14 +49,14 @@ void main() {
 
       /// Returns the background colour of the [PlaceholderCard] on screen.
       Color? backgroundOf(WidgetTester tester) {
-        final box = tester.widget<DecoratedBox>(
+        final box = tester.widget<ColoredBox>(
           find.descendant(
             of: find.byType(PlaceholderCard),
-            matching: find.byType(DecoratedBox),
+            matching: find.byType(ColoredBox),
           ),
         );
 
-        return (box.decoration as BoxDecoration).color;
+        return box.color;
       }
 
       testWidgets(
