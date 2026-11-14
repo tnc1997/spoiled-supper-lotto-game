@@ -51,8 +51,7 @@ class PlaceholderCard extends StatelessWidget {
       baseColor = baseColor.withSaturation(baseColor.saturation * 0.6);
     }
 
-    final backgroundColor =
-        Color.lerp(Colors.white, baseColor.toColor(), 0.35)!;
+    final backgroundColor = baseColor.withLightness(0.8).toColor();
     final foregroundColor = baseColor.withLightness(0.2).toColor();
 
     final nameStyle = textTheme.titleSmall?.copyWith(color: foregroundColor);
