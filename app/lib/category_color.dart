@@ -6,10 +6,10 @@ import 'package:material_ui/material_ui.dart';
 extension CategoryColor on Category {
   /// The base colour for this category, chosen to hint at the food.
   Color get color => switch (this) {
-        Category.dessert => const Color(0xFFF48FB1),
-        Category.vegetable => const Color(0xFF81C784),
-        Category.main => const Color(0xFFE57373),
-        Category.carbohydrate => const Color(0xFFFFD54F),
-        Category.drink => const Color(0xFF64B5F6),
+        Category.dessert => Colors.pink,
+        Category.vegetable => Colors.green,
+        Category.main => Colors.purple,
+        Category.carbohydrate => Colors.yellow,
+        Category.drink => Colors.blue,
       };
 }
