@@ -1,27 +1,26 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
-
-/// Lets listeners be told whenever an object changes.
+/// The listeners to be told whenever an object changes.
 ///
-/// This is a pure Dart counterpart to Flutter's `ChangeNotifier`, so the
-/// engine can be listened to by the Flutter client and the server alike.
-mixin Notifier {
+/// An object keeps this privately and exposes only `addListener` and
+/// `removeListener`, so only the object itself can notify its listeners.
+/// This is internal to the engine and isn't exported, which keeps the
+/// engine free of dependencies, including Flutter's `ChangeNotifier`.
+class Listeners {
   final List<void Function()> _listeners = [];
 
-  /// Calls [listener] whenever this object changes.
+  /// Calls [listener] on every [notify].
   ///
   /// Adding the same listener more than once means it's called once per
   /// time it was added.
-  void addListener(void Function() listener) {
+  void add(void Function() listener) {
     _listeners.add(listener);
   }
 
-  /// Stops calling [listener] when this object changes, once for each time
-  /// it was added.
+  /// Stops calling [listener] on [notify], once for each time it was added.
   ///
   /// Does nothing if [listener] isn't listening.
-  void removeListener(void Function() listener) {
+  void remove(void Function() listener) {
     _listeners.remove(listener);
   }
 
@@ -32,8 +31,7 @@ mixin Notifier {
   /// listener is reported to the current [Zone] rather than rethrown, so
   /// the other listeners are still called and the change that's being
   /// notified isn't treated as having failed.
-  @protected
-  void notifyListeners() {
+  void notify() {
     for (final listener in List.of(_listeners)) {
       try {
         listener();

@@ -1,22 +1,18 @@
 import 'dart:async';
 
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/src/listeners.dart';
 import 'package:test/test.dart';
-
-class _Counter with Notifier {
-  void increment() => notifyListeners();
-}
 
 void main() {
   group(
-    'Notifier',
+    'Listeners',
     () {
-      late _Counter counter;
+      late Listeners listeners;
       late List<String> calls;
 
       setUp(
         () {
-          counter = _Counter();
+          listeners = Listeners();
           calls = [];
         },
       );
@@ -24,11 +20,11 @@ void main() {
       test(
         'calls each listener in the order they were added',
         () {
-          counter
-            ..addListener(() => calls.add('first'))
-            ..addListener(() => calls.add('second'));
+          listeners
+            ..add(() => calls.add('first'))
+            ..add(() => calls.add('second'));
 
-          counter.increment();
+          listeners.notify();
 
           expect(calls, ['first', 'second']);
         },
@@ -38,11 +34,11 @@ void main() {
         'calls a listener once for each time it was added',
         () {
           void listener() => calls.add('listener');
-          counter
-            ..addListener(listener)
-            ..addListener(listener);
+          listeners
+            ..add(listener)
+            ..add(listener);
 
-          counter.increment();
+          listeners.notify();
 
           expect(calls, ['listener', 'listener']);
         },
@@ -52,12 +48,12 @@ void main() {
         'stops calling a listener once for each time it was removed',
         () {
           void listener() => calls.add('listener');
-          counter
-            ..addListener(listener)
-            ..addListener(listener)
-            ..removeListener(listener);
+          listeners
+            ..add(listener)
+            ..add(listener)
+            ..remove(listener);
 
-          counter.increment();
+          listeners.notify();
 
           expect(calls, ['listener']);
         },
@@ -66,23 +62,23 @@ void main() {
       test(
         'does nothing when removing a listener that is not listening',
         () {
-          counter.removeListener(() {});
+          listeners.remove(() {});
 
-          expect(counter.increment, returnsNormally);
+          expect(listeners.notify, returnsNormally);
         },
       );
 
       test(
         'does not call listeners added while notifying until next time',
         () {
-          counter.addListener(
+          listeners.add(
             () {
               calls.add('first');
-              counter.addListener(() => calls.add('added'));
+              listeners.add(() => calls.add('added'));
             },
           );
 
-          counter.increment();
+          listeners.notify();
 
           expect(calls, ['first']);
         },
@@ -92,16 +88,16 @@ void main() {
         'still calls listeners removed while notifying until next time',
         () {
           void second() => calls.add('second');
-          counter
-            ..addListener(
+          listeners
+            ..add(
               () {
                 calls.add('first');
-                counter.removeListener(second);
+                listeners.remove(second);
               },
             )
-            ..addListener(second);
+            ..add(second);
 
-          counter.increment();
+          listeners.notify();
 
           expect(calls, ['first', 'second']);
         },
@@ -112,12 +108,12 @@ void main() {
         () {
           final errors = <Object>[];
           final error = StateError('listener failed');
-          counter
-            ..addListener(() => throw error)
-            ..addListener(() => calls.add('second'));
+          listeners
+            ..add(() => throw error)
+            ..add(() => calls.add('second'));
 
           runZonedGuarded(
-            counter.increment,
+            listeners.notify,
             (error, stackTrace) => errors.add(error),
           );
 

@@ -4,7 +4,7 @@ import 'dart:math';
 import 'card.dart';
 import 'card_type.dart';
 import 'deck.dart';
-import 'notifier.dart';
+import 'listeners.dart';
 import 'player.dart';
 import 'shuffle.dart';
 
@@ -15,7 +15,7 @@ import 'shuffle.dart';
 /// to [drawFromDrawPile], [drawFromDiscardPile], [placeDrawnCard] or
 /// [discardDrawnCard], and whenever a card is placed directly on one of
 /// the players' plates. A move that throws doesn't notify them.
-class GameController with Notifier {
+class GameController {
   /// The fewest players a game can be started with.
   static const minPlayers = 2;
 
@@ -31,6 +31,7 @@ class GameController with Notifier {
   Card? _drawnCard;
   final Random? _random;
   bool _isMakingMove = false;
+  final _listeners = Listeners();
 
   /// Holds the given state as-is.
   ///
@@ -116,6 +117,17 @@ class GameController with Notifier {
 
   /// The players in turn order.
   List<Player> get players => _players;
+
+  /// Calls [listener] after each move and whenever a card is placed
+  /// directly on one of the players' plates.
+  ///
+  /// Adding the same listener more than once means it's called once per
+  /// time it was added.
+  void addListener(void Function() listener) => _listeners.add(listener);
+
+  /// Stops calling [listener] when the game changes, once for each time it
+  /// was added.
+  void removeListener(void Function() listener) => _listeners.remove(listener);
 
   /// The cards still to be drawn, with the top of the pile last.
   List<Card> get drawPile => UnmodifiableListView(_drawPile);
@@ -238,7 +250,7 @@ class GameController with Notifier {
     }
 
     _drawnCard = _drawPile.removeLast();
-    notifyListeners();
+    _listeners.notify();
   }
 
   /// Removes the top card from the discard pile and holds it as the
@@ -258,7 +270,7 @@ class GameController with Notifier {
     }
 
     _drawnCard = _discardPile.removeLast();
-    notifyListeners();
+    _listeners.notify();
   }
 
   /// Places the [drawnCard] into the slot for its category on the current
@@ -340,7 +352,7 @@ class GameController with Notifier {
       _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
     }
 
-    notifyListeners();
+    _listeners.notify();
   }
 
   /// Notifies listeners of a card placed directly on a player's plate.
@@ -349,7 +361,7 @@ class GameController with Notifier {
   /// notified once the whole move has finished.
   void _handlePlateChanged() {
     if (!_isMakingMove) {
-      notifyListeners();
+      _listeners.notify();
     }
   }
 

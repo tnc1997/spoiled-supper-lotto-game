@@ -7,7 +7,6 @@ export 'src/card_type.dart';
 export 'src/category.dart';
 export 'src/deck.dart';
 export 'src/game_controller.dart';
-export 'src/notifier.dart';
 export 'src/plate.dart';
 export 'src/player.dart';
 export 'src/shuffle.dart';
