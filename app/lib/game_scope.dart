@@ -27,8 +27,7 @@ class GameScope extends InheritedNotifier<GameNotifier> {
 
     if (notifier == null) {
       throw FlutterError(
-        'GameScope.of() called with a context that does not contain a '
-        'GameScope.',
+        'GameScope.of() called with a context that does not contain a GameScope.',
       );
     }
 
