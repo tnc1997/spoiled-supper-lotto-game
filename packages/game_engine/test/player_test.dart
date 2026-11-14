@@ -5,30 +5,40 @@ void main() {
   group(
     'Player',
     () {
-      test(
-        'exposes its name',
+      group(
+        'name',
         () {
-          final player = Player(name: 'Alice');
+          test(
+            'is the name it was created with',
+            () {
+              final player = Player(name: 'Alice');
 
-          expect(player.name, 'Alice');
+              expect(player.name, 'Alice');
+            },
+          );
         },
       );
 
-      test(
-        'defaults to not being a computer opponent',
+      group(
+        'isAi',
         () {
-          final player = Player(name: 'Alice');
+          test(
+            'defaults to false',
+            () {
+              final player = Player(name: 'Alice');
 
-          expect(player.isAi, isFalse);
-        },
-      );
+              expect(player.isAi, isFalse);
+            },
+          );
 
-      test(
-        'can be marked as a computer opponent',
-        () {
-          final player = Player(name: 'Computer', isAi: true);
+          test(
+            'is true when marked as a computer opponent',
+            () {
+              final player = Player(name: 'Computer', isAi: true);
 
-          expect(player.isAi, isTrue);
+              expect(player.isAi, isTrue);
+            },
+          );
         },
       );
     },

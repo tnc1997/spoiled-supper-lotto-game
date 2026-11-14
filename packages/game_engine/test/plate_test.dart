@@ -12,101 +12,200 @@ void main() {
             name: category.name,
           );
 
-      test(
-        'starts with every slot empty',
+      group(
+        'Plate.new',
         () {
-          final plate = Plate();
+          test(
+            'throws if two cards share a category',
+            () {
+              expect(
+                () => Plate([standard(Category.main), standard(Category.main)]),
+                throwsArgumentError,
+              );
+            },
+          );
 
-          expect(plate.cards, isEmpty);
+          test(
+            'is not changed by later changes to the given cards',
+            () {
+              final cards = [standard(Category.main)];
+              final plate = Plate(cards);
 
-          for (final category in Category.values) {
-            expect(plate[category], isNull);
-          }
-        },
-      );
+              cards.add(standard(Category.drink));
 
-      test(
-        'puts each card in the slot for its category',
-        () {
-          final main = standard(Category.main);
-          final drink = standard(Category.drink);
-          final plate = Plate([main, drink]);
-
-          expect(plate[Category.main], main);
-          expect(plate[Category.drink], drink);
-          expect(plate[Category.dessert], isNull);
-          expect(plate.cards, unorderedEquals([main, drink]));
-        },
-      );
-
-      test(
-        'is not changed by later changes to the given cards',
-        () {
-          final cards = [standard(Category.main)];
-          final plate = Plate(cards);
-
-          cards.add(standard(Category.drink));
-
-          expect(plate[Category.drink], isNull);
-        },
-      );
-
-      test(
-        'throws if two cards share a category',
-        () {
-          expect(
-            () => Plate([standard(Category.main), standard(Category.main)]),
-            throwsArgumentError,
+              expect(plate[Category.drink], isNull);
+            },
           );
         },
       );
 
-      test(
-        'is not full until every slot has a card',
+      group(
+        'cards',
         () {
-          final cards = <Card>[];
+          test(
+            'is empty by default',
+            () {
+              final plate = Plate();
 
-          for (final category in Category.values) {
-            expect(Plate(cards).isFull, isFalse);
-            cards.add(standard(category));
-          }
-
-          expect(Plate(cards).isFull, isTrue);
-        },
-      );
-
-      test(
-        'is not full while a slot has a spoiled card',
-        () {
-          final plate = Plate([
-            for (final category in Category.values)
-              Card(
-                id: category.name,
-                type: category == Category.main
-                    ? CardType.spoiled
-                    : CardType.standard,
-                category: category,
-                name: category.name,
-              ),
-          ]);
-
-          expect(plate.isFull, isFalse);
-        },
-      );
-
-      test(
-        'equals a plate with the same card in every slot',
-        () {
-          final main = standard(Category.main);
-          final drink = standard(Category.drink);
-
-          expect(Plate([main, drink]), Plate([drink, main]));
-          expect(
-            Plate([main, drink]).hashCode,
-            Plate([drink, main]).hashCode,
+              expect(plate.cards, isEmpty);
+            },
           );
-          expect(Plate([main]), isNot(Plate([main, drink])));
-          expect(Plate(), Plate());
+
+          test(
+            'contains the given cards',
+            () {
+              final main = standard(Category.main);
+              final drink = standard(Category.drink);
+              final plate = Plate([main, drink]);
+
+              expect(plate.cards, unorderedEquals([main, drink]));
+            },
+          );
+        },
+      );
+
+      group(
+        'operator []',
+        () {
+          test(
+            'returns null for every slot by default',
+            () {
+              final plate = Plate();
+
+              for (final category in Category.values) {
+                expect(plate[category], isNull);
+              }
+            },
+          );
+
+          test(
+            'returns the card in the slot for its category',
+            () {
+              final main = standard(Category.main);
+              final plate = Plate([main, standard(Category.drink)]);
+
+              expect(plate[Category.main], main);
+            },
+          );
+
+          test(
+            'returns each given card in the slot for its category',
+            () {
+              final drink = standard(Category.drink);
+              final plate = Plate([standard(Category.main), drink]);
+
+              expect(plate[Category.drink], drink);
+            },
+          );
+
+          test(
+            'returns null for a slot with no given card',
+            () {
+              final plate = Plate([
+                standard(Category.main),
+                standard(Category.drink),
+              ]);
+
+              expect(plate[Category.dessert], isNull);
+            },
+          );
+        },
+      );
+
+      group(
+        'isFull',
+        () {
+          test(
+            'is false until every slot has a card',
+            () {
+              final cards = <Card>[];
+
+              for (final category in Category.values) {
+                expect(Plate(cards).isFull, isFalse);
+                cards.add(standard(category));
+              }
+            },
+          );
+
+          test(
+            'is true when every slot has a standard card',
+            () {
+              final plate = Plate([
+                for (final category in Category.values) standard(category),
+              ]);
+
+              expect(plate.isFull, isTrue);
+            },
+          );
+
+          test(
+            'is false while a slot has a spoiled card',
+            () {
+              final plate = Plate([
+                for (final category in Category.values)
+                  Card(
+                    id: category.name,
+                    type: category == Category.main
+                        ? CardType.spoiled
+                        : CardType.standard,
+                    category: category,
+                    name: category.name,
+                  ),
+              ]);
+
+              expect(plate.isFull, isFalse);
+            },
+          );
+        },
+      );
+
+      group(
+        'operator ==',
+        () {
+          test(
+            'is true for a plate with the same cards in a different order',
+            () {
+              final main = standard(Category.main);
+              final drink = standard(Category.drink);
+
+              expect(Plate([main, drink]), Plate([drink, main]));
+            },
+          );
+
+          test(
+            'is false for a plate with different cards',
+            () {
+              final main = standard(Category.main);
+              final drink = standard(Category.drink);
+
+              expect(Plate([main]), isNot(Plate([main, drink])));
+            },
+          );
+
+          test(
+            'is true for two empty plates',
+            () {
+              expect(Plate(), Plate());
+            },
+          );
+        },
+      );
+
+      group(
+        'hashCode',
+        () {
+          test(
+            'is the same for plates with the same cards in a different order',
+            () {
+              final main = standard(Category.main);
+              final drink = standard(Category.drink);
+
+              expect(
+                Plate([main, drink]).hashCode,
+                Plate([drink, main]).hashCode,
+              );
+            },
+          );
         },
       );
     },

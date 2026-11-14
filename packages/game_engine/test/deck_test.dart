@@ -15,7 +15,7 @@ void main() {
       );
 
       test(
-        'builds 20 standard cards and 10 Spoiled cards',
+        'builds 20 standard cards',
         () {
           final deck = buildDeck();
 
@@ -23,6 +23,14 @@ void main() {
             deck.where((card) => card.type == CardType.standard),
             hasLength(20),
           );
+        },
+      );
+
+      test(
+        'builds 10 Spoiled cards',
+        () {
+          final deck = buildDeck();
+
           expect(
             deck.where((card) => card.type == CardType.spoiled),
             hasLength(10),
@@ -31,7 +39,7 @@ void main() {
       );
 
       test(
-        'builds 4 standard cards and 2 Spoiled cards per category',
+        'builds 4 standard cards per category',
         () {
           final deck = buildDeck();
 
@@ -43,6 +51,16 @@ void main() {
               ),
               hasLength(4),
             );
+          }
+        },
+      );
+
+      test(
+        'builds 2 Spoiled cards per category',
+        () {
+          final deck = buildDeck();
+
+          for (final category in Category.values) {
             expect(
               deck.where(
                 (card) =>

@@ -5,200 +5,209 @@ void main() {
   group(
     'Card',
     () {
-      test(
-        'exposes its id, type, category, and name',
-        () {
-          const card = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
+      const card = Card(
+        id: '1',
+        type: CardType.standard,
+        category: Category.main,
+        name: 'Sausages',
+      );
 
-          expect(card.id, '1');
-          expect(card.type, CardType.standard);
-          expect(card.category, Category.main);
-          expect(card.name, 'Sausages');
+      group(
+        'id',
+        () {
+          test(
+            'is the id it was created with',
+            () {
+              expect(card.id, '1');
+            },
+          );
         },
       );
 
-      test(
-        'category applies to spoiled cards too',
+      group(
+        'type',
         () {
-          const card = Card(
-            id: '2',
-            type: CardType.spoiled,
-            category: Category.main,
-            name: 'Fish Bone',
+          test(
+            'is the type it was created with',
+            () {
+              expect(card.type, CardType.standard);
+            },
           );
 
-          expect(card.type, CardType.spoiled);
-          expect(card.category, Category.main);
+          test(
+            'can be spoiled',
+            () {
+              const spoiled = Card(
+                id: '2',
+                type: CardType.spoiled,
+                category: Category.main,
+                name: 'Fish Bone',
+              );
+
+              expect(spoiled.type, CardType.spoiled);
+            },
+          );
         },
       );
 
-      test(
-        'two cards with the same fields are equal',
+      group(
+        'category',
         () {
-          const a = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-          const b = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
+          test(
+            'is the category it was created with',
+            () {
+              expect(card.category, Category.main);
+            },
           );
 
-          expect(a, b);
+          test(
+            'applies to spoiled cards too',
+            () {
+              const spoiled = Card(
+                id: '2',
+                type: CardType.spoiled,
+                category: Category.main,
+                name: 'Fish Bone',
+              );
+
+              expect(spoiled.category, Category.main);
+            },
+          );
         },
       );
 
-      test(
-        'two cards with the same fields have the same hash code',
+      group(
+        'name',
         () {
-          const a = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
+          test(
+            'is the name it was created with',
+            () {
+              expect(card.name, 'Sausages');
+            },
           );
-          const b = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-
-          expect(a.hashCode, b.hashCode);
         },
       );
 
-      test(
-        'two cards with different ids are not equal',
+      group(
+        'operator ==',
         () {
-          const a = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-          const b = Card(
-            id: '2',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
+          test(
+            'is true for a card with the same fields',
+            () {
+              const other = Card(
+                id: '1',
+                type: CardType.standard,
+                category: Category.main,
+                name: 'Sausages',
+              );
+
+              expect(card, other);
+            },
           );
 
-          expect(a, isNot(b));
+          test(
+            'is false for a card with a different id',
+            () {
+              const other = Card(
+                id: '2',
+                type: CardType.standard,
+                category: Category.main,
+                name: 'Sausages',
+              );
+
+              expect(card, isNot(other));
+            },
+          );
+
+          test(
+            'is false for a card with a different type',
+            () {
+              const other = Card(
+                id: '1',
+                type: CardType.spoiled,
+                category: Category.main,
+                name: 'Sausages',
+              );
+
+              expect(card, isNot(other));
+            },
+          );
+
+          test(
+            'is false for a card with a different category',
+            () {
+              const other = Card(
+                id: '1',
+                type: CardType.standard,
+                category: Category.dessert,
+                name: 'Sausages',
+              );
+
+              expect(card, isNot(other));
+            },
+          );
+
+          test(
+            'is false for a card with a different name',
+            () {
+              const other = Card(
+                id: '1',
+                type: CardType.standard,
+                category: Category.main,
+                name: 'Steak Pie',
+              );
+
+              expect(card, isNot(other));
+            },
+          );
+
+          test(
+            'is true for the same card',
+            () {
+              expect(card, card);
+            },
+          );
+
+          test(
+            'is false for a non-Card object',
+            () {
+              expect(card, isNot('1'));
+            },
+          );
         },
       );
 
-      test(
-        'two cards with different types are not equal',
+      group(
+        'hashCode',
         () {
-          const a = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-          const b = Card(
-            id: '1',
-            type: CardType.spoiled,
-            category: Category.main,
-            name: 'Sausages',
-          );
+          test(
+            'is the same for cards with the same fields',
+            () {
+              const other = Card(
+                id: '1',
+                type: CardType.standard,
+                category: Category.main,
+                name: 'Sausages',
+              );
 
-          expect(a, isNot(b));
+              expect(card.hashCode, other.hashCode);
+            },
+          );
         },
       );
 
-      test(
-        'two cards with different categories are not equal',
+      group(
+        'toString',
         () {
-          const a = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-          const b = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.dessert,
-            name: 'Sausages',
-          );
-
-          expect(a, isNot(b));
-        },
-      );
-
-      test(
-        'two cards with different names are not equal',
-        () {
-          const a = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-          const b = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Steak Pie',
-          );
-
-          expect(a, isNot(b));
-        },
-      );
-
-      test(
-        'a card is equal to itself',
-        () {
-          const card = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-
-          expect(card, card);
-        },
-      );
-
-      test(
-        'a card is not equal to a non-Card object',
-        () {
-          const card = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-
-          expect(card, isNot('1'));
-        },
-      );
-
-      test(
-        'toString includes id, type, category, and name',
-        () {
-          const card = Card(
-            id: '1',
-            type: CardType.standard,
-            category: Category.main,
-            name: 'Sausages',
-          );
-
-          expect(
-            card.toString(),
-            'Card(id: 1, type: CardType.standard, category: Category.main, '
-            'name: Sausages)',
+          test(
+            'includes id, type, category, and name',
+            () {
+              expect(
+                card.toString(),
+                'Card(id: 1, type: CardType.standard, category: Category.main, '
+                'name: Sausages)',
+              );
+            },
           );
         },
       );
