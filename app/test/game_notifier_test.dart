@@ -24,29 +24,40 @@ void main() {
         category: Category.drink,
         name: 'Milk',
       );
+      const pie = Card(
+        id: '4',
+        type: CardType.standard,
+        category: Category.main,
+        name: 'Pie',
+      );
 
+      late Player alice;
       late GameController controller;
       late GameNotifier notifier;
       late List<String> notifications;
 
-      setUp(
-        () {
-          controller = GameController(
-            players: [Player(name: 'Alice'), Player(name: 'Bob')],
-            drawPile: [milk, sausages],
-            discardPile: [fishFingers],
-          );
-          notifier = GameNotifier(controller);
-          addTearDown(notifier.dispose);
-          notifications = [];
-          notifier.addListener(
-            () => notifications.add(
-              '${controller.currentPlayer.name}: '
-              '${controller.drawnCard?.name}',
-            ),
-          );
-        },
-      );
+      /// Sets up a game for Alice and Bob, with [alicesCards] already on
+      /// Alice's plate, and a notifier that records each notification.
+      void setUpGame({List<Card> alicesCards = const []}) {
+        alice = Player(name: 'Alice');
+        controller = GameController(
+          players: [alice, Player(name: 'Bob')],
+          plates: {alice: alicesCards},
+          drawPile: [milk, sausages],
+          discardPile: [fishFingers],
+        );
+        notifier = GameNotifier(controller);
+        addTearDown(notifier.dispose);
+        notifications = [];
+        notifier.addListener(
+          () => notifications.add(
+            '${controller.currentPlayer.name}: '
+            '${controller.drawnCard?.name}',
+          ),
+        );
+      }
+
+      setUp(setUpGame);
 
       test(
         'exposes the controller it was given as a read-only game',
@@ -94,7 +105,7 @@ void main() {
 
               notifier.placeDrawnCard();
 
-              expect(controller.players[0].plate[Category.main], sausages);
+              expect(controller.plateOf(alice)[Category.main], sausages);
               expect(notifications, ['Bob: null']);
             },
           );
@@ -107,7 +118,7 @@ void main() {
           test(
             'discards the drawn card, then notifies listeners once',
             () {
-              controller.players[0].plate.place(fishFingers);
+              setUpGame(alicesCards: [pie]);
               notifier.drawFromDrawPile();
               notifications.clear();
 
