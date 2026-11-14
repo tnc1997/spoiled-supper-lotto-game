@@ -1,9 +1,12 @@
 import 'card.dart';
 import 'card_type.dart';
 import 'category.dart';
+import 'notifier.dart';
 
 /// A player's place-setting board, with one slot per [Category].
-class Plate {
+///
+/// Listeners are notified whenever a card is placed.
+class Plate with Notifier {
   final Map<Category, Card?> _slots;
 
   Plate({
@@ -30,6 +33,7 @@ class Plate {
   Card? place(Card card) {
     final replaced = _slots[card.category];
     _slots[card.category] = card;
+    notifyListeners();
     return replaced;
   }
 

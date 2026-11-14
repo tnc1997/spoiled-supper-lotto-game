@@ -210,6 +210,25 @@ void main() {
           expect(plate.isFull, isFalse);
         },
       );
+
+      test(
+        'notifies listeners once the card is placed',
+        () {
+          const main = Card(
+            id: '1',
+            type: CardType.standard,
+            category: Category.main,
+            name: 'Sausages',
+          );
+          final plate = Plate();
+          final placed = <Card?>[];
+          plate.addListener(() => placed.add(plate[Category.main]));
+
+          plate.place(main);
+
+          expect(placed, [main]);
+        },
+      );
     },
   );
 }

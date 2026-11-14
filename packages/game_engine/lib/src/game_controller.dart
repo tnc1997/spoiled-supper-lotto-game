@@ -4,12 +4,18 @@ import 'dart:math';
 import 'card.dart';
 import 'card_type.dart';
 import 'deck.dart';
+import 'notifier.dart';
 import 'player.dart';
 import 'shuffle.dart';
 
 /// Holds the state of a single game: its players, the draw and discard
 /// piles, and whose turn it is.
-class GameController {
+///
+/// Listeners are notified once after each move, i.e. each successful call
+/// to [drawFromDrawPile], [drawFromDiscardPile], [placeDrawnCard] or
+/// [discardDrawnCard], and whenever a card is placed directly on one of
+/// the players' plates. A move that throws doesn't notify them.
+class GameController with Notifier {
   /// The fewest players a game can be started with.
   static const minPlayers = 2;
 
@@ -24,6 +30,7 @@ class GameController {
   int? _winnerIndex;
   Card? _drawnCard;
   final Random? _random;
+  bool _isMakingMove = false;
 
   /// Holds the given state as-is.
   ///
@@ -80,6 +87,10 @@ class GameController {
       }
 
       _currentPlayerIndex = winnerIndex;
+    }
+
+    for (final player in _players) {
+      player.plate.addListener(_handlePlateChanged);
     }
   }
 
@@ -227,6 +238,7 @@ class GameController {
     }
 
     _drawnCard = _drawPile.removeLast();
+    notifyListeners();
   }
 
   /// Removes the top card from the discard pile and holds it as the
@@ -246,6 +258,7 @@ class GameController {
     }
 
     _drawnCard = _discardPile.removeLast();
+    notifyListeners();
   }
 
   /// Places the [drawnCard] into the slot for its category on the current
@@ -272,7 +285,14 @@ class GameController {
       );
     }
 
-    final replaced = currentPlayer.plate.place(card);
+    final Card? replaced;
+    _isMakingMove = true;
+
+    try {
+      replaced = currentPlayer.plate.place(card);
+    } finally {
+      _isMakingMove = false;
+    }
 
     if (replaced != null) {
       _discardPile.add(replaced);
@@ -308,7 +328,8 @@ class GameController {
   ///
   /// If their plate is now full, they are the [winner] and the game is
   /// over. Otherwise, the turn passes to the next player in turn order,
-  /// going back to the first player after the last.
+  /// going back to the first player after the last. Either way, listeners
+  /// are then notified.
   void _finishPlay() {
     _drawnCard = null;
     _lastPlayerIndex = _currentPlayerIndex;
@@ -317,6 +338,18 @@ class GameController {
       _winnerIndex = _currentPlayerIndex;
     } else {
       _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.length;
+    }
+
+    notifyListeners();
+  }
+
+  /// Notifies listeners of a card placed directly on a player's plate.
+  ///
+  /// A card placed by [placeDrawnCard] is skipped, since listeners are
+  /// notified once the whole move has finished.
+  void _handlePlateChanged() {
+    if (!_isMakingMove) {
+      notifyListeners();
     }
   }
 
