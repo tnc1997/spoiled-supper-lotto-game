@@ -8,25 +8,25 @@ import 'category.dart';
 /// game gives the player a new plate, so a plate that's held on to keeps
 /// showing the cards it was built with.
 class Plate {
-  final Map<Category, Card> _cards;
+  final Map<Category, Card> _slots;
 
   /// Creates a plate with each of [cards] in the slot for its category, and
   /// every other slot empty.
   ///
   /// Throws an [ArgumentError] if two of [cards] share a category, since a
   /// slot holds one card.
-  Plate([Iterable<Card> cards = const []]) : _cards = _slotsOf(cards);
+  Plate([Iterable<Card> cards = const []]) : _slots = _slotsOf(cards);
 
   /// The cards on this plate, in no particular order.
-  Iterable<Card> get cards => _cards.values;
+  Iterable<Card> get cards => _slots.values;
 
   /// The card occupying [category]'s slot, or `null` if it's empty.
-  Card? operator [](Category category) => _cards[category];
+  Card? operator [](Category category) => _slots[category];
 
   /// Whether every slot has a [CardType.standard] card, i.e. the meal is
   /// complete. A [CardType.spoiled] card keeps its slot from counting.
   bool get isFull => Category.values
-      .every((category) => _cards[category]?.type == CardType.standard);
+      .every((category) => _slots[category]?.type == CardType.standard);
 
   /// Whether [other] is a plate with the same card in every slot.
   @override
