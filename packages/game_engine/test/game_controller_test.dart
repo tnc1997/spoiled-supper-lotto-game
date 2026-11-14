@@ -252,9 +252,7 @@ void main() {
                   },
                   drawPile: [],
                 ),
-                throwsA(
-                  isA<ArgumentError>().having((e) => e.name, 'name', 'plates'),
-                ),
+                throwsArgumentError,
               );
             },
           );
@@ -265,19 +263,41 @@ void main() {
         'plateOf',
         () {
           test(
-            'keeps the same plate for a player for the whole game',
+            'gives the player a new plate when a card is placed',
             () {
               final controller = GameController(
                 players: [alice, bob],
+                plates: {
+                  alice: [milk],
+                },
                 drawPile: [],
                 drawnCard: sausages,
               );
-              final plate = controller.plateOf(alice);
+              final before = controller.plateOf(alice);
 
               controller.placeDrawnCard();
 
-              expect(controller.plateOf(alice), same(plate));
-              expect(plate[Category.main], sausages);
+              expect(controller.plateOf(alice), Plate([milk, sausages]));
+              expect(before, Plate([milk]));
+            },
+          );
+
+          test(
+            "keeps the player's plate when their card is discarded",
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                plates: {
+                  alice: [fishFingers],
+                },
+                drawPile: [],
+                drawnCard: sausages,
+              );
+              final before = controller.plateOf(alice);
+
+              controller.discardDrawnCard();
+
+              expect(controller.plateOf(alice), same(before));
             },
           );
 

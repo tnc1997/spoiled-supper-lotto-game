@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'card.dart';
 import 'card_type.dart';
-import 'category.dart';
 import 'deck.dart';
 import 'game.dart';
 import 'plate.dart';
@@ -203,7 +202,7 @@ class GameController implements Game {
     return !isGameOver &&
         card != null &&
         (card.type == CardType.standard ||
-            _currentSeat.cards[card.category] == null);
+            _currentSeat.plate[card.category] == null);
   }
 
   /// Whether [discardDrawnCard] can be called, i.e. the game isn't over, a
@@ -215,7 +214,7 @@ class GameController implements Game {
 
     return !isGameOver &&
         card != null &&
-        _currentSeat.cards[card.category] != null;
+        _currentSeat.plate[card.category] != null;
   }
 
   /// Whether [drawFromDrawPile] can be called, i.e. the game isn't over, no
@@ -307,9 +306,14 @@ class GameController implements Game {
       );
     }
 
-    final cards = _currentSeat.cards;
-    final replaced = cards[card.category];
-    cards[card.category] = card;
+    final seat = _currentSeat;
+    final replaced = seat.plate[card.category];
+
+    seat.plate = Plate([
+      for (final kept in seat.plate.cards)
+        if (kept.category != card.category) kept,
+      card,
+    ]);
 
     if (replaced != null) {
       _discardPile.add(replaced);
@@ -394,29 +398,8 @@ class GameController implements Game {
 
     return List.unmodifiable([
       for (final player in players)
-        _Seat(player, _slotsOf(player, startingCards[player] ?? const [])),
+        _Seat(player, Plate(startingCards[player] ?? const [])),
     ]);
-  }
-
-  /// Returns [player]'s [cards] keyed by category.
-  ///
-  /// Throws an [ArgumentError] if two of the cards share a category.
-  static Map<Category, Card> _slotsOf(Player player, List<Card> cards) {
-    final slots = <Category, Card>{};
-
-    for (final card in cards) {
-      if (slots.containsKey(card.category)) {
-        throw ArgumentError.value(
-          player.name,
-          'plates',
-          'Must not give a player two ${card.category.name} cards',
-        );
-      }
-
-      slots[card.category] = card;
-    }
-
-    return slots;
   }
 
   /// Returns the index into [seats] of the seat whose plate is full, or
@@ -467,19 +450,15 @@ class GameController implements Game {
   }
 }
 
-/// A player's place at the table: who they are and the cards on their
-/// plate, which only the [GameController] changes.
+/// A player's place at the table: who they are and their plate, which only
+/// the [GameController] replaces.
 class _Seat {
   /// The player sitting here.
   final Player player;
 
-  /// The cards on [player]'s plate, keyed by category. A category without
-  /// an entry is an empty slot.
-  final Map<Category, Card> cards;
+  /// [player]'s plate as it is now, replaced with a new plate each time a
+  /// card is placed on it.
+  Plate plate;
 
-  /// A read-only view of [cards], created once so that [player] keeps the
-  /// same plate for the whole game.
-  final Plate plate;
-
-  _Seat(this.player, this.cards) : plate = Plate(cards);
+  _Seat(this.player, this.plate);
 }

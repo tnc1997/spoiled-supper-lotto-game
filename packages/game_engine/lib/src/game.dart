@@ -19,8 +19,11 @@ abstract interface class Game {
 
   /// The plate of [player], who is looked up by identity.
   ///
-  /// Each player keeps the same plate for the whole game, and it shows
-  /// their cards as they are now.
+  /// Unlike [drawPile] and [discardPile], which show the piles as they are
+  /// now, a [Plate] can't change: each card placed gives the player a new
+  /// plate, and one that's held on to keeps showing the cards it was built
+  /// with. Compare plates with `==` to tell whether a player's plate has
+  /// changed.
   ///
   /// Throws an [ArgumentError] if [player] isn't one of [players].
   Plate plateOf(Player player);
