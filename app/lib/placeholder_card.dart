@@ -19,9 +19,11 @@ import 'category_label.dart';
 /// [size].
 ///
 /// The "Spoiled" tag sits at the top, the category at the bottom, and the
-/// name, one word per line so words are never split, in the centre. The
-/// text follows the system text scale until it no longer fits the card,
-/// and is then shrunk as a whole, keeping its proportions.
+/// name, one word per line so words are never split, in the centre.
+///
+/// Like the text on a card image, the text ignores the system text scale
+/// and only grows with the card, so that it always fits. To make cards
+/// easier to read, give them more space instead.
 class PlaceholderCard extends StatelessWidget {
   /// The size the card is laid out at, before it is scaled to fit.
   ///
@@ -64,45 +66,32 @@ class PlaceholderCard extends StatelessWidget {
         card.category.label,
         if (_isSpoiled) 'Spoiled',
       ].join(', '),
-      // Scales the whole card to fit its parent.
-      child: FittedBox(
-        child: Container(
-          width: size.width,
-          height: size.height,
-          padding: _padding,
-          color: backgroundColor,
-          // Shrinks the text, all by the same amount, only if it doesn't
-          // fit, e.g. a long word or a large system text scale.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            // Fills the card, or more if the text needs it.
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: size.width - _padding.horizontal,
-                minHeight: size.height - _padding.vertical,
-              ),
-              child: IntrinsicWidth(
-                child: IntrinsicHeight(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Holds the tag's space on standard cards too, so that
-                      // every name sits at the same height.
-                      Visibility.maintain(
-                        visible: _isSpoiled,
-                        child: Text('SPOILED', style: labelStyle),
-                      ),
-                      Column(
-                        children: [
-                          for (final word in card.name.split(' '))
-                            Text(word, style: nameStyle),
-                        ],
-                      ),
-                      Text(card.category.label, style: labelStyle),
-                    ],
-                  ),
+      // Fixes the text's size relative to the card, like a card image's.
+      child: MediaQuery.withNoTextScaling(
+        // Scales the whole card to fit its parent.
+        child: FittedBox(
+          child: Container(
+            width: size.width,
+            height: size.height,
+            padding: _padding,
+            color: backgroundColor,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Holds the tag's space on standard cards too, so that
+                // every name sits at the same height.
+                Visibility.maintain(
+                  visible: _isSpoiled,
+                  child: Text('SPOILED', style: labelStyle),
                 ),
-              ),
+                Column(
+                  children: [
+                    for (final word in card.name.split(' '))
+                      Text(word, style: nameStyle),
+                  ],
+                ),
+                Text(card.category.label, style: labelStyle),
+              ],
             ),
           ),
         ),

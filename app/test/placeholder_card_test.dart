@@ -1,4 +1,3 @@
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:material_ui/material_ui.dart' hide Card;
@@ -208,85 +207,8 @@ void main() {
       );
 
       testWidgets(
-        'fits a long name at a large text size',
+        'keeps the name larger than the category',
         (tester) async {
-          tester.platformDispatcher.textScaleFactorTestValue = 3;
-          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-
-          await pumpCard(
-            tester,
-            const Card(
-              id: '3',
-              type: CardType.spoiled,
-              category: Category.carbohydrate,
-              name: 'Potato Peelings',
-            ),
-            width: 100,
-          );
-
-          expect(tester.takeException(), isNull);
-        },
-      );
-
-      testWidgets(
-        'keeps every line of every card on the card at a large text size',
-        (tester) async {
-          tester.platformDispatcher.textScaleFactorTestValue = 3;
-          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-
-          final offCard = <String>[];
-          for (final card in buildDeck()) {
-            await pumpCard(tester, card, width: 100);
-
-            final bounds = tester.getRect(find.byType(PlaceholderCard));
-            for (final element in find.byType(Text).evaluate()) {
-              final rect = tester.getRect(find.byWidget(element.widget));
-              if (bounds.expandToInclude(rect) != bounds) {
-                offCard.add('${card.name}: ${(element.widget as Text).data}');
-              }
-            }
-          }
-
-          expect(offCard, isEmpty);
-        },
-      );
-
-      testWidgets(
-        'never splits a word across lines at a large text size',
-        (tester) async {
-          tester.platformDispatcher.textScaleFactorTestValue = 3;
-          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-
-          final split = <String>[];
-          for (final card in buildDeck()) {
-            await pumpCard(tester, card, width: 100);
-
-            for (final paragraph in tester.renderObjectList<RenderParagraph>(
-              find.byType(RichText),
-            )) {
-              final text = paragraph.text.toPlainText();
-              final lines = paragraph
-                  .getBoxesForSelection(
-                    TextSelection(baseOffset: 0, extentOffset: text.length),
-                  )
-                  .map((box) => box.top)
-                  .toSet();
-              if (lines.length > 1) {
-                split.add('${card.name}: $text');
-              }
-            }
-          }
-
-          expect(split, isEmpty);
-        },
-      );
-
-      testWidgets(
-        'keeps the name larger than the category at a large text size',
-        (tester) async {
-          tester.platformDispatcher.textScaleFactorTestValue = 3;
-          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-
           await pumpCard(
             tester,
             const Card(
@@ -365,7 +287,7 @@ void main() {
       );
 
       testWidgets(
-        'follows the system text size while the name fits',
+        'ignores the system text size',
         (tester) async {
           const milk = Card(
             id: '4',
@@ -377,13 +299,12 @@ void main() {
           await pumpCard(tester, milk);
           final normal = tester.getRect(find.text('Milk')).height;
 
-          tester.platformDispatcher.textScaleFactorTestValue = 1.2;
+          tester.platformDispatcher.textScaleFactorTestValue = 2;
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
           await pumpCard(tester, milk);
-          final larger = tester.getRect(find.text('Milk')).height;
+          final scaled = tester.getRect(find.text('Milk')).height;
 
-          // The test font rounds line heights to whole pixels.
-          expect(larger, closeTo(normal * 1.2, 1));
+          expect(scaled, normal);
         },
       );
 
