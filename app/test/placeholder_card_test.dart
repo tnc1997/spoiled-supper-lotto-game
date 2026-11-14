@@ -36,7 +36,7 @@ void main() {
                 // Smaller than the default 11, since every letter of the
                 // square test font is much wider than Fredoka's.
                 labelSmall: TextStyle(fontFamily: 'Fredoka', fontSize: 8),
-                titleMedium: TextStyle(fontFamily: 'Fredoka'),
+                titleSmall: TextStyle(fontFamily: 'Fredoka'),
               ),
             ),
             home: Align(

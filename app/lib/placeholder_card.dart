@@ -53,7 +53,7 @@ class PlaceholderCard extends StatelessWidget {
         Color.lerp(Colors.white, baseColor.toColor(), 0.35)!;
     final foregroundColor = baseColor.withLightness(0.2).toColor();
 
-    final nameStyle = textTheme.titleMedium?.copyWith(color: foregroundColor);
+    final nameStyle = textTheme.titleSmall?.copyWith(color: foregroundColor);
     final labelStyle = textTheme.labelSmall?.copyWith(color: foregroundColor);
 
     return Semantics(
