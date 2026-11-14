@@ -18,7 +18,11 @@ import 'category_label.dart';
 /// then shrunk to fit.
 class PlaceholderCard extends StatelessWidget {
   /// The size the card is laid out at, before it is scaled to fit.
-  static const size = Size(100, 140);
+  ///
+  /// Matches the 5:8 shape of the 260x416px card template that card images
+  /// are cropped to (see `tools/crop-cards.sh`), so that a placeholder and
+  /// an image take up the same space.
+  static const size = Size(100, 160);
 
   static const _border = 2.5;
 

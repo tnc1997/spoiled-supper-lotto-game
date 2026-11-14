@@ -291,11 +291,11 @@ void main() {
       );
 
       testWidgets(
-        'keeps the shape of a playing card',
+        'keeps the shape of a card image',
         (tester) async {
           await pumpCard(tester, sausages, width: 150);
 
-          expect(tester.getSize(find.byType(PlaceholderCard)).height, 210);
+          expect(tester.getSize(find.byType(PlaceholderCard)).height, 240);
         },
       );
 
