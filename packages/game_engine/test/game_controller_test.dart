@@ -101,6 +101,18 @@ void main() {
             drawnCard: drawnCard,
           );
 
+      /// A game in which [alice] has drawn [drawnCard] and not yet played it.
+      GameController holding(
+        Card drawnCard, {
+        Map<Player, List<Card>> plates = const {},
+      }) =>
+          GameController(
+            players: [alice, bob],
+            plates: plates,
+            drawPile: [],
+            drawnCard: drawnCard,
+          );
+
       /// Makes [move], ignoring the [StateError] it throws, so that a test
       /// can check what a refused move leaves unchanged.
       void attempt(void Function() move) {
@@ -117,12 +129,12 @@ void main() {
           test(
             'creates a controller that can be read as a Game',
             () {
-              final controller = GameController(
+              final Game game = GameController(
                 players: [alice, bob],
-                drawPile: [],
-              );
+                drawPile: [sausages],
+              )..drawFromDrawPile();
 
-              expect(controller, isA<Game>());
+              expect(game.drawnCard, sausages);
             },
           );
 
@@ -674,7 +686,7 @@ void main() {
               /// Calls [onMove] after every draw and every play.
               GameController play(
                 int seed, {
-                void Function(GameController controller)? onMove,
+                required void Function(GameController controller) onMove,
               }) {
                 final random = Random(seed);
                 final playerCount = GameController.minPlayers +
@@ -698,7 +710,7 @@ void main() {
                     controller.drawFromDrawPile();
                   }
 
-                  onMove?.call(controller);
+                  onMove(controller);
 
                   final card = controller.drawnCard!;
                   final kept = controller
@@ -715,39 +727,55 @@ void main() {
                     controller.discardDrawnCard();
                   }
 
-                  onMove?.call(controller);
+                  onMove(controller);
                 }
 
                 return controller;
               }
 
               for (var seed = 0; seed < 20; seed++) {
-                test(
-                  'keeps every card in play after every move (seed $seed)',
+                group(
+                  'with seed $seed',
                   () {
-                    final deck = buildDeck();
+                    /// The cards in play after each move of the game.
+                    final snapshots = <List<Card>>[];
+                    late GameController finished;
 
-                    play(
-                      seed,
-                      onMove: (controller) => expect(
-                        cardsIn(controller),
-                        unorderedEquals(deck),
-                      ),
+                    // Each game is played once, and its tests check what
+                    // it recorded.
+                    setUpAll(
+                      () {
+                        finished = play(
+                          seed,
+                          onMove: (controller) =>
+                              snapshots.add(cardsIn(controller)),
+                        );
+                      },
                     );
-                  },
-                );
 
-                test(
-                  "ends with only the winner's plate full (seed $seed)",
-                  () {
-                    final controller = play(seed);
+                    test(
+                      'keeps every card in play after every move',
+                      () {
+                        final deck = buildDeck();
 
-                    expect(
-                      [
-                        for (final player in controller.players)
-                          if (controller.plateOf(player).isFull) player,
-                      ],
-                      [controller.winner],
+                        expect(
+                          snapshots,
+                          everyElement(unorderedEquals(deck)),
+                        );
+                      },
+                    );
+
+                    test(
+                      "ends with only the winner's plate full",
+                      () {
+                        expect(
+                          [
+                            for (final player in finished.players)
+                              if (finished.plateOf(player).isFull) player,
+                          ],
+                          [finished.winner],
+                        );
+                      },
                     );
                   },
                 );
@@ -985,13 +1013,16 @@ void main() {
             () {
               final controller = GameController(
                 players: [alice, bob],
-                drawPile: [milk],
+                drawPile: [fishFingers, milk],
                 drawnCard: sausages,
               );
 
-              controller.placeDrawnCard();
+              controller
+                ..placeDrawnCard()
+                ..drawFromDrawPile()
+                ..placeDrawnCard();
 
-              expect(controller.lastPlayerIndex, 0);
+              expect(controller.lastPlayerIndex, 1);
             },
           );
         },
@@ -1326,17 +1357,6 @@ void main() {
       group(
         'canPlaceDrawnCard',
         () {
-          GameController holding(
-            Card drawnCard, {
-            Map<Player, List<Card>> plates = const {},
-          }) =>
-              GameController(
-                players: [alice, bob],
-                plates: plates,
-                drawPile: [],
-                drawnCard: drawnCard,
-              );
-
           test(
             'is false if no card has been drawn',
             () {
@@ -1436,14 +1456,7 @@ void main() {
           test(
             'is false once a player has won',
             () {
-              final controller = GameController(
-                players: [alice, bob],
-                plates: {
-                  bob: [...allButMain, sausages],
-                },
-                drawPile: [],
-                drawnCard: fishFingers,
-              );
+              final controller = wonByAlice(drawnCard: fishFingers);
 
               expect(controller.canPlaceDrawnCard, isFalse);
             },
@@ -1454,17 +1467,6 @@ void main() {
       group(
         'canDiscardDrawnCard',
         () {
-          GameController holding(
-            Card drawnCard, {
-            Map<Player, List<Card>> plates = const {},
-          }) =>
-              GameController(
-                players: [alice, bob],
-                plates: plates,
-                drawPile: [],
-                drawnCard: drawnCard,
-              );
-
           test(
             'is false if no card has been drawn',
             () {
@@ -1553,15 +1555,7 @@ void main() {
           test(
             'is false once a player has won',
             () {
-              final controller = GameController(
-                players: [alice, bob],
-                plates: {
-                  bob: [...allButMain, sausages],
-                  alice: [fishFingers],
-                },
-                drawPile: [],
-                drawnCard: sausages,
-              );
+              final controller = wonByAlice(drawnCard: sausages);
 
               expect(controller.canDiscardDrawnCard, isFalse);
             },
@@ -1964,6 +1958,22 @@ void main() {
               expect(controller.drawPile, [fishFingers]);
             },
           );
+
+          test(
+            'does not reshuffle the discard pile if it throws',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [],
+                discardPile: [sausages, milk],
+                drawnCard: fishFingers,
+              );
+
+              attempt(controller.drawFromDrawPile);
+
+              expect(controller.discardPile, [sausages, milk]);
+            },
+          );
         },
       );
 
@@ -2240,12 +2250,13 @@ void main() {
                   alice: [fishBone],
                 },
                 drawPile: [],
+                discardPile: [milk],
                 drawnCard: sausages,
               );
 
               controller.placeDrawnCard();
 
-              expect(controller.discardPile, [fishBone]);
+              expect(controller.discardPile, [milk, fishBone]);
             },
           );
 
@@ -2425,7 +2436,7 @@ void main() {
           );
 
           test(
-            "completes the player's meal with a card from the discard pile",
+            'wins the game with a card from the discard pile',
             () {
               final controller = GameController(
                 players: [alice, bob],
@@ -2440,12 +2451,12 @@ void main() {
                 ..drawFromDiscardPile()
                 ..placeDrawnCard();
 
-              expect(controller.plateOf(alice).isFull, isTrue);
+              expect(controller.winner, alice);
             },
           );
 
           test(
-            "completes the player's meal with the last card of the draw pile",
+            'wins the game with the last card of the draw pile',
             () {
               final controller = GameController(
                 players: [alice, bob],
@@ -2460,7 +2471,7 @@ void main() {
                 ..drawFromDrawPile()
                 ..placeDrawnCard();
 
-              expect(controller.plateOf(alice).isFull, isTrue);
+              expect(controller.winner, alice);
             },
           );
 
@@ -2531,14 +2542,7 @@ void main() {
           test(
             'throws once a player has won',
             () {
-              final controller = GameController(
-                players: [alice, bob],
-                plates: {
-                  bob: [...allButMain, sausages],
-                },
-                drawPile: [],
-                drawnCard: fishFingers,
-              );
+              final controller = wonByAlice(drawnCard: fishFingers);
 
               expect(controller.placeDrawnCard, throwsStateError);
             },
@@ -2858,15 +2862,7 @@ void main() {
           test(
             'throws once a player has won',
             () {
-              final controller = GameController(
-                players: [alice, bob],
-                plates: {
-                  bob: [...allButMain, sausages],
-                  alice: [fishFingers],
-                },
-                drawPile: [],
-                drawnCard: sausages,
-              );
+              final controller = wonByAlice(drawnCard: sausages);
 
               expect(controller.discardDrawnCard, throwsStateError);
             },

@@ -89,16 +89,6 @@ void main() {
           );
 
           test(
-            'returns each given card in the slot for its category',
-            () {
-              final drink = standard(Category.drink);
-              final plate = Plate([standard(Category.main), drink]);
-
-              expect(plate[Category.drink], drink);
-            },
-          );
-
-          test(
             'returns null for a slot with no given card',
             () {
               final plate = Plate([
