@@ -97,15 +97,124 @@ void main() {
         },
       );
 
+      /// Returns the background colour of a card of each category, of the
+      /// given [type].
+      Future<Map<engine.Category, Color>> backgroundsOf(
+        WidgetTester tester,
+        engine.CardType type,
+      ) async {
+        final backgrounds = <engine.Category, Color>{};
+        for (final category in engine.Category.values) {
+          await pumpCard(
+            tester,
+            engine.Card(id: '1', type: type, category: category, name: 'X'),
+          );
+          backgrounds[category] = backgroundOf(tester)!;
+        }
+
+        return backgrounds;
+      }
+
+      /// Returns the squared distance between [a] and [b] in RGB space.
+      double distanceBetween(Color a, Color b) =>
+          (a.r - b.r) * (a.r - b.r) +
+          (a.g - b.g) * (a.g - b.g) +
+          (a.b - b.b) * (a.b - b.b);
+
       testWidgets(
-        'tints a standard card with the colour of its category',
+        'shows the category of the card',
+        (tester) async {
+          await pumpCard(tester, sausages);
+
+          expect(find.text('Main'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'announces the name and category of a standard card together',
         (tester) async {
           await pumpCard(tester, sausages);
 
           expect(
-            backgroundOf(tester),
-            Color.lerp(Colors.white, engine.Category.main.color, 0.35),
+            tester.getSemantics(find.byType(PlaceholderCard)),
+            isSemantics(label: 'Sausages, Main'),
           );
+        },
+      );
+
+      testWidgets(
+        'announces the name and category of a Spoiled card together',
+        (tester) async {
+          await pumpCard(tester, fishBone);
+
+          expect(
+            tester.getSemantics(find.byType(PlaceholderCard)),
+            isSemantics(label: 'Fish Bone, Main, Spoiled'),
+          );
+        },
+      );
+
+      testWidgets(
+        'gives standard cards of each category a different colour',
+        (tester) async {
+          final backgrounds = await backgroundsOf(
+            tester,
+            engine.CardType.standard,
+          );
+
+          expect(
+            backgrounds.values.toSet(),
+            hasLength(engine.Category.values.length),
+          );
+        },
+      );
+
+      testWidgets(
+        'keeps the colour of a Spoiled card closest to its own category',
+        (tester) async {
+          final standard = await backgroundsOf(
+            tester,
+            engine.CardType.standard,
+          );
+          final spoiled = await backgroundsOf(
+            tester,
+            engine.CardType.spoiled,
+          );
+
+          final closest = {
+            for (final MapEntry(key: category, value: color) in spoiled.entries)
+              category: engine.Category.values.reduce(
+                (a, b) => distanceBetween(color, standard[a]!) <=
+                        distanceBetween(color, standard[b]!)
+                    ? a
+                    : b,
+              ),
+          };
+
+          expect(closest, {
+            for (final category in engine.Category.values) category: category,
+          });
+        },
+      );
+
+      testWidgets(
+        'fits a long name at a large text size',
+        (tester) async {
+          tester.platformDispatcher.textScaleFactorTestValue = 3;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+          await pumpCard(
+            tester,
+            const engine.Card(
+              id: '3',
+              type: engine.CardType.spoiled,
+              category: engine.Category.carbohydrate,
+              name: 'Potato Peelings',
+            ),
+            width: 100,
+          );
+
+          expect(tester.takeException(), isNull);
         },
       );
 
