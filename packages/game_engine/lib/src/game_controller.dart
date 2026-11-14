@@ -21,8 +21,8 @@ class GameController {
   final List<Card> _discardPile;
   int _currentPlayerIndex;
   int? _lastPlayerIndex;
-  Card? _drawnCard;
   int? _winnerIndex;
+  Card? _drawnCard;
   final Random? _random;
 
   /// Holds the given state as-is.
@@ -51,8 +51,8 @@ class GameController {
         _drawPile = List.of(drawPile),
         _discardPile = List.of(discardPile),
         _currentPlayerIndex = currentPlayerIndex ?? 0,
-        _drawnCard = drawnCard,
         _winnerIndex = _findWinnerIndex(players),
+        _drawnCard = drawnCard,
         _random = random {
     if (_players.length < minPlayers || _players.length > maxPlayers) {
       throw ArgumentError.value(
@@ -138,10 +138,6 @@ class GameController {
     return index == null ? null : _players[index];
   }
 
-  /// The card the current player has drawn and not yet played, or `null`
-  /// if they haven't drawn one.
-  Card? get drawnCard => _drawnCard;
-
   /// The index into [players] of the player who completed their meal and
   /// won the game, or `null` if no one has won yet.
   int? get winnerIndex => _winnerIndex;
@@ -161,6 +157,10 @@ class GameController {
   /// Whether the game has ended because a player has won, after which no
   /// more cards can be drawn, placed or discarded.
   bool get isGameOver => _winnerIndex != null;
+
+  /// The card the current player has drawn and not yet played, or `null`
+  /// if they haven't drawn one.
+  Card? get drawnCard => _drawnCard;
 
   /// Whether [placeDrawnCard] can be called, i.e. the game isn't over, a
   /// card has been drawn and it's either a [CardType.standard] card or its
