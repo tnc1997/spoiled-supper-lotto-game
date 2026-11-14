@@ -93,6 +93,47 @@ void main() {
       );
 
       test(
+        'accepts between minPlayers and maxPlayers players',
+        () {
+          for (var count = GameController.minPlayers;
+              count <= GameController.maxPlayers;
+              count++) {
+            expect(
+              GameController(players: playersOf(count), drawPile: []).players,
+              hasLength(count),
+            );
+          }
+        },
+      );
+
+      test(
+        'throws if there are fewer than minPlayers players',
+        () {
+          for (final count in [0, GameController.minPlayers - 1]) {
+            expect(
+              () => GameController(players: playersOf(count), drawPile: []),
+              throwsA(
+                isA<ArgumentError>().having((e) => e.name, 'name', 'players'),
+              ),
+            );
+          }
+        },
+      );
+
+      test(
+        'throws if there are more than maxPlayers players',
+        () {
+          expect(
+            () => GameController(
+              players: playersOf(GameController.maxPlayers + 1),
+              drawPile: [],
+            ),
+            throwsArgumentError,
+          );
+        },
+      );
+
+      test(
         'holds the given draw and discard piles as-is',
         () {
           final controller = GameController(

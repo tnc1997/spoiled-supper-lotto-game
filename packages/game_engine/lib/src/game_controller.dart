@@ -36,7 +36,8 @@ class GameController {
   /// [random] for reproducible reshuffles of the discard pile. To set up a
   /// new game, use [GameController.start] instead.
   ///
-  /// Throws an [ArgumentError] if more than one player's plate is full,
+  /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
+  /// than [maxPlayers] players, if more than one player's plate is full,
   /// since a game can only have one winner, if [currentPlayerIndex] is out
   /// of range, or if it isn't the winner's index once the game is over.
   GameController({
@@ -53,6 +54,14 @@ class GameController {
         _drawnCard = drawnCard,
         _winner = _findWinner(players),
         _random = random {
+    if (_players.length < minPlayers || _players.length > maxPlayers) {
+      throw ArgumentError.value(
+        _players.length,
+        'players',
+        'Must have between $minPlayers and $maxPlayers players',
+      );
+    }
+
     RangeError.checkValidIndex(
       _currentPlayerIndex,
       _players,
@@ -84,19 +93,12 @@ class GameController {
   /// reshuffles of the discard pile.
   ///
   /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
-  /// than [maxPlayers] players.
+  /// than [maxPlayers] players, as the [GameController.new] constructor
+  /// does.
   factory GameController.start(
     List<Player> players, {
     Random? random,
   }) {
-    if (players.length < minPlayers || players.length > maxPlayers) {
-      throw ArgumentError.value(
-        players.length,
-        'players',
-        'Must have between $minPlayers and $maxPlayers players',
-      );
-    }
-
     final deck = buildDeck();
     shuffle(deck, random);
 
