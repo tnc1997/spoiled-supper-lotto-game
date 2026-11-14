@@ -48,7 +48,7 @@ void main() {
           dependent = Builder(
             builder: (context) {
               builds++;
-              final game = (found = GameScope.of(context)).controller;
+              final game = (found = GameScope.of(context)).game;
 
               return Text(
                 '${game.currentPlayer.name}: ${game.drawnCard?.name}',
