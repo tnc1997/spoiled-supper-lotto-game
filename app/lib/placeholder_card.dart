@@ -1,5 +1,5 @@
-import 'package:game_engine/game_engine.dart' as engine;
-import 'package:material_ui/material_ui.dart';
+import 'package:game_engine/game_engine.dart';
+import 'package:material_ui/material_ui.dart' hide Card;
 
 import 'category_color.dart';
 import 'category_label.dart';
@@ -21,12 +21,12 @@ class PlaceholderCard extends StatelessWidget {
   static const aspectRatio = 5 / 7;
 
   /// The card to show.
-  final engine.Card card;
+  final Card card;
 
   /// Shows [card].
   const PlaceholderCard({super.key, required this.card});
 
-  bool get _isSpoiled => card.type == engine.CardType.spoiled;
+  bool get _isSpoiled => card.type == CardType.spoiled;
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_engine/game_engine.dart' as engine;
-import 'package:material_ui/material_ui.dart';
+import 'package:game_engine/game_engine.dart';
+import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/category_color.dart';
 import 'package:spoiled_supper_lotto_game/placeholder_card.dart';
 
@@ -8,16 +8,16 @@ void main() {
   group(
     'PlaceholderCard',
     () {
-      const sausages = engine.Card(
+      const sausages = Card(
         id: '1',
-        type: engine.CardType.standard,
-        category: engine.Category.main,
+        type: CardType.standard,
+        category: Category.main,
         name: 'Sausages',
       );
-      const fishBone = engine.Card(
+      const fishBone = Card(
         id: '2',
-        type: engine.CardType.spoiled,
-        category: engine.Category.main,
+        type: CardType.spoiled,
+        category: Category.main,
         name: 'Fish Bone',
       );
 
@@ -25,7 +25,7 @@ void main() {
       /// theme in the Fredoka font family.
       Future<void> pumpCard(
         WidgetTester tester,
-        engine.Card card, {
+        Card card, {
         double width = 200,
       }) {
         return tester.pumpWidget(
@@ -99,15 +99,15 @@ void main() {
 
       /// Returns the background colour of a card of each category, of the
       /// given [type].
-      Future<Map<engine.Category, Color>> backgroundsOf(
+      Future<Map<Category, Color>> backgroundsOf(
         WidgetTester tester,
-        engine.CardType type,
+        CardType type,
       ) async {
-        final backgrounds = <engine.Category, Color>{};
-        for (final category in engine.Category.values) {
+        final backgrounds = <Category, Color>{};
+        for (final category in Category.values) {
           await pumpCard(
             tester,
-            engine.Card(id: '1', type: type, category: category, name: 'X'),
+            Card(id: '1', type: type, category: category, name: 'X'),
           );
           backgrounds[category] = backgroundOf(tester)!;
         }
@@ -176,12 +176,12 @@ void main() {
         (tester) async {
           final backgrounds = await backgroundsOf(
             tester,
-            engine.CardType.standard,
+            CardType.standard,
           );
 
           expect(
             backgrounds.values.toSet(),
-            hasLength(engine.Category.values.length),
+            hasLength(Category.values.length),
           );
         },
       );
@@ -191,16 +191,16 @@ void main() {
         (tester) async {
           final standard = await backgroundsOf(
             tester,
-            engine.CardType.standard,
+            CardType.standard,
           );
           final spoiled = await backgroundsOf(
             tester,
-            engine.CardType.spoiled,
+            CardType.spoiled,
           );
 
           final closest = {
             for (final MapEntry(key: category, value: color) in spoiled.entries)
-              category: engine.Category.values.reduce(
+              category: Category.values.reduce(
                 (a, b) => distanceBetween(color, standard[a]!) <=
                         distanceBetween(color, standard[b]!)
                     ? a
@@ -209,7 +209,7 @@ void main() {
           };
 
           expect(closest, {
-            for (final category in engine.Category.values) category: category,
+            for (final category in Category.values) category: category,
           });
         },
       );
@@ -222,10 +222,10 @@ void main() {
 
           await pumpCard(
             tester,
-            const engine.Card(
+            const Card(
               id: '3',
-              type: engine.CardType.spoiled,
-              category: engine.Category.carbohydrate,
+              type: CardType.spoiled,
+              category: Category.carbohydrate,
               name: 'Potato Peelings',
             ),
             width: 100,
@@ -291,10 +291,10 @@ void main() {
         'gives every category a different colour',
         () {
           final colors = {
-            for (final category in engine.Category.values) category.color,
+            for (final category in Category.values) category.color,
           };
 
-          expect(colors, hasLength(engine.Category.values.length));
+          expect(colors, hasLength(Category.values.length));
         },
       );
     },
