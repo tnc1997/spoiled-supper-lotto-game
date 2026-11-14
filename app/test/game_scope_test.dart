@@ -13,14 +13,8 @@ void main() {
         category: Category.main,
         name: 'Sausages',
       );
-      const fishFingers = Card(
-        id: '2',
-        type: CardType.standard,
-        category: Category.main,
-        name: 'Fish Fingers',
-      );
       const milk = Card(
-        id: '3',
+        id: '2',
         type: CardType.standard,
         category: Category.drink,
         name: 'Milk',
@@ -28,6 +22,7 @@ void main() {
 
       late GameController controller;
       late int builds;
+      late GameController? found;
       late Widget dependent;
 
       setUp(
@@ -35,13 +30,13 @@ void main() {
           controller = GameController(
             players: [Player(name: 'Alice'), Player(name: 'Bob')],
             drawPile: [milk, sausages],
-            discardPile: [fishFingers],
           );
           builds = 0;
+          found = null;
           dependent = Builder(
             builder: (context) {
               builds++;
-              final game = GameScope.of(context).controller;
+              final game = found = GameScope.of(context);
 
               return Text(
                 '${game.currentPlayer.name}: ${game.drawnCard?.name}',
@@ -53,7 +48,8 @@ void main() {
       );
 
       /// Pumps a [GameScope] for [controller] above a dependent that counts
-      /// its builds and shows the current player and their drawn card.
+      /// its builds, records the game it finds and shows the current player
+      /// and their drawn card.
       ///
       /// The dependent is the same widget on every pump, so it only
       /// rebuilds when the scope notifies it.
@@ -66,19 +62,25 @@ void main() {
         );
       }
 
-      GameScopeState stateOf(WidgetTester tester) {
-        return tester.state<GameScopeState>(find.byType(GameScope));
-      }
-
       group(
         'of',
         () {
           testWidgets(
-            'returns the state exposing the controller',
+            'returns the controller of the closest GameScope',
             (tester) async {
-              await pumpScope(tester, controller);
+              final outer = GameController(
+                players: [Player(name: 'Carol'), Player(name: 'Dave')],
+                drawPile: [milk],
+              );
 
-              expect(stateOf(tester).controller, same(controller));
+              await tester.pumpWidget(
+                GameScope(
+                  controller: outer,
+                  child: GameScope(controller: controller, child: dependent),
+                ),
+              );
+
+              expect(found, same(controller));
               expect(find.text('Alice: null'), findsOneWidget);
             },
           );
@@ -115,13 +117,13 @@ void main() {
             'returns null if there is no GameScope above the context',
             (tester) async {
               var called = false;
-              GameScopeState? state;
+              GameController? controller;
 
               await tester.pumpWidget(
                 Builder(
                   builder: (context) {
                     called = true;
-                    state = GameScope.maybeOf(context);
+                    controller = GameScope.maybeOf(context);
 
                     return const SizedBox();
                   },
@@ -129,92 +131,40 @@ void main() {
               );
 
               expect(called, isTrue);
-              expect(state, isNull);
+              expect(controller, isNull);
             },
           );
         },
       );
 
-      group(
-        'drawFromDrawPile',
-        () {
-          testWidgets(
-            'draws the top card and rebuilds dependents',
-            (tester) async {
-              await pumpScope(tester, controller);
+      testWidgets(
+        'rebuilds dependents once after each move',
+        (tester) async {
+          await pumpScope(tester, controller);
 
-              stateOf(tester).drawFromDrawPile();
-              await tester.pump();
+          controller.drawFromDrawPile();
+          await tester.pump();
 
-              expect(controller.drawnCard, sausages);
-              expect(find.text('Alice: Sausages'), findsOneWidget);
-              expect(builds, 2);
-            },
-          );
+          expect(find.text('Alice: Sausages'), findsOneWidget);
+          expect(builds, 2);
+
+          controller.placeDrawnCard();
+          await tester.pump();
+
+          expect(find.text('Bob: null'), findsOneWidget);
+          expect(builds, 3);
         },
       );
 
-      group(
-        'drawFromDiscardPile',
-        () {
-          testWidgets(
-            'draws the top discarded card and rebuilds dependents',
-            (tester) async {
-              await pumpScope(tester, controller);
+      testWidgets(
+        'rebuilds dependents when a card is placed directly on a plate',
+        (tester) async {
+          await pumpScope(tester, controller);
 
-              stateOf(tester).drawFromDiscardPile();
-              await tester.pump();
+          controller.players[1].plate.place(milk);
+          await tester.pump();
 
-              expect(controller.drawnCard, fishFingers);
-              expect(find.text('Alice: Fish Fingers'), findsOneWidget);
-              expect(builds, 2);
-            },
-          );
-        },
-      );
-
-      group(
-        'placeDrawnCard',
-        () {
-          testWidgets(
-            'places the drawn card and rebuilds dependents',
-            (tester) async {
-              await pumpScope(tester, controller);
-              final state = stateOf(tester);
-
-              state.drawFromDrawPile();
-              await tester.pump();
-              state.placeDrawnCard();
-              await tester.pump();
-
-              expect(controller.players[0].plate[Category.main], sausages);
-              expect(find.text('Bob: null'), findsOneWidget);
-              expect(builds, 3);
-            },
-          );
-        },
-      );
-
-      group(
-        'discardDrawnCard',
-        () {
-          testWidgets(
-            'discards the drawn card and rebuilds dependents',
-            (tester) async {
-              controller.players[0].plate.place(fishFingers);
-              await pumpScope(tester, controller);
-              final state = stateOf(tester);
-
-              state.drawFromDrawPile();
-              await tester.pump();
-              state.discardDrawnCard();
-              await tester.pump();
-
-              expect(controller.discardPile.last, sausages);
-              expect(find.text('Bob: null'), findsOneWidget);
-              expect(builds, 3);
-            },
-          );
+          expect(builds, 2);
         },
       );
 
@@ -223,10 +173,9 @@ void main() {
         (tester) async {
           await pumpScope(tester, controller);
 
-          expect(() => stateOf(tester).placeDrawnCard(), throwsStateError);
+          expect(controller.placeDrawnCard, throwsStateError);
           await tester.pump();
 
-          expect(find.text('Alice: null'), findsOneWidget);
           expect(builds, 1);
         },
       );
@@ -252,9 +201,41 @@ void main() {
 
           await pumpScope(tester, newController);
 
-          expect(stateOf(tester).controller, same(newController));
+          expect(found, same(newController));
           expect(find.text('Carol: null'), findsOneWidget);
           expect(builds, 2);
+        },
+      );
+
+      testWidgets(
+        'stops listening to the old controller once replaced',
+        (tester) async {
+          await pumpScope(tester, controller);
+          await pumpScope(
+            tester,
+            GameController(
+              players: [Player(name: 'Carol'), Player(name: 'Dave')],
+              drawPile: [milk],
+            ),
+          );
+
+          controller.drawFromDrawPile();
+          await tester.pump();
+
+          expect(builds, 2);
+        },
+      );
+
+      testWidgets(
+        'stops listening to the controller once removed from the tree',
+        (tester) async {
+          await pumpScope(tester, controller);
+          await tester.pumpWidget(const SizedBox());
+
+          expect(controller.drawFromDrawPile, returnsNormally);
+          await tester.pump();
+
+          expect(builds, 1);
         },
       );
     },
