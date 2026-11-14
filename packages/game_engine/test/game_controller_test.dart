@@ -193,7 +193,7 @@ void main() {
           );
 
           test(
-            'is the first player at the start of a game',
+            'starts with the first player taking the first turn',
             () {
               final controller = GameController.start([alice, bob]);
 
