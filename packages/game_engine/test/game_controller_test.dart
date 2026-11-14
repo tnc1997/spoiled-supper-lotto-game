@@ -81,6 +81,20 @@ void main() {
           ];
 
       test(
+        'can be read as a Game',
+        () {
+          final Game game = GameController(
+            players: [alice, bob],
+            drawPile: [sausages],
+          )..drawFromDrawPile();
+
+          expect(game.players, [alice, bob]);
+          expect(game.drawnCard, sausages);
+          expect(game.canPlaceDrawnCard, isTrue);
+        },
+      );
+
+      test(
         'holds the players in turn order',
         () {
           final controller = GameController(
