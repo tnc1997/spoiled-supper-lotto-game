@@ -20,8 +20,8 @@ class GameController {
   final List<Card> _drawPile;
   final List<Card> _discardPile;
   int _currentPlayerIndex;
-  Card? _drawnCard;
   int? _lastPlayerIndex;
+  Card? _drawnCard;
   Player? _winner;
   final Random? _random;
 
@@ -120,10 +120,6 @@ class GameController {
   /// [winner].
   Player get currentPlayer => _players[_currentPlayerIndex];
 
-  /// The card the current player has drawn and not yet played, or `null`
-  /// if they haven't drawn one.
-  Card? get drawnCard => _drawnCard;
-
   /// The index into [players] of the player who most recently played a
   /// drawn card, by placing or discarding it, or `null` if no card has been
   /// played since this controller was created.
@@ -141,6 +137,10 @@ class GameController {
 
     return index == null ? null : _players[index];
   }
+
+  /// The card the current player has drawn and not yet played, or `null`
+  /// if they haven't drawn one.
+  Card? get drawnCard => _drawnCard;
 
   /// The player who completed their meal and won the game, or `null` if
   /// no one has won yet.
