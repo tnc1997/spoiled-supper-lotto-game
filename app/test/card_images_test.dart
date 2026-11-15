@@ -156,13 +156,14 @@ void main() {
             'finds an image with each of the extensions',
             () async {
               final found = <String, bool>{};
-              for (final extension in cardImageExtensions) {
+              for (final extension in CardImages.imageExtensions) {
                 final images = await load([fileOf('fish-fingers.$extension')]);
                 found[extension] = images.of(fishFingers) != null;
               }
 
               expect(found, {
-                for (final extension in cardImageExtensions) extension: true,
+                for (final extension in CardImages.imageExtensions)
+                  extension: true,
               });
             },
           );
@@ -187,7 +188,8 @@ void main() {
           test(
             'tries the extensions in the order png, jpg, jpeg, webp',
             () {
-              expect(cardImageExtensions, ['png', 'jpg', 'jpeg', 'webp']);
+              expect(
+                  CardImages.imageExtensions, ['png', 'jpg', 'jpeg', 'webp']);
             },
           );
 

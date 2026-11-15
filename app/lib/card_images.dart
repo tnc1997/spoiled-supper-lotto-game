@@ -10,13 +10,6 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'card_image_name.dart';
 import 'card_size.dart';
 
-/// The extensions, without a dot, that a player's own card images can have,
-/// in the order they are tried.
-///
-/// If a player has more than one image of a card, e.g. `fish-fingers.png`
-/// and `fish-fingers.jpg`, the one whose extension comes first is used.
-const cardImageExtensions = ['png', 'jpg', 'jpeg', 'webp'];
-
 /// The player's own images of the cards, loaded from files they chose.
 ///
 /// Show a card with the `Card` widget, which falls back to a
@@ -27,6 +20,13 @@ const cardImageExtensions = ['png', 'jpg', 'jpeg', 'webp'];
 class CardImages {
   /// No images, so every card is shown as a placeholder.
   static const empty = CardImages._({});
+
+  /// The extensions, without a dot, that a player's own card images can
+  /// have, in the order they are tried.
+  ///
+  /// If a player has more than one image of a card, e.g. `fish-fingers.png`
+  /// and `fish-fingers.jpg`, the one whose extension comes first is used.
+  static const imageExtensions = ['png', 'jpg', 'jpeg', 'webp'];
 
   /// The size, in pixels, that every image is cropped and scaled to.
   ///
@@ -49,7 +49,7 @@ class CardImages {
   ///
   /// Names are matched case-insensitively, so `Fish-Fingers.PNG` is found on
   /// every platform. If more than one file matches a card, the one whose
-  /// extension comes first in [cardImageExtensions] is used, then the first
+  /// extension comes first in [imageExtensions] is used, then the first
   /// in [files]. Files that don't match a card are ignored.
   ///
   /// Only the files that are used are read, all at once. Each is cropped
@@ -77,13 +77,13 @@ class CardImages {
   }
 
   /// Returns the file in [filesByName] that holds the image named
-  /// [imageName], trying each of the [cardImageExtensions] in order, or
+  /// [imageName], trying each of the [imageExtensions] in order, or
   /// `null` if there isn't one.
   static XFile? _fileOf(
     String imageName,
     Map<String, XFile> filesByName,
   ) {
-    for (final extension in cardImageExtensions) {
+    for (final extension in imageExtensions) {
       if (filesByName['$imageName.$extension'] case final file?) {
         return file;
       }
@@ -189,7 +189,7 @@ class CardImages {
     final files = await FilePicker.pickFiles(
       dialogTitle: 'Choose your card images',
       type: FileType.custom,
-      allowedExtensions: cardImageExtensions,
+      allowedExtensions: imageExtensions,
     );
 
     if (files.isEmpty) {
