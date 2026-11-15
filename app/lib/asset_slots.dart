@@ -4,8 +4,9 @@ import 'package:game_engine/game_engine.dart';
 /// [Card.id], e.g. `fish-fingers.png` for Fish Fingers.
 ///
 /// Players can show their own images of the cards, e.g. scanned from a copy
-/// they own and cropped with `tools/crop-cards.sh`, by placing files with
-/// these names in a local folder. A card without such a file is shown as a
+/// they own, by placing files with these names in a local folder. Images
+/// cropped with `tools/crop-cards.sh` keep their scan's name, so must be
+/// renamed to match. A card without such a file is shown as a
 /// `PlaceholderCard`.
 ///
 /// Each filename is fixed here rather than derived from [Card.name], so that
@@ -13,7 +14,7 @@ import 'package:game_engine/game_engine.dart';
 /// found. Once released, a filename should never change.
 ///
 /// Every filename is lowercase, with words separated by hyphens and a `.png`
-/// extension, so it is the same on every platform's file system.
+/// extension.
 const assetSlots = <String, String>{
   '1310ab58-8b89-4f70-bd68-347cdaeb7b71': 'fruit-salad.png',
   '986542ea-6353-407d-9d53-daad2cbf3ac9': 'ice-cream.png',
@@ -48,7 +49,7 @@ const assetSlots = <String, String>{
 };
 
 /// The local override filename of each [Card].
-extension AssetSlot on Card {
+extension CardOverrideFilename on Card {
   /// The name of the file that holds the player's own image of this card,
   /// e.g. `fish-fingers.png`, or `null` if it isn't one of the cards in the
   /// deck.
