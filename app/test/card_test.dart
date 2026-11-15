@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
@@ -23,7 +24,7 @@ void main() {
   Future<CardImages> loadImages(WidgetTester tester) async {
     final images = (await tester.runAsync(
       () => CardImages.load([
-        (name: 'fish-bone.png', readAsBytes: () async => png),
+        XFile.fromData(png, name: 'fish-bone.png', path: 'fish-bone.png'),
       ]),
     ))!;
     addTearDown(images.dispose);

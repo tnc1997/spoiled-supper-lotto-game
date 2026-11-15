@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
@@ -15,15 +16,6 @@ import 'card_size.dart';
 /// If a player has more than one image of a card, e.g. `fish-fingers.png`
 /// and `fish-fingers.jpg`, the one whose extension comes first is used.
 const cardImageExtensions = ['png', 'jpg', 'jpeg', 'webp'];
-
-/// A file that a player has offered as one of their own card images.
-typedef CardImageFile = ({
-  /// The file's name, with its extension, e.g. `fish-fingers.png`.
-  String name,
-
-  /// Reads the file's contents.
-  Future<Uint8List> Function() readAsBytes,
-});
 
 /// The player's own images of the cards, loaded from files they chose.
 ///
@@ -68,8 +60,8 @@ class CardImages {
   /// A card whose file can't be read or decoded, e.g. because it was moved
   /// after it was chosen, is shown as a placeholder, without affecting the
   /// other cards. The error is reported to [FlutterError.onError].
-  static Future<CardImages> load(Iterable<CardImageFile> files) async {
-    final filesByName = <String, CardImageFile>{};
+  static Future<CardImages> load(Iterable<XFile> files) async {
+    final filesByName = <String, XFile>{};
     for (final file in files) {
       filesByName.putIfAbsent(file.name.toLowerCase(), () => file);
     }
@@ -87,9 +79,9 @@ class CardImages {
   /// Returns the file in [filesByName] that holds the image named
   /// [imageName], trying each of the [cardImageExtensions] in order, or
   /// `null` if there isn't one.
-  static CardImageFile? _fileOf(
+  static XFile? _fileOf(
     String imageName,
-    Map<String, CardImageFile> filesByName,
+    Map<String, XFile> filesByName,
   ) {
     for (final extension in cardImageExtensions) {
       if (filesByName['$imageName.$extension'] case final file?) {
@@ -104,7 +96,7 @@ class CardImages {
   /// or returns `null` and reports the error if it can't be.
   static Future<MapEntry<String, ui.Image>?> _load(
     String id,
-    CardImageFile file,
+    XFile file,
   ) async {
     try {
       return MapEntry(id, await _decode(await file.readAsBytes()));
@@ -204,10 +196,7 @@ class CardImages {
       return null;
     }
 
-    return load([
-      for (final file in files)
-        (name: file.name, readAsBytes: file.readAsBytes),
-    ]);
+    return load([for (final file in files) file.xFile]);
   }
 
   /// Frees the images. They mustn't be shown afterwards.

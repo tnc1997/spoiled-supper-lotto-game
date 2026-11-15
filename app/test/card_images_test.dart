@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
@@ -57,6 +58,19 @@ Matcher isCloseToColor(ui.Color expected) {
   );
 }
 
+/// A file named [name] that reads its contents with [read].
+class _FakeFile extends Fake implements XFile {
+  @override
+  final String name;
+
+  final Future<Uint8List> Function() read;
+
+  _FakeFile(this.name, this.read);
+
+  @override
+  Future<Uint8List> readAsBytes() => read();
+}
+
 void main() {
   group(
     'CardImages',
@@ -82,20 +96,19 @@ void main() {
       });
 
       /// A file named [name] holding [bytes], or a red PNG.
-      CardImageFile fileOf(String name, [Uint8List? bytes]) {
-        return (name: name, readAsBytes: () async => bytes ?? redPng);
+      XFile fileOf(String name, [Uint8List? bytes]) {
+        // Gives the name as the path too, since only the web takes the
+        // name from the name.
+        return XFile.fromData(bytes ?? redPng, name: name, path: name);
       }
 
-      /// A file named [name] that can't be read.
-      CardImageFile unreadableFileOf(String name) {
-        return (
-          name: name,
-          readAsBytes: () => Future.error(Exception('Moved')),
-        );
+      /// A file named [name] that can't be read, since it doesn't exist.
+      XFile unreadableFileOf(String name) {
+        return XFile('missing/$name');
       }
 
       /// Loads [files], disposing of the images after the test.
-      Future<CardImages> load(Iterable<CardImageFile> files) async {
+      Future<CardImages> load(Iterable<XFile> files) async {
         final images = await CardImages.load(files);
         addTearDown(images.dispose);
 
@@ -224,14 +237,11 @@ void main() {
             'only reads the files that are used',
             () async {
               final read = <String>[];
-              CardImageFile trackedFileOf(String name) {
-                return (
-                  name: name,
-                  readAsBytes: () async {
-                    read.add(name);
-                    return redPng;
-                  },
-                );
+              XFile trackedFileOf(String name) {
+                return _FakeFile(name, () async {
+                  read.add(name);
+                  return redPng;
+                });
               }
 
               await load([
@@ -249,14 +259,11 @@ void main() {
             () async {
               final started = <String>[];
               final read = Completer<Uint8List>();
-              CardImageFile blockedFileOf(String name) {
-                return (
-                  name: name,
-                  readAsBytes: () {
-                    started.add(name);
-                    return read.future;
-                  },
-                );
+              XFile blockedFileOf(String name) {
+                return _FakeFile(name, () {
+                  started.add(name);
+                  return read.future;
+                });
               }
 
               final images = load([
