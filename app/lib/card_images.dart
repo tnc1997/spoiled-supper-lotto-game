@@ -17,9 +17,6 @@ import 'card_image_name.dart';
 /// Call [dispose] once the images are no longer shown, e.g. when the player
 /// chooses others.
 class CardImages {
-  /// No images, so every card is shown as a placeholder.
-  static const empty = CardImages._({});
-
   /// The extensions, without a dot, that a player's own card images can
   /// have, in the order they are tried.
   ///
@@ -43,9 +40,6 @@ class CardImages {
   final Map<String, ui.Image> _imagesById;
 
   const CardImages._(this._imagesById);
-
-  /// Whether there are no images, so every card is shown as a placeholder.
-  bool get isEmpty => _imagesById.isEmpty;
 
   /// Loads the image of each card from [files], matching each file's name
   /// against the card's [CardImageName.imageName], e.g. `fish-fingers.png`

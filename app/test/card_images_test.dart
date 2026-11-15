@@ -126,13 +126,6 @@ void main() {
       }
 
       test(
-        'shows every card as a placeholder when empty',
-        () {
-          expect(CardImages.empty[fishFingers], isNull);
-        },
-      );
-
-      test(
         'scales every image to twice the card template',
         () {
           expect(CardImages.imageSize, const ui.Size(520, 832));
@@ -221,7 +214,7 @@ void main() {
             () async {
               final images = await load([fileOf('fish-fingers.gif')]);
 
-              expect(images.isEmpty, isTrue);
+              expect(images[fishFingers], isNull);
             },
           );
 
@@ -230,7 +223,7 @@ void main() {
             () async {
               final images = await load([fileOf('fish fingers.png')]);
 
-              expect(images.isEmpty, isTrue);
+              expect(images[fishFingers], isNull);
             },
           );
 
