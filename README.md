@@ -113,6 +113,21 @@ into any build. See the [Assets & Copyright Policy](#assets--copyright-policy).
 > to choose your images arrives with the game setup screens
 > ([#34](https://github.com/tnc1997/spoiled-supper-lotto-game/issues/34)).
 
+### Cropping scans with `tools/crop-cards.sh`
+
+If you've scanned your cards as A4 pages (`.jpg`) with each card in the
+top-left corner, [`tools/crop-cards.sh`](tools/crop-cards.sh) crops them to
+the 260×416px card template as `.png` files. It needs
+[ImageMagick](https://imagemagick.org/) (`magick`) on your `PATH`:
+
+```bash
+./tools/crop-cards.sh --input ~/scans --output ~/card-images --dpi 300
+```
+
+Each cropped image keeps its scan's name (e.g. `scan-001.jpg` becomes
+`scan-001.png`), so rename each one to its card's name when preparing your
+folder, below.
+
 ### Preparing a folder of images
 
 Put one image per card in a folder of your choice, named after the card
@@ -126,7 +141,7 @@ any card without one is shown as a placeholder.
 - **Case** — names are matched case-insensitively, so `Fish-Fingers.PNG`
   works on every platform.
 - **Shape and size** — cards are 5:8 (width:height). An image of another
-  shape is cropped from its centre to fit. The scans' template is 260×416px;
+  shape is cropped from its centre to fit. The crop template is 260×416px;
   images are kept at up to 520×832px, so anything larger looks no sharper
   and only takes longer to load.
 - **Other files** — files whose names don't match a card are ignored, so
@@ -149,21 +164,6 @@ If an image can't be read or decoded, e.g. because the file is damaged or
 was moved after you chose it, that card is shown as a placeholder and the
 others are unaffected. The error, naming the file, is written to the
 browser's developer console.
-
-### Cropping scans with `tools/crop-cards.sh`
-
-If you've scanned your cards as A4 pages (`.jpg`) with each card in the
-top-left corner, [`tools/crop-cards.sh`](tools/crop-cards.sh) crops them to
-the 260×416px card template as `.png` files. It needs
-[ImageMagick](https://imagemagick.org/) (`magick`) on your `PATH`:
-
-```bash
-./tools/crop-cards.sh --input ~/scans --output ~/card-images --dpi 300
-```
-
-Each cropped image keeps its scan's name (e.g. `scan-001.jpg` becomes
-`scan-001.png`), so rename each one to its card's name from the table below
-before choosing them in the app.
 
 ### Card image file names
 
