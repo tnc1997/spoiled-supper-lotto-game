@@ -180,5 +180,5 @@ class CardImages {
 
   /// Returns the player's own image of [card], decoded to cover [imageSize],
   /// or `null` if they don't have one.
-  ui.Image? of(engine.Card card) => _imagesById[card.id];
+  ui.Image? operator [](engine.Card card) => _imagesById[card.id];
 }

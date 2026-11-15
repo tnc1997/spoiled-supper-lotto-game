@@ -87,7 +87,7 @@ void main() {
 
           expect(
             tester.widget<RawImage>(find.byType(RawImage)).image,
-            images.of(fishBone),
+            images[fishBone],
           );
         },
       );

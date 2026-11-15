@@ -128,7 +128,7 @@ void main() {
       test(
         'shows every card as a placeholder when empty',
         () {
-          expect(CardImages.empty.of(fishFingers), isNull);
+          expect(CardImages.empty[fishFingers], isNull);
         },
       );
 
@@ -147,7 +147,7 @@ void main() {
             () async {
               final images = await load([fileOf('fish-fingers.png')]);
 
-              expect(images.of(fishFingers), isNotNull);
+              expect(images[fishFingers], isNotNull);
             },
           );
 
@@ -157,7 +157,7 @@ void main() {
               final found = <String, bool>{};
               for (final extension in CardImages.imageExtensions) {
                 final images = await load([fileOf('fish-fingers.$extension')]);
-                found[extension] = images.of(fishFingers) != null;
+                found[extension] = images[fishFingers] != null;
               }
 
               expect(found, {
@@ -178,7 +178,7 @@ void main() {
               ]);
 
               expect(
-                await colorOf(images.of(fishFingers)!, 0, 0),
+                await colorOf(images[fishFingers]!, 0, 0),
                 isCloseToColor(green),
               );
             },
@@ -197,7 +197,7 @@ void main() {
             () async {
               final images = await load([fileOf('Fish-Fingers.PNG')]);
 
-              expect(images.of(fishFingers), isNotNull);
+              expect(images[fishFingers], isNotNull);
             },
           );
 
@@ -210,7 +210,7 @@ void main() {
               ]);
 
               expect(
-                await colorOf(images.of(fishFingers)!, 0, 0),
+                await colorOf(images[fishFingers]!, 0, 0),
                 isCloseToColor(green),
               );
             },
@@ -292,7 +292,7 @@ void main() {
             () async {
               final images = await load([fileOf('fish-fingers.png')]);
 
-              expect(sizeOf(images.of(fishFingers)!), const ui.Size(10, 16));
+              expect(sizeOf(images[fishFingers]!), const ui.Size(10, 16));
             },
           );
 
@@ -306,7 +306,7 @@ void main() {
                 ),
               ]);
 
-              expect(sizeOf(images.of(fishFingers)!), CardImages.imageSize);
+              expect(sizeOf(images[fishFingers]!), CardImages.imageSize);
             },
           );
 
@@ -322,7 +322,7 @@ void main() {
               ]);
 
               expect(
-                sizeOf(images.of(fishFingers)!),
+                sizeOf(images[fishFingers]!),
                 const ui.Size(832, 832),
               );
             },
@@ -334,7 +334,7 @@ void main() {
               collectErrors();
               final images = await load([unreadableFileOf('fish-fingers.png')]);
 
-              expect(images.of(fishFingers), isNull);
+              expect(images[fishFingers], isNull);
             },
           );
 
@@ -346,7 +346,7 @@ void main() {
                 fileOf('fish-fingers.png', Uint8List.fromList([1, 2, 3])),
               ]);
 
-              expect(images.of(fishFingers), isNull);
+              expect(images[fishFingers], isNull);
             },
           );
 
@@ -372,7 +372,7 @@ void main() {
                 fileOf('sausages.png'),
               ]);
 
-              expect(images.of(sausages), isNotNull);
+              expect(images[sausages], isNotNull);
             },
           );
 
@@ -381,7 +381,7 @@ void main() {
             () async {
               final images = await load([fileOf('sausages.png')]);
 
-              expect(images.of(fishFingers), isNull);
+              expect(images[fishFingers], isNull);
             },
           );
         },

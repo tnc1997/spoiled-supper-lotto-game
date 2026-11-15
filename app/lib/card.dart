@@ -24,7 +24,7 @@ class Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = CardImagesScope.maybeOf(context)?.of(card);
+    final image = CardImagesScope.maybeOf(context)?[card];
 
     if (image == null) {
       return PlaceholderCard(card: card);
