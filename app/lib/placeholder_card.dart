@@ -1,4 +1,4 @@
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
 import 'card_semantic_label.dart';
@@ -36,12 +36,12 @@ class PlaceholderCard extends StatelessWidget {
   static const _padding = EdgeInsets.all(8);
 
   /// The card to show.
-  final Card card;
+  final engine.Card card;
 
   /// Shows [card].
   const PlaceholderCard({super.key, required this.card});
 
-  bool get _isSpoiled => card.type == CardType.spoiled;
+  bool get _isSpoiled => card.type == engine.CardType.spoiled;
 
   @override
   Widget build(BuildContext context) {

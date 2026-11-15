@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:spoiled_supper_lotto_game/card_images.dart';
 
 /// Returns a PNG [width]x[height]px, made of [colors] in equal vertical
@@ -65,7 +65,7 @@ void main() {
       const green = ui.Color(0xFF00FF00);
       const blue = ui.Color(0xFF0000FF);
 
-      final deck = buildDeck();
+      final deck = engine.buildDeck();
       final fishFingers = deck.singleWhere(
         (card) => card.id == '0d78745d-a48f-4412-a32e-d81e2911ae8b',
       );

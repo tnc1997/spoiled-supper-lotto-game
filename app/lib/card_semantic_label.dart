@@ -1,9 +1,9 @@
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 
 import 'category_label.dart';
 
-/// What a screen reader announces for each [Card].
-extension CardSemanticLabel on Card {
+/// What a screen reader announces for each [engine.Card].
+extension CardSemanticLabel on engine.Card {
   /// The card's name and category, and whether it is Spoiled, e.g.
   /// `Fish Bone, Main, Spoiled`.
   ///
@@ -12,6 +12,6 @@ extension CardSemanticLabel on Card {
   String get semanticLabel => [
         name,
         category.label,
-        if (type == CardType.spoiled) 'Spoiled',
+        if (type == engine.CardType.spoiled) 'Spoiled',
       ].join(', ');
 }

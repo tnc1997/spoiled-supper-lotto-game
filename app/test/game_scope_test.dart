@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 
@@ -8,16 +8,16 @@ void main() {
   group(
     'GameScope',
     () {
-      const sausages = Card(
+      const sausages = engine.Card(
         id: '1',
-        type: CardType.standard,
-        category: Category.main,
+        type: engine.CardType.standard,
+        category: engine.Category.main,
         name: 'Sausages',
       );
-      const milk = Card(
+      const milk = engine.Card(
         id: '2',
-        type: CardType.standard,
-        category: Category.drink,
+        type: engine.CardType.standard,
+        category: engine.Category.drink,
         name: 'Milk',
       );
 
@@ -30,8 +30,8 @@ void main() {
       /// once the test has finished.
       GameNotifier notifierFor(List<String> names) {
         final notifier = GameNotifier(
-          GameController(
-            players: [for (final name in names) Player(name: name)],
+          engine.GameController(
+            players: [for (final name in names) engine.Player(name: name)],
             drawPile: [milk, sausages],
           ),
         );

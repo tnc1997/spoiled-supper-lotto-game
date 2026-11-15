@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card_face.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
@@ -10,9 +10,9 @@ import 'package:spoiled_supper_lotto_game/card_size.dart';
 import 'package:spoiled_supper_lotto_game/placeholder_card.dart';
 
 void main() {
-  final fishBone = buildDeck().singleWhere(
-    (card) => card.id == '22407c27-1682-4fca-b9b9-015208b86f18',
-  );
+  final fishBone = engine.buildDeck().singleWhere(
+        (card) => card.id == '22407c27-1682-4fca-b9b9-015208b86f18',
+      );
 
   // A 1x1px PNG.
   final png = base64Decode(

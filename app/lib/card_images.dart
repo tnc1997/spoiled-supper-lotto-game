@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 
 import 'card_image_name.dart';
 import 'card_image_picker_web_options.dart'
@@ -219,5 +219,5 @@ class CardImages {
 
   /// Returns the player's own image of [card], at [imageSize], or `null` if
   /// they don't have one.
-  ui.Image? of(Card card) => _imagesByImageName[card.imageName];
+  ui.Image? of(engine.Card card) => _imagesByImageName[card.imageName];
 }

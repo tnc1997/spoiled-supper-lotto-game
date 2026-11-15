@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
 import 'card_images_scope.dart';
@@ -15,7 +15,7 @@ import 'placeholder_card.dart';
 /// the other doesn't move anything.
 class CardFace extends StatelessWidget {
   /// The card to show.
-  final Card card;
+  final engine.Card card;
 
   /// Shows [card].
   const CardFace({super.key, required this.card});
@@ -37,7 +37,7 @@ class CardFace extends StatelessWidget {
 /// The image is already decoded, cropped and scaled by `CardImages`, so it
 /// is painted straight away, at any size, without decoding it again.
 class _ImageCard extends StatelessWidget {
-  final Card card;
+  final engine.Card card;
   final ui.Image image;
 
   const _ImageCard({required this.card, required this.image});

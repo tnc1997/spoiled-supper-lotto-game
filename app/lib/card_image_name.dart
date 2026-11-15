@@ -1,7 +1,7 @@
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 
 /// The name, without an extension, that a player gives the file holding
-/// their own image of each card, keyed by [Card.id], e.g. `fish-fingers`
+/// their own image of each card, keyed by [engine.Card.id], e.g. `fish-fingers`
 /// for Fish Fingers. This is the asset-slot registry that the local override
 /// system looks images up in.
 ///
@@ -13,7 +13,7 @@ import 'package:game_engine/game_engine.dart';
 /// be renamed to match. A card without such a file is shown as a
 /// `PlaceholderCard`.
 ///
-/// Each name is fixed here rather than derived from [Card.name], so that
+/// Each name is fixed here rather than derived from [engine.Card.name], so that
 /// rewording a card's name doesn't stop a player's existing image from being
 /// found. Once released, a name should never change.
 ///
@@ -51,8 +51,8 @@ const cardImageNames = <String, String>{
   '04c69c46-f6e4-4fde-aa98-5ca02b2c46de': 'pond-water',
 };
 
-/// The name of the player's own image of each [Card].
-extension CardImageName on Card {
+/// The name of the player's own image of each [engine.Card].
+extension CardImageName on engine.Card {
   /// The name, without an extension, of the file that holds the player's
   /// own image of this card, e.g. `fish-fingers`, or `null` if it isn't one
   /// of the cards in the deck.

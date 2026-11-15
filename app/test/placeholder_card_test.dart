@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/category_color.dart';
 import 'package:spoiled_supper_lotto_game/placeholder_card.dart';
@@ -8,16 +8,16 @@ void main() {
   group(
     'PlaceholderCard',
     () {
-      const sausages = Card(
+      const sausages = engine.Card(
         id: '1',
-        type: CardType.standard,
-        category: Category.main,
+        type: engine.CardType.standard,
+        category: engine.Category.main,
         name: 'Sausages',
       );
-      const fishBone = Card(
+      const fishBone = engine.Card(
         id: '2',
-        type: CardType.spoiled,
-        category: Category.main,
+        type: engine.CardType.spoiled,
+        category: engine.Category.main,
         name: 'Fish Bone',
       );
 
@@ -25,7 +25,7 @@ void main() {
       /// theme in the Fredoka font family.
       Future<void> pumpCard(
         WidgetTester tester,
-        Card card, {
+        engine.Card card, {
         double width = 200,
       }) {
         return tester.pumpWidget(
@@ -108,15 +108,15 @@ void main() {
 
       /// Returns the background colour of a card of each category, of the
       /// given [type].
-      Future<Map<Category, Color>> backgroundsOf(
+      Future<Map<engine.Category, Color>> backgroundsOf(
         WidgetTester tester,
-        CardType type,
+        engine.CardType type,
       ) async {
-        final backgrounds = <Category, Color>{};
-        for (final category in Category.values) {
+        final backgrounds = <engine.Category, Color>{};
+        for (final category in engine.Category.values) {
           await pumpCard(
             tester,
-            Card(id: '1', type: type, category: category, name: 'X'),
+            engine.Card(id: '1', type: type, category: category, name: 'X'),
           );
           backgrounds[category] = backgroundOf(tester)!;
         }
@@ -168,12 +168,12 @@ void main() {
         (tester) async {
           final backgrounds = await backgroundsOf(
             tester,
-            CardType.standard,
+            engine.CardType.standard,
           );
 
           expect(
             backgrounds.values.toSet(),
-            hasLength(Category.values.length),
+            hasLength(engine.Category.values.length),
           );
         },
       );
@@ -183,16 +183,16 @@ void main() {
         (tester) async {
           final standard = await backgroundsOf(
             tester,
-            CardType.standard,
+            engine.CardType.standard,
           );
           final spoiled = await backgroundsOf(
             tester,
-            CardType.spoiled,
+            engine.CardType.spoiled,
           );
 
           final closest = {
             for (final MapEntry(key: category, value: color) in spoiled.entries)
-              category: Category.values.reduce(
+              category: engine.Category.values.reduce(
                 (a, b) => distanceBetween(color, standard[a]!) <=
                         distanceBetween(color, standard[b]!)
                     ? a
@@ -201,7 +201,7 @@ void main() {
           };
 
           expect(closest, {
-            for (final category in Category.values) category: category,
+            for (final category in engine.Category.values) category: category,
           });
         },
       );
@@ -211,10 +211,10 @@ void main() {
         (tester) async {
           await pumpCard(
             tester,
-            const Card(
+            const engine.Card(
               id: '6',
-              type: CardType.standard,
-              category: Category.dessert,
+              type: engine.CardType.standard,
+              category: engine.Category.dessert,
               name: 'Strawberries',
             ),
           );
@@ -271,10 +271,10 @@ void main() {
         (tester) async {
           await pumpCard(
             tester,
-            const Card(
+            const engine.Card(
               id: '5',
-              type: CardType.standard,
-              category: Category.main,
+              type: engine.CardType.standard,
+              category: engine.Category.main,
               name: 'Fish Fingers',
             ),
           );
@@ -289,10 +289,10 @@ void main() {
       testWidgets(
         'ignores the system text size',
         (tester) async {
-          const milk = Card(
+          const milk = engine.Card(
             id: '4',
-            type: CardType.standard,
-            category: Category.drink,
+            type: engine.CardType.standard,
+            category: engine.Category.drink,
             name: 'Milk',
           );
 
@@ -381,10 +381,10 @@ void main() {
         'gives every category a different colour',
         () {
           final colors = {
-            for (final category in Category.values) category.color,
+            for (final category in engine.Category.values) category.color,
           };
 
-          expect(colors, hasLength(Category.values.length));
+          expect(colors, hasLength(engine.Category.values.length));
         },
       );
     },
