@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cupertino_icons: ^1.0.8
+  file_picker: ^13.3.3
   flutter:
     sdk: flutter
   game_engine:

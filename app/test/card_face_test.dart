@@ -1,0 +1,170 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:game_engine/game_engine.dart';
+import 'package:material_ui/material_ui.dart' hide Card;
+import 'package:spoiled_supper_lotto_game/card_face.dart';
+import 'package:spoiled_supper_lotto_game/card_images.dart';
+import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
+import 'package:spoiled_supper_lotto_game/card_size.dart';
+import 'package:spoiled_supper_lotto_game/placeholder_card.dart';
+
+void main() {
+  group(
+    'CardFace',
+    () {
+      final fishBone = buildDeck().singleWhere(
+        (card) => card.id == '22407c27-1682-4fca-b9b9-015208b86f18',
+      );
+
+      // A 1x1px PNG.
+      final png = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      );
+
+      /// Loads an image of Fish Bone holding [bytes].
+      Future<CardImages> imagesOf(Uint8List bytes) {
+        return CardImages.load([
+          (name: 'fish-bone.png', readAsBytes: () async => bytes),
+        ]);
+      }
+
+      /// Shows Fish Bone with [images] in a slot [width] logical pixels
+      /// wide, or unbounded if [width] is `null`.
+      Future<void> pumpCard(
+        WidgetTester tester, {
+        CardImages? images,
+        double? width = 200,
+      }) {
+        final card = CardFace(card: fishBone);
+
+        return tester.pumpWidget(
+          MaterialApp(
+            home: CardImagesScope(
+              images: images ?? CardImages.empty,
+              child: width == null
+                  ? UnconstrainedBox(child: card)
+                  : Align(
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(width: width, child: card),
+                    ),
+            ),
+          ),
+        );
+      }
+
+      testWidgets(
+        'shows a placeholder for a card without an image',
+        (tester) async {
+          await pumpCard(tester);
+
+          expect(find.byType(PlaceholderCard), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'shows a placeholder without a CardImagesScope',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(home: CardFace(card: fishBone)),
+          );
+
+          expect(find.byType(PlaceholderCard), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'shows the image of a card with one',
+        (tester) async {
+          await pumpCard(tester, images: await imagesOf(png));
+
+          expect(find.byType(Image), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'does not show a placeholder for a card with an image',
+        (tester) async {
+          await pumpCard(tester, images: await imagesOf(png));
+
+          expect(find.byType(PlaceholderCard), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'shows a placeholder for an image that cannot be shown',
+        (tester) async {
+          await pumpCard(
+            tester,
+            images: await imagesOf(Uint8List.fromList([1, 2, 3])),
+          );
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 100)),
+          );
+          await tester.pump();
+
+          expect(find.byType(PlaceholderCard), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'announces the name and category of a card with an image',
+        (tester) async {
+          await pumpCard(tester, images: await imagesOf(png));
+
+          expect(
+            tester.getSemantics(find.byType(Image)),
+            isSemantics(label: 'Fish Bone, Main, Spoiled'),
+          );
+        },
+      );
+
+      testWidgets(
+        'fills the width of its parent with an image',
+        (tester) async {
+          await pumpCard(tester, images: await imagesOf(png), width: 150);
+
+          expect(tester.getSize(find.byType(CardFace)).width, 150);
+        },
+      );
+
+      testWidgets(
+        'keeps the shape of a card with an image',
+        (tester) async {
+          await pumpCard(tester, images: await imagesOf(png), width: 150);
+
+          expect(
+            tester.getSize(find.byType(CardFace)).aspectRatio,
+            cardAspectRatio,
+          );
+        },
+      );
+
+      testWidgets(
+        'takes up the same space with an image as a placeholder',
+        (tester) async {
+          await pumpCard(tester, width: null);
+          final placeholder = tester.getSize(find.byType(CardFace));
+
+          await pumpCard(tester, images: await imagesOf(png), width: null);
+          final image = tester.getSize(find.byType(CardFace));
+
+          expect(image, placeholder);
+        },
+      );
+    },
+  );
+
+  group(
+    'PlaceholderCard',
+    () {
+      test(
+        'has the shape of every card',
+        () {
+          expect(PlaceholderCard.size.aspectRatio, cardAspectRatio);
+        },
+      );
+    },
+  );
+}
