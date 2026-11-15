@@ -43,12 +43,13 @@ class CardImages {
   /// device pixel ratio of 2, while 30 images take about 50 MB.
   static const imageSize = Size(520, 520 / cardAspectRatio);
 
-  final Map<String, ui.Image> _imagesByImageName;
+  /// The images, keyed by [engine.Card.id].
+  final Map<String, ui.Image> _imagesById;
 
-  const CardImages._(this._imagesByImageName);
+  const CardImages._(this._imagesById);
 
   /// Whether there are no images, so every card is shown as a placeholder.
-  bool get isEmpty => _imagesByImageName.isEmpty;
+  bool get isEmpty => _imagesById.isEmpty;
 
   /// Loads the image of each card from [files], matching each file's name
   /// against the card's [CardImageName.imageName], e.g. `fish-fingers.png`
@@ -74,9 +75,8 @@ class CardImages {
     }
 
     final loads = <Future<MapEntry<String, ui.Image>?>>[
-      for (final imageName in cardImageNames.values)
-        if (_fileOf(imageName, filesByName) case final file?)
-          _load(imageName, file),
+      for (final MapEntry(key: id, value: imageName) in cardImageNames.entries)
+        if (_fileOf(imageName, filesByName) case final file?) _load(id, file),
     ];
 
     return CardImages._(
@@ -100,14 +100,14 @@ class CardImages {
     return null;
   }
 
-  /// Reads and decodes [file], the image named [imageName], or returns
-  /// `null` and reports the error if it can't be.
+  /// Reads and decodes [file], the image of the card with the given [id],
+  /// or returns `null` and reports the error if it can't be.
   static Future<MapEntry<String, ui.Image>?> _load(
-    String imageName,
+    String id,
     CardImageFile file,
   ) async {
     try {
-      return MapEntry(imageName, await _decode(await file.readAsBytes()));
+      return MapEntry(id, await _decode(await file.readAsBytes()));
     } catch (exception, stack) {
       // Catches everything, since a failed read on the web throws a
       // JavaScript error rather than an Exception.
@@ -212,12 +212,12 @@ class CardImages {
 
   /// Frees the images. They mustn't be shown afterwards.
   void dispose() {
-    for (final image in _imagesByImageName.values) {
+    for (final image in _imagesById.values) {
       image.dispose();
     }
   }
 
   /// Returns the player's own image of [card], at [imageSize], or `null` if
   /// they don't have one.
-  ui.Image? of(engine.Card card) => _imagesByImageName[card.imageName];
+  ui.Image? of(engine.Card card) => _imagesById[card.id];
 }
