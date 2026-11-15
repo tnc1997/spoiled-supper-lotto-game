@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart';
-import 'package:spoiled_supper_lotto_game/asset_slots.dart';
+import 'package:spoiled_supper_lotto_game/card_image_name.dart';
 
 void main() {
   group(
-    'assetSlots',
+    'cardImageNames',
     () {
       final deck = buildDeck();
 
@@ -12,7 +12,7 @@ void main() {
         'has a slot for every card in the deck',
         () {
           expect(
-            assetSlots.keys,
+            cardImageNames.keys,
             unorderedEquals(deck.map((card) => card.id)),
           );
         },
@@ -24,7 +24,7 @@ void main() {
           // Players name their files to match these, so changing one stops
           // their image from being found. Only add to this list.
           expect(
-            assetSlots,
+            cardImageNames,
             const {
               '1310ab58-8b89-4f70-bd68-347cdaeb7b71': 'fruit-salad',
               '986542ea-6353-407d-9d53-daad2cbf3ac9': 'ice-cream',
@@ -65,8 +65,8 @@ void main() {
         'gives every card a different name',
         () {
           expect(
-            assetSlots.values.toSet(),
-            hasLength(assetSlots.length),
+            cardImageNames.values.toSet(),
+            hasLength(cardImageNames.length),
           );
         },
       );
@@ -75,7 +75,7 @@ void main() {
         'writes every name in lowercase words separated by hyphens',
         () {
           expect(
-            assetSlots.values,
+            cardImageNames.values,
             everyElement(matches(RegExp(r'^[a-z]+(-[a-z]+)*$'))),
           );
         },

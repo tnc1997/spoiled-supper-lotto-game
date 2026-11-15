@@ -2,7 +2,8 @@ import 'package:game_engine/game_engine.dart';
 
 /// The name, without an extension, that a player gives the file holding
 /// their own image of each card, keyed by [Card.id], e.g. `fish-fingers`
-/// for Fish Fingers.
+/// for Fish Fingers. This is the asset-slot registry that the local override
+/// system looks images up in.
 ///
 /// Players can show their own images of the cards, e.g. scanned from a copy
 /// they own, by placing files with these names in a local override folder,
@@ -16,7 +17,7 @@ import 'package:game_engine/game_engine.dart';
 /// found. Once released, a name should never change.
 ///
 /// Every name is lowercase, with words separated by hyphens.
-const assetSlots = <String, String>{
+const cardImageNames = <String, String>{
   '1310ab58-8b89-4f70-bd68-347cdaeb7b71': 'fruit-salad',
   '986542ea-6353-407d-9d53-daad2cbf3ac9': 'ice-cream',
   '482625fa-aa08-4ca3-a388-a2810cb77d4f': 'jelly',
@@ -54,5 +55,5 @@ extension CardImageName on Card {
   /// The name, without an extension, of the file that holds the player's
   /// own image of this card, e.g. `fish-fingers`, or `null` if it isn't one
   /// of the cards in the deck.
-  String? get imageName => assetSlots[id];
+  String? get imageName => cardImageNames[id];
 }
