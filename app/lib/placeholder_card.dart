@@ -1,6 +1,8 @@
 import 'package:game_engine/game_engine.dart';
 import 'package:material_ui/material_ui.dart' hide Card;
 
+import 'card_semantic_label.dart';
+import 'card_size.dart';
 import 'category_color.dart';
 import 'category_label.dart';
 
@@ -27,10 +29,9 @@ import 'category_label.dart';
 class PlaceholderCard extends StatelessWidget {
   /// The size the card is laid out at, before it is scaled to fit.
   ///
-  /// Matches the 5:8 shape of the 260x416px card template that card images
-  /// are cropped to (see `tools/crop-cards.sh`), so that a placeholder and
-  /// an image take up the same space.
-  static const size = Size(100, 160);
+  /// Has the shape of every card, [cardAspectRatio], so that a placeholder
+  /// and a player's own image take up the same space.
+  static const size = Size(100, 100 / cardAspectRatio);
 
   static const _padding = EdgeInsets.all(8);
 
@@ -60,11 +61,7 @@ class PlaceholderCard extends StatelessWidget {
     return Semantics(
       container: true,
       excludeSemantics: true,
-      label: [
-        card.name,
-        card.category.label,
-        if (_isSpoiled) 'Spoiled',
-      ].join(', '),
+      label: card.semanticLabel,
       // Fixes the text's size relative to the card, like a card image's.
       child: MediaQuery.withNoTextScaling(
         // Scales the whole card to fit its parent.
