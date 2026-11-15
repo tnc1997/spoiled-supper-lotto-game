@@ -1,24 +1,116 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
+
+/// Returns a PNG [width]x[height]px, made of [colors] in equal vertical
+/// stripes from left to right.
+Future<Uint8List> pngOf(
+  List<ui.Color> colors, {
+  int width = 10,
+  int height = 16,
+}) async {
+  final recorder = ui.PictureRecorder();
+  final canvas = ui.Canvas(recorder);
+  final stripe = width / colors.length;
+  for (final (index, color) in colors.indexed) {
+    canvas.drawRect(
+      ui.Rect.fromLTWH(stripe * index, 0, stripe, height.toDouble()),
+      ui.Paint()..color = color,
+    );
+  }
+
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(width, height);
+  final data = await image.toByteData(format: ui.ImageByteFormat.png);
+  picture.dispose();
+  image.dispose();
+
+  return data!.buffer.asUint8List();
+}
+
+/// Returns the colour of the pixel of [image] at ([x], [y]).
+Future<ui.Color> colorOf(ui.Image image, int x, int y) async {
+  final data = await image.toByteData();
+  final offset = (y * image.width + x) * 4;
+
+  return ui.Color.fromARGB(
+    data!.getUint8(offset + 3),
+    data.getUint8(offset),
+    data.getUint8(offset + 1),
+    data.getUint8(offset + 2),
+  );
+}
+
+/// Matches a colour within a small distance of [expected] in each channel,
+/// allowing for filtering when an image is scaled.
+Matcher isCloseToColor(ui.Color expected) {
+  return predicate<ui.Color>(
+    (actual) =>
+        (actual.r - expected.r).abs() < 0.05 &&
+        (actual.g - expected.g).abs() < 0.05 &&
+        (actual.b - expected.b).abs() < 0.05,
+    'close to $expected',
+  );
+}
 
 void main() {
   group(
     'CardImages',
     () {
-      final fishFingers = buildDeck().singleWhere(
+      const red = ui.Color(0xFFFF0000);
+      const green = ui.Color(0xFF00FF00);
+      const blue = ui.Color(0xFF0000FF);
+
+      final deck = buildDeck();
+      final fishFingers = deck.singleWhere(
         (card) => card.id == '0d78745d-a48f-4412-a32e-d81e2911ae8b',
       );
+      final sausages = deck.singleWhere(
+        (card) => card.id == 'b2590d89-4580-40c7-8b33-3c92fc6b347d',
+      );
 
-      /// A file named [name] holding [bytes].
-      CardImageFile fileOf(String name, [List<int> bytes = const [1]]) {
+      late Uint8List redPng;
+      late Uint8List greenPng;
+
+      setUpAll(() async {
+        redPng = await pngOf([red]);
+        greenPng = await pngOf([green]);
+      });
+
+      /// A file named [name] holding [bytes], or a red PNG.
+      CardImageFile fileOf(String name, [Uint8List? bytes]) {
+        return (name: name, readAsBytes: () async => bytes ?? redPng);
+      }
+
+      /// A file named [name] that can't be read.
+      CardImageFile unreadableFileOf(String name) {
         return (
           name: name,
-          readAsBytes: () async => Uint8List.fromList(bytes),
+          readAsBytes: () => Future.error(Exception('Moved')),
         );
+      }
+
+      /// Loads [files], disposing of the images after the test.
+      Future<CardImages> load(Iterable<CardImageFile> files) async {
+        final images = await CardImages.load(files);
+        addTearDown(images.dispose);
+
+        return images;
+      }
+
+      /// Collects the errors reported to [FlutterError.onError] during the
+      /// test, rather than printing them.
+      List<FlutterErrorDetails> collectErrors() {
+        final errors = <FlutterErrorDetails>[];
+        final onError = FlutterError.onError;
+        FlutterError.onError = errors.add;
+        addTearDown(() => FlutterError.onError = onError);
+
+        return errors;
       }
 
       test(
@@ -28,17 +120,22 @@ void main() {
         },
       );
 
+      test(
+        'scales every image to twice the card template',
+        () {
+          expect(CardImages.imageSize, const ui.Size(520, 832));
+        },
+      );
+
       group(
         'load',
         () {
           test(
             'finds the image of a card by its name',
             () async {
-              final images = await CardImages.load([
-                fileOf('fish-fingers.png', [1, 2, 3]),
-              ]);
+              final images = await load([fileOf('fish-fingers.png')]);
 
-              expect(images.of(fishFingers), [1, 2, 3]);
+              expect(images.of(fishFingers), isNotNull);
             },
           );
 
@@ -47,9 +144,7 @@ void main() {
             () async {
               final found = <String, bool>{};
               for (final extension in cardImageExtensions) {
-                final images = await CardImages.load([
-                  fileOf('fish-fingers.$extension'),
-                ]);
+                final images = await load([fileOf('fish-fingers.$extension')]);
                 found[extension] = images.of(fishFingers) != null;
               }
 
@@ -62,14 +157,17 @@ void main() {
           test(
             'tries the extensions in order',
             () async {
-              final images = await CardImages.load([
-                fileOf('fish-fingers.webp', [4]),
-                fileOf('fish-fingers.jpeg', [3]),
-                fileOf('fish-fingers.jpg', [2]),
-                fileOf('fish-fingers.png', [1]),
+              final images = await load([
+                fileOf('fish-fingers.webp'),
+                fileOf('fish-fingers.jpeg'),
+                fileOf('fish-fingers.jpg'),
+                fileOf('fish-fingers.png', greenPng),
               ]);
 
-              expect(images.of(fishFingers), [1]);
+              expect(
+                await colorOf(images.of(fishFingers)!, 0, 0),
+                isCloseToColor(green),
+              );
             },
           );
 
@@ -83,9 +181,7 @@ void main() {
           test(
             'matches the name case-insensitively',
             () async {
-              final images = await CardImages.load([
-                fileOf('Fish-Fingers.PNG'),
-              ]);
+              final images = await load([fileOf('Fish-Fingers.PNG')]);
 
               expect(images.of(fishFingers), isNotNull);
             },
@@ -94,21 +190,22 @@ void main() {
           test(
             'uses the first of several files with the same name in any case',
             () async {
-              final images = await CardImages.load([
-                fileOf('Fish-Fingers.png', [1]),
-                fileOf('fish-fingers.png', [2]),
+              final images = await load([
+                fileOf('Fish-Fingers.png', greenPng),
+                fileOf('fish-fingers.png'),
               ]);
 
-              expect(images.of(fishFingers), [1]);
+              expect(
+                await colorOf(images.of(fishFingers)!, 0, 0),
+                isCloseToColor(green),
+              );
             },
           );
 
           test(
             'ignores a file with another extension',
             () async {
-              final images = await CardImages.load([
-                fileOf('fish-fingers.gif'),
-              ]);
+              final images = await load([fileOf('fish-fingers.gif')]);
 
               expect(images.isEmpty, isTrue);
             },
@@ -117,9 +214,7 @@ void main() {
           test(
             'ignores a file that is not named after a card',
             () async {
-              final images = await CardImages.load([
-                fileOf('fish fingers.png'),
-              ]);
+              final images = await load([fileOf('fish fingers.png')]);
 
               expect(images.isEmpty, isTrue);
             },
@@ -134,51 +229,18 @@ void main() {
                   name: name,
                   readAsBytes: () async {
                     read.add(name);
-                    return Uint8List(1);
+                    return redPng;
                   },
                 );
               }
 
-              await CardImages.load([
+              await load([
                 trackedFileOf('fish-fingers.jpg'),
                 trackedFileOf('fish-fingers.png'),
                 trackedFileOf('holiday.png'),
               ]);
 
               expect(read, ['fish-fingers.png']);
-            },
-          );
-
-          test(
-            'shows a card whose file cannot be read as a placeholder',
-            () async {
-              final images = await CardImages.load([
-                (
-                  name: 'fish-fingers.png',
-                  readAsBytes: () => Future.error(Exception('Moved')),
-                ),
-              ]);
-
-              expect(images.of(fishFingers), isNull);
-            },
-          );
-
-          test(
-            'keeps the other images when a file cannot be read',
-            () async {
-              final sausages = buildDeck().singleWhere(
-                (card) => card.id == 'b2590d89-4580-40c7-8b33-3c92fc6b347d',
-              );
-
-              final images = await CardImages.load([
-                (
-                  name: 'fish-fingers.png',
-                  readAsBytes: () => Future.error(Exception('Moved')),
-                ),
-                fileOf('sausages.png'),
-              ]);
-
-              expect(images.of(sausages), isNotNull);
             },
           );
 
@@ -197,25 +259,127 @@ void main() {
                 );
               }
 
-              final images = CardImages.load([
+              final images = load([
                 blockedFileOf('fish-fingers.png'),
                 blockedFileOf('sausages.png'),
               ]);
               await Future<void>.delayed(Duration.zero);
-              read.complete(Uint8List(1));
+              read.complete(redPng);
               await images;
 
-              expect(started,
-                  unorderedEquals(['fish-fingers.png', 'sausages.png']));
+              expect(
+                started,
+                unorderedEquals(['fish-fingers.png', 'sausages.png']),
+              );
+            },
+          );
+
+          test(
+            'scales a small image up to the image size',
+            () async {
+              final images = await load([fileOf('fish-fingers.png')]);
+              final image = images.of(fishFingers)!;
+
+              expect(
+                ui.Size(image.width.toDouble(), image.height.toDouble()),
+                CardImages.imageSize,
+              );
+            },
+          );
+
+          test(
+            'scales a large image down to the image size',
+            () async {
+              final images = await load([
+                fileOf(
+                  'fish-fingers.png',
+                  await pngOf([red], width: 2000, height: 3200),
+                ),
+              ]);
+              final image = images.of(fishFingers)!;
+
+              expect(
+                ui.Size(image.width.toDouble(), image.height.toDouble()),
+                CardImages.imageSize,
+              );
+            },
+          );
+
+          test(
+            'crops a wider image to the centre',
+            () async {
+              // Three times a card's width, so a card's shape from the
+              // centre is all green.
+              final images = await load([
+                fileOf(
+                  'fish-fingers.png',
+                  await pngOf([red, green, blue], width: 30),
+                ),
+              ]);
+              final image = images.of(fishFingers)!;
+
+              expect(
+                [
+                  await colorOf(image, 26, 416),
+                  await colorOf(image, 493, 416),
+                ],
+                everyElement(isCloseToColor(green)),
+              );
+            },
+          );
+
+          test(
+            'shows a card whose file cannot be read as a placeholder',
+            () async {
+              collectErrors();
+              final images = await load([unreadableFileOf('fish-fingers.png')]);
+
+              expect(images.of(fishFingers), isNull);
+            },
+          );
+
+          test(
+            'shows a card whose file cannot be decoded as a placeholder',
+            () async {
+              collectErrors();
+              final images = await load([
+                fileOf('fish-fingers.png', Uint8List.fromList([1, 2, 3])),
+              ]);
+
+              expect(images.of(fishFingers), isNull);
+            },
+          );
+
+          test(
+            'reports a file that cannot be read',
+            () async {
+              final errors = collectErrors();
+              await load([unreadableFileOf('fish-fingers.png')]);
+
+              expect(
+                errors.map((error) => error.context.toString()),
+                ['while loading fish-fingers.png'],
+              );
+            },
+          );
+
+          test(
+            'keeps the other images when a file cannot be read',
+            () async {
+              collectErrors();
+              final images = await load([
+                unreadableFileOf('fish-fingers.png'),
+                fileOf('sausages.png'),
+              ]);
+
+              expect(images.of(sausages), isNotNull);
             },
           );
 
           test(
             'shows a card without a file as a placeholder',
             () async {
-              final images = await CardImages.load([
-                fileOf('sausages.png'),
-              ]);
+              final images = await load([fileOf('sausages.png')]);
 
               expect(images.of(fishFingers), isNull);
             },

@@ -19,13 +19,29 @@ class CardImagesScope extends InheritedWidget {
   });
 
   /// Returns the images of the closest [CardImagesScope] above [context],
-  /// or [CardImages.empty] if there isn't one, and rebuilds [context]
-  /// whenever they change.
+  /// and rebuilds [context] whenever they change.
+  ///
+  /// Throws a [FlutterError] if there is no [CardImagesScope] above
+  /// [context].
   static CardImages of(BuildContext context) {
+    final images = maybeOf(context);
+
+    if (images == null) {
+      throw FlutterError(
+        'CardImagesScope.of() called with a context that does not contain a CardImagesScope.',
+      );
+    }
+
+    return images;
+  }
+
+  /// Returns the images of the closest [CardImagesScope] above [context],
+  /// or `null` if there isn't one, and rebuilds [context] whenever they
+  /// change.
+  static CardImages? maybeOf(BuildContext context) {
     return context
-            .dependOnInheritedWidgetOfExactType<CardImagesScope>()
-            ?.images ??
-        CardImages.empty;
+        .dependOnInheritedWidgetOfExactType<CardImagesScope>()
+        ?.images;
   }
 
   @override

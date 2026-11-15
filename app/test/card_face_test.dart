@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart';
@@ -11,36 +10,35 @@ import 'package:spoiled_supper_lotto_game/card_size.dart';
 import 'package:spoiled_supper_lotto_game/placeholder_card.dart';
 
 void main() {
+  final fishBone = buildDeck().singleWhere(
+    (card) => card.id == '22407c27-1682-4fca-b9b9-015208b86f18',
+  );
+
+  // A 1x1px PNG.
+  final png = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+  );
+
+  /// Loads an image of Fish Bone, disposing of it after the test.
+  Future<CardImages> loadImages(WidgetTester tester) async {
+    final images = (await tester.runAsync(
+      () => CardImages.load([
+        (name: 'fish-bone.png', readAsBytes: () async => png),
+      ]),
+    ))!;
+    addTearDown(images.dispose);
+
+    return images;
+  }
+
   group(
     'CardFace',
     () {
-      final fishBone = buildDeck().singleWhere(
-        (card) => card.id == '22407c27-1682-4fca-b9b9-015208b86f18',
-      );
-
-      // A 1x1px PNG.
-      final png = base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-      );
-
-      /// Loads an image of Fish Bone holding a copy of [bytes].
-      ///
-      /// Each copy is a different image to the image cache, so an image
-      /// decoded by one test isn't already decoded in the next.
-      Future<CardImages> imagesOf(Uint8List bytes) {
-        return CardImages.load([
-          (
-            name: 'fish-bone.png',
-            readAsBytes: () async => Uint8List.fromList(bytes),
-          ),
-        ]);
-      }
-
       /// Shows Fish Bone with [images] in a slot [width] logical pixels
       /// wide, or unbounded if [width] is `null`.
       Future<void> pumpCard(
         WidgetTester tester, {
-        CardImages? images,
+        CardImages images = CardImages.empty,
         double? width = 200,
       }) {
         final card = CardFace(card: fishBone);
@@ -48,7 +46,7 @@ void main() {
         return tester.pumpWidget(
           MaterialApp(
             home: CardImagesScope(
-              images: images ?? CardImages.empty,
+              images: images,
               child: width == null
                   ? UnconstrainedBox(child: card)
                   : Align(
@@ -58,21 +56,6 @@ void main() {
             ),
           ),
         );
-      }
-
-      /// Waits for the image on screen to be decoded, or to fail to be.
-      Future<void> decodeImage(WidgetTester tester) async {
-        final finder = find.byType(Image);
-        final image = tester.widget<Image>(finder);
-
-        await tester.runAsync(
-          () => precacheImage(
-            image.image,
-            tester.element(finder),
-            onError: (error, stackTrace) {},
-          ),
-        );
-        await tester.pump();
       }
 
       testWidgets(
@@ -98,91 +81,41 @@ void main() {
       testWidgets(
         'shows the image of a card with one',
         (tester) async {
-          await pumpCard(tester, images: await imagesOf(png));
+          final images = await loadImages(tester);
+          await pumpCard(tester, images: images);
 
-          expect(find.byType(Image), findsOneWidget);
+          expect(
+            tester.widget<RawImage>(find.byType(RawImage)).image,
+            images.of(fishBone),
+          );
         },
       );
 
       testWidgets(
-        'shows a placeholder while the image is decoded',
+        'shows the image of a card with one straight away',
         (tester) async {
-          await pumpCard(tester, images: await imagesOf(png));
-
-          expect(find.byType(PlaceholderCard), findsOneWidget);
-        },
-      );
-
-      testWidgets(
-        'does not show a placeholder once the image is decoded',
-        (tester) async {
-          await pumpCard(tester, images: await imagesOf(png));
-          await decodeImage(tester);
+          await pumpCard(tester, images: await loadImages(tester));
 
           expect(find.byType(PlaceholderCard), findsNothing);
         },
       );
 
       testWidgets(
-        'decodes the image at the height it is shown',
+        'announces a card with an image like a placeholder',
         (tester) async {
-          await pumpCard(tester, images: await imagesOf(png), width: 150);
-
-          final image = tester.widget<Image>(find.byType(Image));
-          final shown = 240 * tester.view.devicePixelRatio;
+          await pumpCard(tester, images: await loadImages(tester));
 
           expect(
-            (image.image as ResizeImage).height,
-            inInclusiveRange(shown, shown + 63),
+            tester.getSemantics(find.byType(CardFace)),
+            matchesSemantics(label: 'Fish Bone, Main, Spoiled'),
           );
-        },
-      );
-
-      testWidgets(
-        'shows a placeholder for an image that cannot be shown',
-        (tester) async {
-          await pumpCard(
-            tester,
-            images: await imagesOf(Uint8List.fromList([1, 2, 3])),
-          );
-          await decodeImage(tester);
-
-          expect(find.byType(PlaceholderCard), findsOneWidget);
-        },
-      );
-
-      testWidgets(
-        'announces the name and category of a card with an image',
-        (tester) async {
-          await pumpCard(tester, images: await imagesOf(png));
-          await decodeImage(tester);
-
-          expect(
-            tester.getSemantics(find.byType(Image)),
-            isSemantics(label: 'Fish Bone, Main, Spoiled'),
-          );
-        },
-      );
-
-      testWidgets(
-        'announces a card with an image only once while it is decoded',
-        (tester) async {
-          final semantics = tester.ensureSemantics();
-          await pumpCard(tester, images: await imagesOf(png));
-          final announced = find
-              .bySemanticsLabel('Fish Bone, Main, Spoiled')
-              .evaluate()
-              .length;
-          semantics.dispose();
-
-          expect(announced, 1);
         },
       );
 
       testWidgets(
         'fills the width of its parent with an image',
         (tester) async {
-          await pumpCard(tester, images: await imagesOf(png), width: 150);
+          await pumpCard(tester, images: await loadImages(tester), width: 150);
 
           expect(tester.getSize(find.byType(CardFace)).width, 150);
         },
@@ -191,7 +124,7 @@ void main() {
       testWidgets(
         'keeps the shape of a card with an image',
         (tester) async {
-          await pumpCard(tester, images: await imagesOf(png), width: 150);
+          await pumpCard(tester, images: await loadImages(tester), width: 150);
 
           expect(
             tester.getSize(find.byType(CardFace)).aspectRatio,
@@ -206,10 +139,73 @@ void main() {
           await pumpCard(tester, width: null);
           final placeholder = tester.getSize(find.byType(CardFace));
 
-          await pumpCard(tester, images: await imagesOf(png), width: null);
+          await pumpCard(tester, images: await loadImages(tester), width: null);
           final image = tester.getSize(find.byType(CardFace));
 
           expect(image, placeholder);
+        },
+      );
+    },
+  );
+
+  group(
+    'CardImagesScope',
+    () {
+      /// Builds [builder] below a [CardImagesScope] of [images], or without
+      /// one if [images] is `null`.
+      Future<void> pumpScope(
+        WidgetTester tester,
+        CardImages? images,
+        void Function(BuildContext context) builder,
+      ) {
+        final child = Builder(
+          builder: (context) {
+            builder(context);
+            return const SizedBox();
+          },
+        );
+
+        return tester.pumpWidget(
+          images == null
+              ? child
+              : CardImagesScope(images: images, child: child),
+        );
+      }
+
+      testWidgets(
+        'of returns the images of the scope',
+        (tester) async {
+          CardImages? found;
+          await pumpScope(
+            tester,
+            CardImages.empty,
+            (context) => found = CardImagesScope.of(context),
+          );
+
+          expect(found, same(CardImages.empty));
+        },
+      );
+
+      testWidgets(
+        'of throws without a scope',
+        (tester) async {
+          await pumpScope(tester, null, CardImagesScope.of);
+
+          expect(tester.takeException(), isA<FlutterError>());
+        },
+      );
+
+      testWidgets(
+        'maybeOf returns null without a scope',
+        (tester) async {
+          CardImages? found = CardImages.empty;
+          await pumpScope(
+            tester,
+            null,
+            (context) => found = CardImagesScope.maybeOf(context),
+          );
+
+          expect(found, isNull);
         },
       );
     },
