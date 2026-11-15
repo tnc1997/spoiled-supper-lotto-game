@@ -172,36 +172,36 @@ prepare now keeps working. Add any of the supported extensions.
 
 | Category     | Card            | File name         | Spoiled? |
 |--------------|-----------------|-------------------|----------|
-| Main         | Fish Fingers    | `fish-fingers`    |          |
-| Main         | Lamb Chops      | `lamb-chops`      |          |
-| Main         | Sausages        | `sausages`        |          |
-| Main         | Steak Pie       | `steak-pie`       |          |
-| Main         | Fish Bone       | `fish-bone`       | Yes      |
-| Main         | Leather Boot    | `leather-boot`    | Yes      |
-| Drink        | Grape Soda      | `grape-soda`      |          |
-| Drink        | Milk            | `milk`            |          |
-| Drink        | Orange Soda     | `orange-soda`     |          |
-| Drink        | Water           | `water`           |          |
-| Drink        | Bug Soda        | `bug-soda`        | Yes      |
-| Drink        | Pond Water      | `pond-water`      | Yes      |
-| Vegetable    | Baked Beans     | `baked-beans`     |          |
-| Vegetable    | Carrots         | `carrots`         |          |
-| Vegetable    | Peas            | `peas`            |          |
-| Vegetable    | Tomatoes        | `tomatoes`        |          |
-| Vegetable    | Dandelions      | `dandelions`      | Yes      |
-| Vegetable    | Mouldy Lettuce  | `mouldy-lettuce`  | Yes      |
 | Carbohydrate | Baked Potato    | `baked-potato`    |          |
 | Carbohydrate | Boiled Potatoes | `boiled-potatoes` |          |
 | Carbohydrate | Chips           | `chips`           |          |
 | Carbohydrate | Mashed Potato   | `mashed-potato`   |          |
 | Carbohydrate | Mouldy Potato   | `mouldy-potato`   | Yes      |
 | Carbohydrate | Potato Peelings | `potato-peelings` | Yes      |
+| Dessert      | Apple Core      | `apple-core`      | Yes      |
+| Dessert      | Banana Skin     | `banana-skin`     | Yes      |
 | Dessert      | Fruit Salad     | `fruit-salad`     |          |
 | Dessert      | Ice Cream       | `ice-cream`       |          |
 | Dessert      | Jelly           | `jelly`           |          |
 | Dessert      | Strawberries    | `strawberries`    |          |
-| Dessert      | Apple Core      | `apple-core`      | Yes      |
-| Dessert      | Banana Skin     | `banana-skin`     | Yes      |
+| Drink        | Bug Soda        | `bug-soda`        | Yes      |
+| Drink        | Grape Soda      | `grape-soda`      |          |
+| Drink        | Milk            | `milk`            |          |
+| Drink        | Orange Soda     | `orange-soda`     |          |
+| Drink        | Pond Water      | `pond-water`      | Yes      |
+| Drink        | Water           | `water`           |          |
+| Main         | Fish Bone       | `fish-bone`       | Yes      |
+| Main         | Fish Fingers    | `fish-fingers`    |          |
+| Main         | Lamb Chops      | `lamb-chops`      |          |
+| Main         | Leather Boot    | `leather-boot`    | Yes      |
+| Main         | Sausages        | `sausages`        |          |
+| Main         | Steak Pie       | `steak-pie`       |          |
+| Vegetable    | Baked Beans     | `baked-beans`     |          |
+| Vegetable    | Carrots         | `carrots`         |          |
+| Vegetable    | Dandelions      | `dandelions`      | Yes      |
+| Vegetable    | Mouldy Lettuce  | `mouldy-lettuce`  | Yes      |
+| Vegetable    | Peas            | `peas`            |          |
+| Vegetable    | Tomatoes        | `tomatoes`        |          |
 
 The names are defined in
 [`app/lib/card_image_name.dart`](app/lib/card_image_name.dart), and the
