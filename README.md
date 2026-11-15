@@ -22,6 +22,7 @@ endorsed by, or sponsored by** Orchard Toys or Macdonald 345 — see
 - [Roadmap](#roadmap)
 - [Repository Layout](#repository-layout)
 - [Getting Started](#getting-started)
+- [Using Your Own Card Images](#using-your-own-card-images)
 - [Key Technical Decisions](#key-technical-decisions)
 - [Assets & Copyright Policy](#assets--copyright-policy)
 - [Out of Scope / Non-Goals](#out-of-scope--non-goals)
@@ -97,6 +98,117 @@ including build and test commands.
 
 ---
 
+## Using Your Own Card Images
+
+By default, every card is shown as an original placeholder: a plain card in
+its category's colour with the food's name as text. If you own a copy of the
+physical game, you can show your own images of the cards instead, e.g.
+photographed or scanned from your copy.
+
+Your images stay on your device. The app reads them from the files you
+choose and never uploads, syncs, or shares them, and they aren't bundled
+into any build. See the [Assets & Copyright Policy](#assets--copyright-policy).
+
+> **Note:** the loader is in place, but no screen offers it yet. The option
+> to choose your images arrives with the game setup screens
+> ([#34](https://github.com/tnc1997/spoiled-supper-lotto-game/issues/34)).
+
+### Cropping scans with `tools/crop-cards.sh`
+
+If you've scanned your cards as A4 pages (`.jpg`) with each card in the
+top-left corner, [`tools/crop-cards.sh`](tools/crop-cards.sh) crops them to
+the 260×416px card template as `.png` files. It needs
+[ImageMagick](https://imagemagick.org/) (`magick`) on your `PATH`:
+
+```bash
+./tools/crop-cards.sh --input ~/scans --output ~/card-images --dpi 300
+```
+
+Each cropped image keeps its scan's name (e.g. `scan-001.jpg` becomes
+`scan-001.png`), so rename each one to its card's name when preparing your
+folder, below.
+
+### Preparing a folder of images
+
+Put one image per card in a folder of your choice, named after the card
+using the names in the [table below](#card-image-file-names), e.g.
+`fish-fingers.png` for Fish Fingers. You don't need an image for every card;
+any card without one is shown as a placeholder.
+
+- **File types** — `.png`, `.jpg`, `.jpeg`, or `.webp`. If you have more
+  than one image of a card, the first in that order is used, e.g.
+  `fish-fingers.png` over `fish-fingers.jpg`.
+- **Case** — names are matched case-insensitively, so `Fish-Fingers.PNG`
+  works on every platform.
+- **Shape and size** — cards are 5:8 (width:height). An image of another
+  shape is cropped from its centre to fit. The crop template is 260×416px;
+  images are kept at up to 520×832px, so anything larger looks no sharper
+  and only takes longer to load.
+- **Other files** — files whose names don't match a card are ignored, so
+  the folder can hold other things too.
+
+If you're contributing to this repository, keep the folder outside your
+clone, so your images can't be committed by accident (see
+[Contributing](#contributing)).
+
+### Choosing your images in the app
+
+Choose **all** the files in your folder when the app asks for your card
+images. On the web, browsers can't open a whole folder, so open the folder
+and select every file in it (e.g. Ctrl+A / Cmd+A).
+
+Your images last for the current session only; choose them again next time
+you open the app.
+
+If an image can't be read or decoded, e.g. because the file is damaged or
+was moved after you chose it, that card is shown as a placeholder and the
+others are unaffected. The error, naming the file, is written to the
+browser's developer console.
+
+### Card image file names
+
+These names are fixed and won't change in future versions, so a folder you
+prepare now keeps working. Add any of the supported extensions.
+
+| Category     | Card            | File name         | Spoiled? |
+|--------------|-----------------|-------------------|----------|
+| Carbohydrate | Baked Potato    | `baked-potato`    |          |
+| Carbohydrate | Boiled Potatoes | `boiled-potatoes` |          |
+| Carbohydrate | Chips           | `chips`           |          |
+| Carbohydrate | Mashed Potato   | `mashed-potato`   |          |
+| Carbohydrate | Mouldy Potato   | `mouldy-potato`   | Yes      |
+| Carbohydrate | Potato Peelings | `potato-peelings` | Yes      |
+| Dessert      | Apple Core      | `apple-core`      | Yes      |
+| Dessert      | Banana Skin     | `banana-skin`     | Yes      |
+| Dessert      | Fruit Salad     | `fruit-salad`     |          |
+| Dessert      | Ice Cream       | `ice-cream`       |          |
+| Dessert      | Jelly           | `jelly`           |          |
+| Dessert      | Strawberries    | `strawberries`    |          |
+| Drink        | Bug Soda        | `bug-soda`        | Yes      |
+| Drink        | Grape Soda      | `grape-soda`      |          |
+| Drink        | Milk            | `milk`            |          |
+| Drink        | Orange Soda     | `orange-soda`     |          |
+| Drink        | Pond Water      | `pond-water`      | Yes      |
+| Drink        | Water           | `water`           |          |
+| Main         | Fish Bone       | `fish-bone`       | Yes      |
+| Main         | Fish Fingers    | `fish-fingers`    |          |
+| Main         | Lamb Chops      | `lamb-chops`      |          |
+| Main         | Leather Boot    | `leather-boot`    | Yes      |
+| Main         | Sausages        | `sausages`        |          |
+| Main         | Steak Pie       | `steak-pie`       |          |
+| Vegetable    | Baked Beans     | `baked-beans`     |          |
+| Vegetable    | Carrots         | `carrots`         |          |
+| Vegetable    | Dandelions      | `dandelions`      | Yes      |
+| Vegetable    | Mouldy Lettuce  | `mouldy-lettuce`  | Yes      |
+| Vegetable    | Peas            | `peas`            |          |
+| Vegetable    | Tomatoes        | `tomatoes`        |          |
+
+The names are defined in
+[`app/lib/card_image_name.dart`](app/lib/card_image_name.dart), and the
+loader in [`app/lib/card_images.dart`](app/lib/card_images.dart).
+
+---
+
 ## Key Technical Decisions
 
 A short summary of the decisions that shape this codebase — see
@@ -110,7 +222,7 @@ A short summary of the decisions that shape this codebase — see
 - **Card art** — original placeholder assets (text and colour-coded cards)
   ship in the repo. Users may optionally supply their own locally sourced
   images via a local override system — never bundled, synced, or shared
-  in-app.
+  in-app. See [Using Your Own Card Images](#using-your-own-card-images).
 - **Card data** — confirmed against the maintainer's physical 1983 copy; see
   Appendix A of [`SPECIFICATION.md`](SPECIFICATION.md) for the full card
   list.
@@ -141,9 +253,10 @@ A short summary of the decisions that shape this codebase — see
   descriptions of imagery on the physical cards, not printed text from
   them — the physical cards display only images, with no text at all.
 - Users may personally supply their own card images (e.g. photographed or
-  scanned from a copy they own) by placing files in a local override
-  folder. This is a personal, local-only feature — the app never uploads,
-  syncs, or shares these files.
+  scanned from a copy they own) by choosing files from a local folder (see
+  [Using Your Own Card Images](#using-your-own-card-images)). This is a
+  personal, local-only feature — the app never uploads, syncs, or shares
+  these files.
 - Contributors **must not** submit copyrighted third-party art, scans, or
   trademarked assets to this repository.
 
