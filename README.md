@@ -113,7 +113,7 @@ into any build. See the [Assets & Copyright Policy](#assets--copyright-policy).
 > to choose your images arrives with the game setup screens
 > ([#34](https://github.com/tnc1997/spoiled-supper-lotto-game/issues/34)).
 
-### Prepare a folder of images
+### Preparing a folder of images
 
 Put one image per card in a folder of your choice, named after the card
 using the names in the [table below](#card-image-file-names), e.g.
@@ -136,7 +136,7 @@ If you're contributing to this repository, keep the folder outside your
 clone, so your images can't be committed by accident (see
 [Contributing](#contributing)).
 
-### Choose your images in the app
+### Choosing your images in the app
 
 Choose **all** the files in your folder when the app asks for your card
 images. On the web, browsers can't open a whole folder, so open the folder
