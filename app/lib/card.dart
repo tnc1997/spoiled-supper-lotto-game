@@ -60,7 +60,6 @@ class _ImageCard extends StatelessWidget {
           child: RawImage(
             image: image,
             fit: BoxFit.cover,
-            filterQuality: FilterQuality.medium,
           ),
         ),
       ),
