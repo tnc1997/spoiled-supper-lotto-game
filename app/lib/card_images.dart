@@ -6,8 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 
+import 'card_aspect_ratio.dart';
 import 'card_image_name.dart';
-import 'card_size.dart';
 
 /// The player's own images of the cards, loaded from files they chose.
 ///

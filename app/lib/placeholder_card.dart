@@ -1,8 +1,8 @@
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
+import 'card_aspect_ratio.dart';
 import 'card_semantic_label.dart';
-import 'card_size.dart';
 import 'category_color.dart';
 import 'category_label.dart';
 

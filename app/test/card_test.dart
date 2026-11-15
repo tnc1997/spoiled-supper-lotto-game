@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
+import 'package:spoiled_supper_lotto_game/card_aspect_ratio.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
 import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
-import 'package:spoiled_supper_lotto_game/card_size.dart';
 import 'package:spoiled_supper_lotto_game/placeholder_card.dart';
 
 void main() {
