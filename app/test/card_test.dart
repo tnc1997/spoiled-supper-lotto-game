@@ -102,6 +102,20 @@ void main() {
       );
 
       testWidgets(
+        'crops an image of another shape from its centre to fill the card',
+        (tester) async {
+          await pumpCard(tester, images: await loadImages(tester));
+
+          final image = tester.widget<RawImage>(find.byType(RawImage));
+
+          expect(
+            (fit: image.fit, alignment: image.alignment),
+            (fit: BoxFit.cover, alignment: Alignment.center),
+          );
+        },
+      );
+
+      testWidgets(
         'announces a card with an image like a placeholder',
         (tester) async {
           await pumpCard(tester, images: await loadImages(tester));

@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/painting.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 
 import 'card_image_name.dart';
@@ -28,12 +27,17 @@ class CardImages {
   /// and `fish-fingers.jpg`, the one whose extension comes first is used.
   static const imageExtensions = ['png', 'jpg', 'jpeg', 'webp'];
 
-  /// The size, in pixels, that every image is cropped and scaled to.
+  /// The size, in pixels, that every image is decoded to cover.
+  ///
+  /// Each image is decoded at the smallest size that covers this, keeping
+  /// its shape, or at its own size if it is smaller, and cropped to a card's
+  /// shape when it is shown.
   ///
   /// Twice the 260x416px card template, so that a card stays sharp up to
   /// 520 physical pixels wide, e.g. 260 logical pixels on a screen with a
-  /// device pixel ratio of 2, while 30 images take about 50 MB.
-  static const imageSize = Size(520, 520 / cardAspectRatio);
+  /// device pixel ratio of 2, while 30 images in a card's shape take about
+  /// 50 MB.
+  static const imageSize = ui.Size(520, 520 / cardAspectRatio);
 
   /// The images, keyed by [engine.Card.id].
   final Map<String, ui.Image> _imagesById;
@@ -52,9 +56,9 @@ class CardImages {
   /// extension comes first in [imageExtensions] is used, then the first
   /// in [files]. Files that don't match a card are ignored.
   ///
-  /// Only the files that are used are read, all at once. Each is cropped
-  /// from its centre to a card's shape and scaled to [imageSize], so that
-  /// every image is the same size however large its file, and the file
+  /// Only the files that are used are read, all at once. Each is decoded at
+  /// no more than the size needed to cover [imageSize], so that an image
+  /// takes about the same memory however large its file, and the file
   /// itself isn't kept.
   ///
   /// A card whose file can't be read or decoded, e.g. because it was moved
@@ -116,13 +120,10 @@ class CardImages {
     }
   }
 
-  /// Decodes [bytes], cropped from the centre to a card's shape and scaled
-  /// to [imageSize].
+  /// Decodes [bytes] at the smallest size that covers [imageSize], keeping
+  /// its shape, or at its own size if it is smaller.
   static Future<ui.Image> _decode(Uint8List bytes) async {
     final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
-
-    // Decodes at the smallest size that still covers imageSize, rather than
-    // at the file's full size, but never larger than the file.
     final codec = await ui.instantiateImageCodecWithSize(
       buffer,
       getTargetSize: (width, height) {
@@ -142,39 +143,10 @@ class CardImages {
       },
     );
 
-    final ui.Image decoded;
     try {
-      decoded = (await codec.getNextFrame()).image;
+      return (await codec.getNextFrame()).image;
     } finally {
       codec.dispose();
-    }
-
-    try {
-      final source = Size(
-        decoded.width.toDouble(),
-        decoded.height.toDouble(),
-      );
-      final fitted = applyBoxFit(BoxFit.cover, source, imageSize);
-
-      final recorder = ui.PictureRecorder();
-      ui.Canvas(recorder).drawImageRect(
-        decoded,
-        Alignment.center.inscribe(fitted.source, Offset.zero & source),
-        Offset.zero & imageSize,
-        ui.Paint()..filterQuality = ui.FilterQuality.medium,
-      );
-
-      final picture = recorder.endRecording();
-      try {
-        return await picture.toImage(
-          imageSize.width.toInt(),
-          imageSize.height.toInt(),
-        );
-      } finally {
-        picture.dispose();
-      }
-    } finally {
-      decoded.dispose();
     }
   }
 
@@ -206,7 +178,7 @@ class CardImages {
     }
   }
 
-  /// Returns the player's own image of [card], at [imageSize], or `null` if
-  /// they don't have one.
+  /// Returns the player's own image of [card], decoded to cover [imageSize],
+  /// or `null` if they don't have one.
   ui.Image? of(engine.Card card) => _imagesById[card.id];
 }

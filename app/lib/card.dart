@@ -36,8 +36,9 @@ class Card extends StatelessWidget {
 
 /// The player's own [image] of [card], filling a card's shape.
 ///
-/// The image is already decoded, cropped and scaled by `CardImages`, so it
-/// is painted straight away, at any size, without decoding it again.
+/// The image is already decoded by `CardImages`, so it is painted straight
+/// away, at any size, without decoding it again. An image of a different
+/// shape is cropped from its centre to fill the card.
 class _ImageCard extends StatelessWidget {
   final engine.Card card;
   final ui.Image image;
@@ -57,7 +58,7 @@ class _ImageCard extends StatelessWidget {
           size: PlaceholderCard.size,
           child: RawImage(
             image: image,
-            fit: BoxFit.fill,
+            fit: BoxFit.cover,
             filterQuality: FilterQuality.medium,
           ),
         ),

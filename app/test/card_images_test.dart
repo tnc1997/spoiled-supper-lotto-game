@@ -77,7 +77,6 @@ void main() {
     () {
       const red = ui.Color(0xFFFF0000);
       const green = ui.Color(0xFF00FF00);
-      const blue = ui.Color(0xFF0000FF);
 
       final deck = engine.buildDeck();
       final fishFingers = deck.singleWhere(
@@ -283,16 +282,17 @@ void main() {
             },
           );
 
+          /// Returns the size of [image].
+          ui.Size sizeOf(ui.Image image) {
+            return ui.Size(image.width.toDouble(), image.height.toDouble());
+          }
+
           test(
-            'scales a small image up to the image size',
+            'keeps a small image at its own size',
             () async {
               final images = await load([fileOf('fish-fingers.png')]);
-              final image = images.of(fishFingers)!;
 
-              expect(
-                ui.Size(image.width.toDouble(), image.height.toDouble()),
-                CardImages.imageSize,
-              );
+              expect(sizeOf(images.of(fishFingers)!), const ui.Size(10, 16));
             },
           );
 
@@ -305,34 +305,25 @@ void main() {
                   await pngOf([red], width: 2000, height: 3200),
                 ),
               ]);
-              final image = images.of(fishFingers)!;
 
-              expect(
-                ui.Size(image.width.toDouble(), image.height.toDouble()),
-                CardImages.imageSize,
-              );
+              expect(sizeOf(images.of(fishFingers)!), CardImages.imageSize);
             },
           );
 
           test(
-            'crops a wider image to the centre',
+            'scales a large image of another shape down to cover the image '
+            'size, keeping its shape',
             () async {
-              // Three times a card's width, so a card's shape from the
-              // centre is all green.
               final images = await load([
                 fileOf(
                   'fish-fingers.png',
-                  await pngOf([red, green, blue], width: 30),
+                  await pngOf([red], width: 2000, height: 2000),
                 ),
               ]);
-              final image = images.of(fishFingers)!;
 
               expect(
-                [
-                  await colorOf(image, 26, 416),
-                  await colorOf(image, 493, 416),
-                ],
-                everyElement(isCloseToColor(green)),
+                sizeOf(images.of(fishFingers)!),
+                const ui.Size(832, 832),
               );
             },
           );
