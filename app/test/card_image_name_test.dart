@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:spoiled_supper_lotto_game/card_image_name.dart';
 
 void main() {
   group(
     'cardImageNames',
     () {
-      final deck = buildDeck();
+      final deck = engine.buildDeck();
 
       test(
         'has a slot for every card in the deck',
@@ -92,9 +92,9 @@ void main() {
           test(
             'returns the name of a card in the deck',
             () {
-              final fishFingers = buildDeck().singleWhere(
-                (card) => card.id == '0d78745d-a48f-4412-a32e-d81e2911ae8b',
-              );
+              final fishFingers = engine.buildDeck().singleWhere(
+                    (card) => card.id == '0d78745d-a48f-4412-a32e-d81e2911ae8b',
+                  );
 
               expect(fishFingers.imageName, 'fish-fingers');
             },
@@ -103,10 +103,10 @@ void main() {
           test(
             'returns null for a card not in the deck',
             () {
-              const card = Card(
+              const card = engine.Card(
                 id: '1',
-                type: CardType.standard,
-                category: Category.main,
+                type: engine.CardType.standard,
+                category: engine.Category.main,
                 name: 'Sausages',
               );
 

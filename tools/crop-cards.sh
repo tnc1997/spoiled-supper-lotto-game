@@ -7,6 +7,10 @@
 # top-left corner, then resizes the crop to the final 260x416px card template
 # size, exporting the result as a PNG.
 #
+# The template's 5:8 shape is also defined as `cardAspectRatio` in
+# app/lib/card_aspect_ratio.dart, which sizes the cards in the app. Keep
+# the two in step.
+#
 # The crop size is derived from the --dpi flag, scaled from a baseline of
 # 260x426px at 150 DPI (i.e. a 1246x1752px A4 scan).
 #

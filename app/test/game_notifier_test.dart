@@ -1,47 +1,47 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_engine/game_engine.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 
 void main() {
   group(
     'GameNotifier',
     () {
-      const sausages = Card(
+      const sausages = engine.Card(
         id: '1',
-        type: CardType.standard,
-        category: Category.main,
+        type: engine.CardType.standard,
+        category: engine.Category.main,
         name: 'Sausages',
       );
-      const fishFingers = Card(
+      const fishFingers = engine.Card(
         id: '2',
-        type: CardType.standard,
-        category: Category.main,
+        type: engine.CardType.standard,
+        category: engine.Category.main,
         name: 'Fish Fingers',
       );
-      const milk = Card(
+      const milk = engine.Card(
         id: '3',
-        type: CardType.standard,
-        category: Category.drink,
+        type: engine.CardType.standard,
+        category: engine.Category.drink,
         name: 'Milk',
       );
-      const pie = Card(
+      const pie = engine.Card(
         id: '4',
-        type: CardType.standard,
-        category: Category.main,
+        type: engine.CardType.standard,
+        category: engine.Category.main,
         name: 'Pie',
       );
 
-      late Player alice;
-      late GameController controller;
+      late engine.Player alice;
+      late engine.GameController controller;
       late GameNotifier notifier;
       late List<String> notifications;
 
       /// Sets up a game for Alice and Bob, with [alicesCards] already on
       /// Alice's plate, and a notifier that records each notification.
-      void setUpGame({List<Card> alicesCards = const []}) {
-        alice = Player(name: 'Alice');
-        controller = GameController(
-          players: [alice, Player(name: 'Bob')],
+      void setUpGame({List<engine.Card> alicesCards = const []}) {
+        alice = engine.Player(name: 'Alice');
+        controller = engine.GameController(
+          players: [alice, engine.Player(name: 'Bob')],
           plates: {alice: alicesCards},
           drawPile: [milk, sausages],
           discardPile: [fishFingers],
@@ -105,7 +105,7 @@ void main() {
 
               notifier.placeDrawnCard();
 
-              expect(controller.plateOf(alice)[Category.main], sausages);
+              expect(controller.plateOf(alice)[engine.Category.main], sausages);
               expect(notifications, ['Bob: null']);
             },
           );

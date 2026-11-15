@@ -28,7 +28,9 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  cross_file: ^0.3.5+5
   cupertino_icons: ^1.0.8
+  file_picker: ^13.3.3
   flutter:
     sdk: flutter
   game_engine:
