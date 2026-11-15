@@ -30,7 +30,6 @@ environment:
 dependencies:
   cupertino_icons: ^1.0.8
   file_picker: ^13.3.3
-  file_picker_web: ^4.2.1
   flutter:
     sdk: flutter
   game_engine:

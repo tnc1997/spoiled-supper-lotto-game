@@ -7,8 +7,6 @@ import 'package:flutter/painting.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 
 import 'card_image_name.dart';
-import 'card_image_picker_web_options.dart'
-    if (dart.library.js_interop) 'card_image_picker_web_options_web.dart';
 import 'card_size.dart';
 
 /// The extensions, without a dot, that a player's own card images can have,
@@ -192,12 +190,14 @@ class CardImages {
   /// the folder they keep them in, and loads them with [load].
   ///
   /// Returns `null` if the player cancels.
+  ///
+  /// On the web, the picker reads every chosen file before it returns, not
+  /// just the ones [load] uses, but they are only held until [load] is done.
   static Future<CardImages?> pick() async {
     final files = await FilePicker.pickFiles(
       dialogTitle: 'Choose your card images',
       type: FileType.custom,
       allowedExtensions: cardImageExtensions,
-      webOptions: cardImagePickerWebOptions,
     );
 
     if (files.isEmpty) {
