@@ -84,10 +84,10 @@ void main() {
   );
 
   group(
-    'CardOverrideName',
+    'CardImageName',
     () {
       group(
-        'overrideName',
+        'imageName',
         () {
           test(
             'returns the name of a card in the deck',
@@ -96,7 +96,7 @@ void main() {
                 (card) => card.id == '0d78745d-a48f-4412-a32e-d81e2911ae8b',
               );
 
-              expect(fishFingers.overrideName, 'fish-fingers');
+              expect(fishFingers.imageName, 'fish-fingers');
             },
           );
 
@@ -110,7 +110,7 @@ void main() {
                 name: 'Sausages',
               );
 
-              expect(card.overrideName, isNull);
+              expect(card.imageName, isNull);
             },
           );
         },
