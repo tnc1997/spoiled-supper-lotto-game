@@ -23,10 +23,16 @@ void main() {
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
       );
 
-      /// Loads an image of Fish Bone holding [bytes].
+      /// Loads an image of Fish Bone holding a copy of [bytes].
+      ///
+      /// Each copy is a different image to the image cache, so an image
+      /// decoded by one test isn't already decoded in the next.
       Future<CardImages> imagesOf(Uint8List bytes) {
         return CardImages.load([
-          (name: 'fish-bone.png', readAsBytes: () async => bytes),
+          (
+            name: 'fish-bone.png',
+            readAsBytes: () async => Uint8List.fromList(bytes),
+          ),
         ]);
       }
 
@@ -52,6 +58,21 @@ void main() {
             ),
           ),
         );
+      }
+
+      /// Waits for the image on screen to be decoded, or to fail to be.
+      Future<void> decodeImage(WidgetTester tester) async {
+        final finder = find.byType(Image);
+        final image = tester.widget<Image>(finder);
+
+        await tester.runAsync(
+          () => precacheImage(
+            image.image,
+            tester.element(finder),
+            onError: (error, stackTrace) {},
+          ),
+        );
+        await tester.pump();
       }
 
       testWidgets(
@@ -84,11 +105,36 @@ void main() {
       );
 
       testWidgets(
-        'does not show a placeholder for a card with an image',
+        'shows a placeholder while the image is decoded',
         (tester) async {
           await pumpCard(tester, images: await imagesOf(png));
 
+          expect(find.byType(PlaceholderCard), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'does not show a placeholder once the image is decoded',
+        (tester) async {
+          await pumpCard(tester, images: await imagesOf(png));
+          await decodeImage(tester);
+
           expect(find.byType(PlaceholderCard), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'decodes the image at the height it is shown',
+        (tester) async {
+          await pumpCard(tester, images: await imagesOf(png), width: 150);
+
+          final image = tester.widget<Image>(find.byType(Image));
+          final shown = 240 * tester.view.devicePixelRatio;
+
+          expect(
+            (image.image as ResizeImage).height,
+            inInclusiveRange(shown, shown + 63),
+          );
         },
       );
 
@@ -99,10 +145,7 @@ void main() {
             tester,
             images: await imagesOf(Uint8List.fromList([1, 2, 3])),
           );
-          await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 100)),
-          );
-          await tester.pump();
+          await decodeImage(tester);
 
           expect(find.byType(PlaceholderCard), findsOneWidget);
         },
@@ -112,11 +155,27 @@ void main() {
         'announces the name and category of a card with an image',
         (tester) async {
           await pumpCard(tester, images: await imagesOf(png));
+          await decodeImage(tester);
 
           expect(
             tester.getSemantics(find.byType(Image)),
             isSemantics(label: 'Fish Bone, Main, Spoiled'),
           );
+        },
+      );
+
+      testWidgets(
+        'announces a card with an image only once while it is decoded',
+        (tester) async {
+          final semantics = tester.ensureSemantics();
+          await pumpCard(tester, images: await imagesOf(png));
+          final announced = find
+              .bySemanticsLabel('Fish Bone, Main, Spoiled')
+              .evaluate()
+              .length;
+          semantics.dispose();
+
+          expect(announced, 1);
         },
       );
 

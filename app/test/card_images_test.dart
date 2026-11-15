@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -145,6 +146,67 @@ void main() {
               ]);
 
               expect(read, ['fish-fingers.png']);
+            },
+          );
+
+          test(
+            'shows a card whose file cannot be read as a placeholder',
+            () async {
+              final images = await CardImages.load([
+                (
+                  name: 'fish-fingers.png',
+                  readAsBytes: () => Future.error(Exception('Moved')),
+                ),
+              ]);
+
+              expect(images.of(fishFingers), isNull);
+            },
+          );
+
+          test(
+            'keeps the other images when a file cannot be read',
+            () async {
+              final sausages = buildDeck().singleWhere(
+                (card) => card.id == 'b2590d89-4580-40c7-8b33-3c92fc6b347d',
+              );
+
+              final images = await CardImages.load([
+                (
+                  name: 'fish-fingers.png',
+                  readAsBytes: () => Future.error(Exception('Moved')),
+                ),
+                fileOf('sausages.png'),
+              ]);
+
+              expect(images.of(sausages), isNotNull);
+            },
+          );
+
+          test(
+            'starts reading every file before any has been read',
+            () async {
+              final started = <String>[];
+              final read = Completer<Uint8List>();
+              CardImageFile blockedFileOf(String name) {
+                return (
+                  name: name,
+                  readAsBytes: () {
+                    started.add(name);
+                    return read.future;
+                  },
+                );
+              }
+
+              final images = CardImages.load([
+                blockedFileOf('fish-fingers.png'),
+                blockedFileOf('sausages.png'),
+              ]);
+              await Future<void>.delayed(Duration.zero);
+              read.complete(Uint8List(1));
+              await images;
+
+              expect(started,
+                  unorderedEquals(['fish-fingers.png', 'sausages.png']));
             },
           );
 

@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:game_engine/game_engine.dart';
 
 import 'card_image_name.dart';
+import 'card_image_picker_web_options.dart'
+    if (dart.library.js_interop) 'card_image_picker_web_options_web.dart';
 
 /// The extensions, without a dot, that a player's own card images can have,
 /// in the order they are tried.
@@ -43,26 +45,57 @@ class CardImages {
   /// Names are matched case-insensitively, so `Fish-Fingers.PNG` is found on
   /// every platform. If more than one file matches a card, the one whose
   /// extension comes first in [cardImageExtensions] is used, then the first
-  /// in [files]. Files that don't match a card are ignored, and only the
-  /// files that are used are read.
+  /// in [files]. Files that don't match a card are ignored.
+  ///
+  /// Only the files that are used are read, all at once. A card whose file
+  /// can't be read, e.g. because it was moved after it was chosen, is shown
+  /// as a placeholder, without affecting the other cards.
   static Future<CardImages> load(Iterable<CardImageFile> files) async {
     final filesByName = <String, CardImageFile>{};
     for (final file in files) {
       filesByName.putIfAbsent(file.name.toLowerCase(), () => file);
     }
 
-    final bytesByImageName = <String, Uint8List>{};
-    for (final imageName in cardImageNames.values) {
-      for (final extension in cardImageExtensions) {
-        final file = filesByName['$imageName.$extension'];
-        if (file != null) {
-          bytesByImageName[imageName] = await file.readAsBytes();
-          break;
-        }
+    final reads = <Future<MapEntry<String, Uint8List>?>>[
+      for (final imageName in cardImageNames.values)
+        if (_fileOf(imageName, filesByName) case final file?)
+          _read(imageName, file),
+    ];
+
+    return CardImages._(
+      Map.fromEntries((await Future.wait(reads)).nonNulls),
+    );
+  }
+
+  /// Returns the file in [filesByName] that holds the image named
+  /// [imageName], trying each of the [cardImageExtensions] in order, or
+  /// `null` if there isn't one.
+  static CardImageFile? _fileOf(
+    String imageName,
+    Map<String, CardImageFile> filesByName,
+  ) {
+    for (final extension in cardImageExtensions) {
+      if (filesByName['$imageName.$extension'] case final file?) {
+        return file;
       }
     }
 
-    return CardImages._(bytesByImageName);
+    return null;
+  }
+
+  /// Reads [file], the image named [imageName], or returns `null` if it
+  /// can't be read.
+  static Future<MapEntry<String, Uint8List>?> _read(
+    String imageName,
+    CardImageFile file,
+  ) async {
+    try {
+      return MapEntry(imageName, await file.readAsBytes());
+    } catch (_) {
+      // Catches everything, since a failed read on the web throws a
+      // JavaScript error rather than an Exception.
+      return null;
+    }
   }
 
   /// Asks the player to choose their own card images, e.g. every file in
@@ -74,6 +107,7 @@ class CardImages {
       dialogTitle: 'Choose your card images',
       type: FileType.custom,
       allowedExtensions: cardImageExtensions,
+      webOptions: cardImagePickerWebOptions,
     );
 
     if (files.isEmpty) {
