@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart' hide Card;
 
 import 'card_images_scope.dart';
 import 'card_semantic_label.dart';
+import 'card_size.dart';
 import 'placeholder_card.dart';
 
 /// Shows a [card]. Use this wherever a card is shown, rather than a
@@ -12,9 +13,9 @@ import 'placeholder_card.dart';
 ///
 /// It shows the player's own image of the card, from the closest
 /// `CardImagesScope`, or a [PlaceholderCard] if there isn't one. Either
-/// way, the card has the same shape and size, is laid out and scaled like a
-/// [PlaceholderCard], and is announced the same, so swapping one for the
-/// other doesn't move anything.
+/// way, the card is laid out at [cardSize] and scaled to fit its parent,
+/// and is announced the same, so swapping one for the other doesn't move
+/// anything.
 class Card extends StatelessWidget {
   /// The card to show.
   final engine.Card card;
@@ -55,7 +56,7 @@ class _ImageCard extends StatelessWidget {
       // Scales the whole card to fit its parent, like a placeholder.
       child: FittedBox(
         child: SizedBox.fromSize(
-          size: PlaceholderCard.size,
+          size: cardSize,
           child: RawImage(
             image: image,
             fit: BoxFit.cover,

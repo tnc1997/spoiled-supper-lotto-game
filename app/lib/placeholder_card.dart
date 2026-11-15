@@ -1,8 +1,8 @@
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
-import 'card_aspect_ratio.dart';
 import 'card_semantic_label.dart';
+import 'card_size.dart';
 import 'category_color.dart';
 import 'category_label.dart';
 
@@ -16,9 +16,9 @@ import 'category_label.dart';
 /// Spoiled cards use a muted version of the colour and are tagged
 /// "Spoiled", so they can be told apart without relying on colour alone.
 ///
-/// The card is laid out at [size] and then scaled, keeping its shape, to
-/// fit the space its parent allows. In an unbounded parent it shows at
-/// [size].
+/// The card is laid out at [cardSize] and then scaled, keeping its shape,
+/// to fit the space its parent allows. In an unbounded parent it shows at
+/// [cardSize]. Its padding and text are sized for that layout.
 ///
 /// The "Spoiled" tag sits at the top, the category at the bottom, and the
 /// name, one word per line so words are never split, in the centre.
@@ -27,12 +27,6 @@ import 'category_label.dart';
 /// and only grows with the card, so that it always fits. To make cards
 /// easier to read, give them more space instead.
 class PlaceholderCard extends StatelessWidget {
-  /// The size the card is laid out at, before it is scaled to fit.
-  ///
-  /// Has the shape of every card, [cardAspectRatio], so that a placeholder
-  /// and a player's own image take up the same space.
-  static const size = Size(100, 100 / cardAspectRatio);
-
   static const _padding = EdgeInsets.all(8);
 
   /// The card to show.
@@ -67,8 +61,8 @@ class PlaceholderCard extends StatelessWidget {
         // Scales the whole card to fit its parent.
         child: FittedBox(
           child: Container(
-            width: size.width,
-            height: size.height,
+            width: cardSize.width,
+            height: cardSize.height,
             padding: _padding,
             color: backgroundColor,
             child: Column(

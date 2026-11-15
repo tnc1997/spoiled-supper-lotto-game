@@ -228,16 +228,4 @@ void main() {
       );
     },
   );
-
-  group(
-    'PlaceholderCard',
-    () {
-      test(
-        'has the shape of every card',
-        () {
-          expect(PlaceholderCard.size.aspectRatio, cardAspectRatio);
-        },
-      );
-    },
-  );
 }
