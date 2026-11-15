@@ -29,8 +29,8 @@ typedef CardImageFile = ({
 
 /// The player's own images of the cards, loaded from files they chose.
 ///
-/// Show a card with `CardFace`, which falls back to a `PlaceholderCard` for
-/// a card without an image.
+/// Show a card with the `Card` widget, which falls back to a
+/// `PlaceholderCard` for a card without an image.
 ///
 /// Call [dispose] once the images are no longer shown, e.g. when the player
 /// chooses others.

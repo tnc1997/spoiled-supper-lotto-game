@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
-import 'package:spoiled_supper_lotto_game/card_face.dart';
+import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
 import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
 import 'package:spoiled_supper_lotto_game/card_size.dart';
@@ -32,7 +32,7 @@ void main() {
   }
 
   group(
-    'CardFace',
+    'Card',
     () {
       /// Shows Fish Bone with [images] in a slot [width] logical pixels
       /// wide, or unbounded if [width] is `null`.
@@ -41,7 +41,7 @@ void main() {
         CardImages images = CardImages.empty,
         double? width = 200,
       }) {
-        final card = CardFace(card: fishBone);
+        final card = Card(card: fishBone);
 
         return tester.pumpWidget(
           MaterialApp(
@@ -71,7 +71,7 @@ void main() {
         'shows a placeholder without a CardImagesScope',
         (tester) async {
           await tester.pumpWidget(
-            MaterialApp(home: CardFace(card: fishBone)),
+            MaterialApp(home: Card(card: fishBone)),
           );
 
           expect(find.byType(PlaceholderCard), findsOneWidget);
@@ -106,7 +106,7 @@ void main() {
           await pumpCard(tester, images: await loadImages(tester));
 
           expect(
-            tester.getSemantics(find.byType(CardFace)),
+            tester.getSemantics(find.byType(Card)),
             matchesSemantics(label: 'Fish Bone, Main, Spoiled'),
           );
         },
@@ -117,7 +117,7 @@ void main() {
         (tester) async {
           await pumpCard(tester, images: await loadImages(tester), width: 150);
 
-          expect(tester.getSize(find.byType(CardFace)).width, 150);
+          expect(tester.getSize(find.byType(Card)).width, 150);
         },
       );
 
@@ -127,7 +127,7 @@ void main() {
           await pumpCard(tester, images: await loadImages(tester), width: 150);
 
           expect(
-            tester.getSize(find.byType(CardFace)).aspectRatio,
+            tester.getSize(find.byType(Card)).aspectRatio,
             cardAspectRatio,
           );
         },
@@ -137,10 +137,10 @@ void main() {
         'takes up the same space with an image as a placeholder',
         (tester) async {
           await pumpCard(tester, width: null);
-          final placeholder = tester.getSize(find.byType(CardFace));
+          final placeholder = tester.getSize(find.byType(Card));
 
           await pumpCard(tester, images: await loadImages(tester), width: null);
-          final image = tester.getSize(find.byType(CardFace));
+          final image = tester.getSize(find.byType(Card));
 
           expect(image, placeholder);
         },

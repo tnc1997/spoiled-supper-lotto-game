@@ -3,7 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'card_images.dart';
 
 /// Exposes the player's own [CardImages] to the widgets below it, such as
-/// `CardFace`, rebuilding the ones that depend on it whenever they change.
+/// the `Card` widget, rebuilding the ones that depend on it whenever they
+/// change.
 class CardImagesScope extends InheritedWidget {
   /// The player's own images of the cards.
   final CardImages images;

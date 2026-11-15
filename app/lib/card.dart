@@ -7,18 +7,20 @@ import 'card_images_scope.dart';
 import 'card_semantic_label.dart';
 import 'placeholder_card.dart';
 
-/// The face of a [card]: the player's own image of it, from the closest
-/// `CardImagesScope`, or a [PlaceholderCard] if there isn't one.
+/// Shows a [card]. Use this wherever a card is shown, rather than a
+/// [PlaceholderCard] or an image directly.
 ///
-/// Either way, the card has the same shape and size, is laid out and scaled
-/// like a [PlaceholderCard], and is announced the same, so swapping one for
-/// the other doesn't move anything.
-class CardFace extends StatelessWidget {
+/// It shows the player's own image of the card, from the closest
+/// `CardImagesScope`, or a [PlaceholderCard] if there isn't one. Either
+/// way, the card has the same shape and size, is laid out and scaled like a
+/// [PlaceholderCard], and is announced the same, so swapping one for the
+/// other doesn't move anything.
+class Card extends StatelessWidget {
   /// The card to show.
   final engine.Card card;
 
   /// Shows [card].
-  const CardFace({super.key, required this.card});
+  const Card({super.key, required this.card});
 
   @override
   Widget build(BuildContext context) {
