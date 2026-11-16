@@ -30,13 +30,6 @@ void main() {
             .playerNames;
       }
 
-      /// Returns whether two players on the setup screen have the same name.
-      bool hasDuplicateNamesOf(WidgetTester tester) {
-        return tester
-            .state<SetupScreenState>(find.byType(SetupScreen))
-            .hasDuplicateNames;
-      }
-
       /// Returns the errors shown on the name fields on screen, in turn
       /// order.
       List<String?> nameErrorsOf(WidgetTester tester) {
@@ -200,7 +193,6 @@ void main() {
           await tester.pump();
 
           expect(nameErrorsOf(tester), [null, null]);
-          expect(hasDuplicateNamesOf(tester), isFalse);
         },
       );
 
@@ -216,7 +208,6 @@ void main() {
             'Another player is called sam. Add an initial to tell them apart.',
             'Another player is called Sam. Add an initial to tell them apart.',
           ]);
-          expect(hasDuplicateNamesOf(tester), isTrue);
         },
       );
 
@@ -232,7 +223,6 @@ void main() {
                 'Add an initial to tell them apart.',
             null,
           ]);
-          expect(hasDuplicateNamesOf(tester), isTrue);
         },
       );
 
@@ -247,7 +237,6 @@ void main() {
           await tester.pump();
 
           expect(nameErrorsOf(tester), [null, null]);
-          expect(hasDuplicateNamesOf(tester), isFalse);
         },
       );
 
@@ -263,7 +252,6 @@ void main() {
           await tester.pump();
 
           expect(nameErrorsOf(tester), [null, null]);
-          expect(hasDuplicateNamesOf(tester), isFalse);
         },
       );
     },

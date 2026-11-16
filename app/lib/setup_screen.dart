@@ -32,18 +32,14 @@ class SetupScreenState extends State<SetupScreen> {
   /// The names of the players playing, in turn order, with the default
   /// name of any player who didn't type one.
   ///
-  /// Two players may have the same name until it's changed, so check
-  /// [hasDuplicateNames] before starting a game with them.
+  /// Two players may have the same name until it's changed, in which case
+  /// their name fields show an error.
   List<String> get playerNames {
     return [
       for (var index = 0; index < _playerCount; index++)
         PlayerNameField.nameOf(index + 1, _nameControllers[index].text),
     ];
   }
-
-  /// Whether two of the players playing have the same name, as
-  /// [PlayerNameField.isSameName] compares them.
-  bool get hasDuplicateNames => _nameErrors.any((error) => error != null);
 
   /// The error to show on each playing player's name field, in turn order,
   /// or `null` for a field without one.
