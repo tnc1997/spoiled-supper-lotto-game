@@ -23,6 +23,13 @@ void main() {
             .toList();
       }
 
+      /// Returns the names of the players playing on the setup screen.
+      List<String> playerNamesOf(WidgetTester tester) {
+        return tester
+            .state<SetupScreenState>(find.byType(SetupScreen))
+            .playerNames;
+      }
+
       /// Finds the name field of the player numbered [number].
       Finder nameFieldOf(int number) {
         return find.byWidgetPredicate(
@@ -119,6 +126,52 @@ void main() {
             find.descendant(of: nameFieldOf(3), matching: find.text('Sam')),
             findsOneWidget,
           );
+        },
+      );
+
+      testWidgets(
+        'moves to the next field from every name field but the last',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+          await tester.tap(find.text('3 players'));
+          await tester.pump();
+
+          expect(
+            tester
+                .widgetList<PlayerNameField>(find.byType(PlayerNameField))
+                .map((field) => field.textInputAction),
+            [
+              TextInputAction.next,
+              TextInputAction.next,
+              TextInputAction.done,
+            ],
+          );
+        },
+      );
+
+      testWidgets(
+        'names each player playing, with the default name if none is typed',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+          await tester.tap(find.text('3 players'));
+          await tester.pump();
+          await tester.enterText(nameFieldOf(1), 'Alex');
+
+          expect(playerNamesOf(tester), ['Alex', 'Player 2', 'Player 3']);
+        },
+      );
+
+      testWidgets(
+        'leaves out the names of players no longer playing',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+          await tester.tap(find.text('3 players'));
+          await tester.pump();
+          await tester.enterText(nameFieldOf(3), 'Sam');
+          await tester.tap(find.text('2 players'));
+          await tester.pump();
+
+          expect(playerNamesOf(tester), ['Player 1', 'Player 2']);
         },
       );
     },

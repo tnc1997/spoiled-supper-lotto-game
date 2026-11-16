@@ -1,6 +1,7 @@
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
+import 'heading.dart';
 import 'player_count_selector.dart';
 import 'player_name_field.dart';
 
@@ -11,18 +12,31 @@ class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
 
   @override
-  State<SetupScreen> createState() => _SetupScreenState();
+  State<SetupScreen> createState() => SetupScreenState();
 }
 
-class _SetupScreenState extends State<SetupScreen> {
+/// The state of a [SetupScreen], holding the players' choices.
+class SetupScreenState extends State<SetupScreen> {
   /// The names typed for every player the game allows, so a name is kept
   /// if the number of players goes down and then back up.
+  ///
+  /// Only the first [_playerCount] are playing, so read their names with
+  /// [playerNames] rather than from here.
   final _nameControllers = List.generate(
     engine.GameController.maxPlayers,
     (_) => TextEditingController(),
   );
 
   int _playerCount = engine.GameController.minPlayers;
+
+  /// The names of the players playing, in turn order, with the default
+  /// name of any player who didn't type one.
+  List<String> get playerNames {
+    return [
+      for (var index = 0; index < _playerCount; index++)
+        PlayerNameField.nameOf(index + 1, _nameControllers[index].text),
+    ];
+  }
 
   @override
   void dispose() {
@@ -35,8 +49,6 @@ class _SetupScreenState extends State<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Pass & Play')),
       body: Center(
@@ -44,14 +56,7 @@ class _SetupScreenState extends State<SetupScreen> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              Semantics(
-                header: true,
-                child: Text(
-                  'How many players?',
-                  style: textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-              ),
+              const Heading('How many players?'),
               const SizedBox(height: 16),
               PlayerCountSelector(
                 playerCount: _playerCount,
@@ -60,14 +65,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              Semantics(
-                header: true,
-                child: Text(
-                  "What are the players' names?",
-                  style: textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-              ),
+              const Heading("What are the players' names?"),
               const SizedBox(height: 16),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
@@ -79,6 +77,9 @@ class _SetupScreenState extends State<SetupScreen> {
                         child: PlayerNameField(
                           number: index + 1,
                           controller: _nameControllers[index],
+                          textInputAction: index == _playerCount - 1
+                              ? TextInputAction.done
+                              : TextInputAction.next,
                         ),
                       ),
                   ],
