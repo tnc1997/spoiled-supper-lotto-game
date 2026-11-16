@@ -8,13 +8,6 @@ class PlayerNameField extends StatelessWidget {
   /// The most characters a name can have, so it fits wherever it's shown.
   static const maxLength = 20;
 
-  /// Matches whitespace and invisible formatting characters, such as a
-  /// zero-width space, at the start or end of a name.
-  static final _blankEdges = RegExp(
-    r'^[\s\p{Cf}]+|[\s\p{Cf}]+$',
-    unicode: true,
-  );
-
   /// Matches a run of whitespace inside a name.
   static final _whitespace = RegExp(r'\s+');
 
@@ -50,10 +43,10 @@ class PlayerNameField extends StatelessWidget {
   static String defaultNameOf(int number) => 'Player $number';
 
   /// Returns the name of the player numbered [number], counting from 1,
-  /// who typed [text]: the text without surrounding whitespace or invisible
-  /// formatting characters, or their default name if that leaves it empty.
+  /// who typed [text]: the text without surrounding whitespace, or their
+  /// default name if that leaves it empty.
   static String nameOf(int number, String text) {
-    final name = text.replaceAll(_blankEdges, '');
+    final name = text.trim();
 
     return name.isEmpty ? defaultNameOf(number) : name;
   }

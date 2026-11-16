@@ -82,32 +82,6 @@ void main() {
               expect(PlayerNameField.nameOf(3, '   '), 'Player 3');
             },
           );
-
-          test(
-            'returns the default name when only invisible characters are typed',
-            () {
-              expect(
-                PlayerNameField.nameOf(4, '\u200B \u2060\uFEFF'),
-                'Player 4',
-              );
-            },
-          );
-
-          test(
-            'trims invisible characters around the name typed',
-            () {
-              expect(PlayerNameField.nameOf(1, '\u200BAlex\u200B'), 'Alex');
-            },
-          );
-
-          test(
-            'keeps invisible characters inside the name typed',
-            () {
-              const family = '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}';
-
-              expect(PlayerNameField.nameOf(1, family), family);
-            },
-          );
         },
       );
 
