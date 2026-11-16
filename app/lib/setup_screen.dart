@@ -27,10 +27,13 @@ class _SetupScreenState extends State<SetupScreen> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              Text(
-                'How many players?',
-                style: textTheme.titleLarge,
-                textAlign: TextAlign.center,
+              Semantics(
+                header: true,
+                child: Text(
+                  'How many players?',
+                  style: textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 16),
               PlayerCountSelector(

@@ -26,25 +26,20 @@ class PlayerCountSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final onChanged = this.onChanged;
 
-    return Semantics(
-      label: 'Number of players',
-      container: true,
-      child: SegmentedButton<int>(
-        segments: [
-          for (var count = engine.GameController.minPlayers;
-              count <= engine.GameController.maxPlayers;
-              count++)
-            ButtonSegment(
-              value: count,
-              label: Text('$count players'),
-              enabled: onChanged != null,
-            ),
-        ],
-        selected: {playerCount},
-        onSelectionChanged: onChanged == null
-            ? null
-            : (selection) => onChanged(selection.single),
-      ),
+    return SegmentedButton<int>(
+      segments: [
+        for (var count = engine.GameController.minPlayers;
+            count <= engine.GameController.maxPlayers;
+            count++)
+          ButtonSegment(
+            value: count,
+            label: Text('$count players'),
+          ),
+      ],
+      selected: {playerCount},
+      showSelectedIcon: false,
+      onSelectionChanged:
+          onChanged == null ? null : (selection) => onChanged(selection.single),
     );
   }
 }

@@ -70,21 +70,29 @@ void main() {
         (tester) async {
           await pumpSelector(tester);
 
-          expect(
-            segmentedButtonOf(tester)
-                .segments
-                .map((segment) => segment.enabled),
-            everyElement(isFalse),
-          );
+          for (final count in [2, 3, 4]) {
+            expect(
+              tester.getSemantics(find.text('$count players')),
+              isSemantics(isEnabled: false),
+            );
+          }
         },
       );
 
       testWidgets(
-        'labels the selector for screen readers',
+        'keeps every option the same height when one is selected',
         (tester) async {
+          tester.view.physicalSize = const Size(320, 640);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
           await pumpSelector(tester);
 
-          expect(find.bySemanticsLabel('Number of players'), findsOneWidget);
+          final heights = [2, 3, 4].map(
+            (count) => tester.getSize(find.text('$count players')).height,
+          );
+
+          expect(heights.toSet(), hasLength(1));
         },
       );
     },

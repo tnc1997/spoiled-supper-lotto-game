@@ -24,6 +24,18 @@ void main() {
       );
 
       testWidgets(
+        'asks how many players there are as a header',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+
+          expect(
+            tester.getSemantics(find.text('How many players?')),
+            matchesSemantics(label: 'How many players?', isHeader: true),
+          );
+        },
+      );
+
+      testWidgets(
         'chooses 2 players to start with',
         (tester) async {
           await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
