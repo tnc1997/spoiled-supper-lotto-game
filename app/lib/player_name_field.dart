@@ -15,6 +15,9 @@ class PlayerNameField extends StatelessWidget {
     unicode: true,
   );
 
+  /// Matches a run of whitespace inside a name.
+  static final _whitespace = RegExp(r'\s+');
+
   /// The player's number, counting from 1.
   final int number;
 
@@ -26,14 +29,20 @@ class PlayerNameField extends StatelessWidget {
   /// next player's field.
   final TextInputAction textInputAction;
 
+  /// The error to show under the field, such as that another player has
+  /// the same name, or `null` if there isn't one.
+  final String? errorText;
+
   /// Shows a field for the name of the player numbered [number], counting
-  /// from 1, with the name typed into it held by [controller], and the
-  /// keyboard's action button doing [textInputAction].
+  /// from 1, with the name typed into it held by [controller], the
+  /// keyboard's action button doing [textInputAction], and [errorText]
+  /// shown under it.
   const PlayerNameField({
     super.key,
     required this.number,
     required this.controller,
     this.textInputAction = TextInputAction.next,
+    this.errorText,
   }) : assert(number >= 1);
 
   /// Returns the default name of the player numbered [number], counting
@@ -49,6 +58,16 @@ class PlayerNameField extends StatelessWidget {
     return name.isEmpty ? defaultNameOf(number) : name;
   }
 
+  /// Whether [name] and [other] would look like the same player, ignoring
+  /// differences in case and in the whitespace between words.
+  static bool isSameName(String name, String other) {
+    String keyOf(String name) {
+      return name.toLowerCase().replaceAll(_whitespace, ' ');
+    }
+
+    return keyOf(name) == keyOf(other);
+  }
+
   @override
   Widget build(BuildContext context) {
     final defaultName = defaultNameOf(number);
@@ -60,6 +79,8 @@ class PlayerNameField extends StatelessWidget {
         labelText: '$defaultName name',
         hintText: defaultName,
         helperText: 'Optional',
+        errorText: errorText,
+        errorMaxLines: 2,
       ),
       maxLength: maxLength,
       textCapitalization: TextCapitalization.words,

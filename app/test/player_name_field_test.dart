@@ -7,11 +7,13 @@ void main() {
     'PlayerNameField',
     () {
       /// Shows a [PlayerNameField] for the player numbered [number],
-      /// doing [textInputAction], and returns its controller.
+      /// doing [textInputAction] and showing [errorText], and returns its
+      /// controller.
       Future<TextEditingController> pumpField(
         WidgetTester tester, {
         int number = 1,
         TextInputAction textInputAction = TextInputAction.next,
+        String? errorText,
       }) async {
         final controller = TextEditingController();
         addTearDown(controller.dispose);
@@ -23,6 +25,7 @@ void main() {
                 number: number,
                 controller: controller,
                 textInputAction: textInputAction,
+                errorText: errorText,
               ),
             ),
           ),
@@ -108,6 +111,40 @@ void main() {
         },
       );
 
+      group(
+        'isSameName',
+        () {
+          test(
+            'matches the same name',
+            () {
+              expect(PlayerNameField.isSameName('Sam', 'Sam'), isTrue);
+            },
+          );
+
+          test(
+            'ignores differences in case',
+            () {
+              expect(PlayerNameField.isSameName('Sam', 'sAM'), isTrue);
+            },
+          );
+
+          test(
+            'ignores differences in the whitespace between words',
+            () {
+              expect(PlayerNameField.isSameName('Sam B', 'Sam  B'), isTrue);
+              expect(PlayerNameField.isSameName('Sam B', 'Sam\tB'), isTrue);
+            },
+          );
+
+          test(
+            'tells different names apart',
+            () {
+              expect(PlayerNameField.isSameName('Sam', 'Sam B'), isFalse);
+            },
+          );
+        },
+      );
+
       testWidgets(
         'labels the field with the player number',
         (tester) async {
@@ -173,6 +210,16 @@ void main() {
           await pumpField(tester, textInputAction: TextInputAction.done);
 
           expect(textFieldOf(tester).textInputAction, TextInputAction.done);
+        },
+      );
+
+      testWidgets(
+        'shows the error given instead of saying the name is optional',
+        (tester) async {
+          await pumpField(tester, errorText: 'Another player is called Sam.');
+
+          expect(find.text('Another player is called Sam.'), findsOneWidget);
+          expect(find.text('Optional'), findsNothing);
         },
       );
     },
