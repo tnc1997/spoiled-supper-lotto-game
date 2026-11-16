@@ -47,16 +47,12 @@ void main() {
       testWidgets(
         'marks the title as a header',
         (tester) async {
-          final handle = tester.ensureSemantics();
-
           await pumpHomeScreen(tester);
 
           expect(
             tester.getSemantics(find.text('Spoiled Supper')),
             matchesSemantics(label: 'Spoiled Supper', isHeader: true),
           );
-
-          handle.dispose();
         },
       );
 
