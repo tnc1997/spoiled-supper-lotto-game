@@ -21,7 +21,6 @@ class HomeScreen extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               Semantics(
                 header: true,
