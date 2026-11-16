@@ -2,6 +2,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'home_screen.dart';
+import 'setup_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +36,19 @@ class MyApp extends StatelessWidget {
           labelSmall: GoogleFonts.fredoka(),
         ),
       ),
-      home: const HomeScreen(),
+      home: Builder(
+        builder: (context) {
+          return HomeScreen(
+            onPlay: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => const SetupScreen(),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
