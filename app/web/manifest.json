@@ -1,11 +1,11 @@
 {
-    "name": "spoiled_supper_lotto_game",
-    "short_name": "spoiled_supper_lotto_game",
+    "name": "Spoiled Supper",
+    "short_name": "Spoiled Supper",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Race to build a complete meal while avoiding the spoiled cards.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
