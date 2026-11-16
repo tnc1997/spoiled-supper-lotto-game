@@ -101,18 +101,16 @@ class SetupScreenState extends State<SetupScreen> {
                     final errors = _nameErrors;
 
                     return Column(
+                      spacing: 8,
                       children: [
                         for (var index = 0; index < _playerCount; index++)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: PlayerNameField(
-                              number: index + 1,
-                              controller: _nameControllers[index],
-                              textInputAction: index == _playerCount - 1
-                                  ? TextInputAction.done
-                                  : TextInputAction.next,
-                              errorText: errors[index],
-                            ),
+                          PlayerNameField(
+                            number: index + 1,
+                            controller: _nameControllers[index],
+                            textInputAction: index == _playerCount - 1
+                                ? TextInputAction.done
+                                : TextInputAction.next,
+                            errorText: errors[index],
                           ),
                       ],
                     );
