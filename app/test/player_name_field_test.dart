@@ -112,20 +112,11 @@ void main() {
       );
 
       testWidgets(
-        'labels the field with the player number',
+        'labels the field with the default name',
         (tester) async {
           await pumpField(tester, number: 2);
 
-          expect(find.text('Player 2 name'), findsOneWidget);
-        },
-      );
-
-      testWidgets(
-        'shows the default name as a hint',
-        (tester) async {
-          await pumpField(tester, number: 3);
-
-          expect(textFieldOf(tester).decoration?.hintText, 'Player 3');
+          expect(find.text('Player 2'), findsOneWidget);
         },
       );
 

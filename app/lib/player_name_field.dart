@@ -56,14 +56,11 @@ class PlayerNameField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultName = defaultNameOf(number);
-
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
-        labelText: '$defaultName name',
-        hintText: defaultName,
+        labelText: defaultNameOf(number),
         helperText: 'Optional',
         errorText: errorText,
         errorMaxLines: 2,
