@@ -1,21 +1,49 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/home_screen.dart';
 import 'package:spoiled_supper_lotto_game/main.dart';
 
 void main() {
-  testWidgets(
-    'increments the counter when the button is tapped',
-    (tester) async {
-      await tester.pumpWidget(const MyApp());
+  group(
+    'MyApp',
+    () {
+      /// Returns the text theme of the app on screen.
+      TextTheme textThemeOf(WidgetTester tester) {
+        return Theme.of(tester.element(find.byType(HomeScreen))).textTheme;
+      }
 
-      expect(find.text('0'), findsOneWidget);
-      expect(find.text('1'), findsNothing);
+      testWidgets(
+        'shows the home screen',
+        (tester) async {
+          await tester.pumpWidget(const MyApp());
 
-      await tester.tap(find.byIcon(Icons.add));
-      await tester.pump();
+          expect(find.byType(HomeScreen), findsOneWidget);
+        },
+      );
 
-      expect(find.text('0'), findsNothing);
-      expect(find.text('1'), findsOneWidget);
+      testWidgets(
+        'sets the displayLarge text style in Caprasimo',
+        (tester) async {
+          await tester.pumpWidget(const MyApp());
+
+          expect(
+            textThemeOf(tester).displayLarge?.fontFamily,
+            startsWith('Caprasimo'),
+          );
+        },
+      );
+
+      testWidgets(
+        'sets the labelLarge text style in Fredoka',
+        (tester) async {
+          await tester.pumpWidget(const MyApp());
+
+          expect(
+            textThemeOf(tester).labelLarge?.fontFamily,
+            startsWith('Fredoka'),
+          );
+        },
+      );
     },
   );
 }
