@@ -1,13 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'app_title.dart';
+
 /// The first screen of the game: its title, and a button to start playing.
 ///
 /// The title is set in the `displayLarge` text style, which is reserved
 /// for it, and everything else in the theme's other styles.
 class HomeScreen extends StatelessWidget {
-  /// The title of the game.
-  static const title = 'Spoiled Supper';
-
   /// Called when the play button is pressed, or `null` to disable it.
   final VoidCallback? onPlay;
 
@@ -29,7 +28,7 @@ class HomeScreen extends StatelessWidget {
               Semantics(
                 header: true,
                 child: Text(
-                  title,
+                  appTitle,
                   style: textTheme.displayLarge,
                   textAlign: TextAlign.center,
                 ),
