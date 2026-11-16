@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/home_screen.dart';
 import 'package:spoiled_supper_lotto_game/main.dart';
+import 'package:spoiled_supper_lotto_game/setup_screen.dart';
 
 void main() {
   group(
@@ -18,6 +19,17 @@ void main() {
           await tester.pumpWidget(const MyApp());
 
           expect(find.byType(HomeScreen), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'shows the setup screen when the play button is pressed',
+        (tester) async {
+          await tester.pumpWidget(const MyApp());
+          await tester.tap(find.widgetWithText(FilledButton, 'Play'));
+          await tester.pumpAndSettle();
+
+          expect(find.byType(SetupScreen), findsOneWidget);
         },
       );
 
