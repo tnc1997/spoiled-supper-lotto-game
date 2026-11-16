@@ -103,14 +103,6 @@ void main() {
           );
 
           test(
-            'ignores differences in the whitespace between words',
-            () {
-              expect(PlayerNameField.isSameName('Sam B', 'Sam  B'), isTrue);
-              expect(PlayerNameField.isSameName('Sam B', 'Sam\tB'), isTrue);
-            },
-          );
-
-          test(
             'tells different names apart',
             () {
               expect(PlayerNameField.isSameName('Sam', 'Sam B'), isFalse);

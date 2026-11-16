@@ -8,9 +8,6 @@ class PlayerNameField extends StatelessWidget {
   /// The most characters a name can have, so it fits wherever it's shown.
   static const maxLength = 20;
 
-  /// Matches a run of whitespace inside a name.
-  static final _whitespace = RegExp(r'\s+');
-
   /// The player's number, counting from 1.
   final int number;
 
@@ -52,13 +49,9 @@ class PlayerNameField extends StatelessWidget {
   }
 
   /// Whether [name] and [other] would look like the same player, ignoring
-  /// differences in case and in the whitespace between words.
+  /// differences in case.
   static bool isSameName(String name, String other) {
-    String keyOf(String name) {
-      return name.toLowerCase().replaceAll(_whitespace, ' ');
-    }
-
-    return keyOf(name) == keyOf(other);
+    return name.toLowerCase() == other.toLowerCase();
   }
 
   @override
