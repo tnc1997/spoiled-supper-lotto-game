@@ -122,7 +122,7 @@ class SetupScreenState extends State<SetupScreen> {
 
   /// Returns the error to show for the player at [index] in [names] if
   /// another player has the same name, or `null` if none does.
-  String? _duplicateErrorOf(List<String> names, int index) {
+  static String? _duplicateErrorOf(List<String> names, int index) {
     for (var other = 0; other < names.length; other++) {
       if (other != index &&
           PlayerNameField.isSameName(names[index], names[other])) {
