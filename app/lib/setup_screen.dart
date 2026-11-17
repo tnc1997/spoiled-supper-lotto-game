@@ -8,15 +8,20 @@ import 'player_name_field.dart';
 /// The screen for setting up a Pass & Play game on this device: how many
 /// players are playing, and, optionally, their names.
 class SetupScreen extends StatefulWidget {
-  /// Shows the setup screen.
-  const SetupScreen({super.key});
+  /// Called with the names of the players playing, in turn order, when the
+  /// start button is pressed, or `null` to disable it.
+  final ValueChanged<List<String>>? onStart;
+
+  /// Shows the setup screen, calling [onStart] with the players' names
+  /// when the start button is pressed.
+  const SetupScreen({super.key, this.onStart});
 
   @override
-  State<SetupScreen> createState() => SetupScreenState();
+  State<SetupScreen> createState() => _SetupScreenState();
 }
 
 /// The state of a [SetupScreen], holding the players' choices.
-class SetupScreenState extends State<SetupScreen> {
+class _SetupScreenState extends State<SetupScreen> {
   /// The names typed for every player the game allows, so a name is kept
   /// if the number of players goes down and then back up.
   ///
@@ -89,29 +94,46 @@ class SetupScreenState extends State<SetupScreen> {
               const SizedBox(height: 32),
               const Heading("What are the players' names?"),
               const SizedBox(height: 16),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: ListenableBuilder(
-                  listenable: Listenable.merge(_nameControllers),
-                  builder: (context, child) {
-                    final errors = _nameErrors;
+              ListenableBuilder(
+                listenable: Listenable.merge(_nameControllers),
+                builder: (context, child) {
+                  final errors = _nameErrors;
+                  final onStart = widget.onStart;
 
-                    return Column(
-                      spacing: 8,
-                      children: [
-                        for (var index = 0; index < _playerCount; index++)
-                          PlayerNameField(
-                            number: index + 1,
-                            controller: _nameControllers[index],
-                            textInputAction: index == _playerCount - 1
-                                ? TextInputAction.done
-                                : TextInputAction.next,
-                            errorText: errors[index],
-                          ),
-                      ],
-                    );
-                  },
-                ),
+                  // Two players with the same name can't start the game
+                  // until one of them changes it.
+                  final hasDuplicateNames =
+                      errors.any((error) => error != null);
+
+                  return Column(
+                    children: [
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: Column(
+                          spacing: 8,
+                          children: [
+                            for (var index = 0; index < _playerCount; index++)
+                              PlayerNameField(
+                                number: index + 1,
+                                controller: _nameControllers[index],
+                                textInputAction: index == _playerCount - 1
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
+                                errorText: errors[index],
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      FilledButton(
+                        onPressed: onStart == null || hasDuplicateNames
+                            ? null
+                            : () => onStart(playerNames),
+                        child: const Text('Start'),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
