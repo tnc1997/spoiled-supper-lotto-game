@@ -65,10 +65,6 @@ class _SetupScreenState extends State<SetupScreen> {
     ];
   }
 
-  /// Whether two of the players playing have the same name, in which case
-  /// the game can't be started until it's changed.
-  bool get _hasDuplicateNames => _nameErrors.any((error) => error != null);
-
   @override
   void dispose() {
     for (final controller in _nameControllers) {
@@ -104,6 +100,11 @@ class _SetupScreenState extends State<SetupScreen> {
                   final errors = _nameErrors;
                   final onStart = widget.onStart;
 
+                  // Two players with the same name can't start the game
+                  // until one of them changes it.
+                  final hasDuplicateNames =
+                      errors.any((error) => error != null);
+
                   return Column(
                     children: [
                       ConstrainedBox(
@@ -125,7 +126,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       ),
                       const SizedBox(height: 32),
                       FilledButton(
-                        onPressed: onStart == null || _hasDuplicateNames
+                        onPressed: onStart == null || hasDuplicateNames
                             ? null
                             : () => onStart(playerNames),
                         child: const Text('Start'),
