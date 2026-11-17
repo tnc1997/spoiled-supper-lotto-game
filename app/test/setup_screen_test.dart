@@ -308,6 +308,17 @@ void main() {
       );
 
       testWidgets(
+        "disables the start button while a player types another's default name",
+        (tester) async {
+          await pumpSetupScreen(tester);
+          await tester.enterText(nameFieldOf(1), 'player 2');
+          await tester.pump();
+
+          expect(isStartEnabledOf(tester), isFalse);
+        },
+      );
+
+      testWidgets(
         'enables the start button once the names are told apart',
         (tester) async {
           await pumpSetupScreen(tester);
