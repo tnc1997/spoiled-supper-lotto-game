@@ -23,11 +23,32 @@ void main() {
             .toList();
       }
 
-      /// Returns the names of the players playing on the setup screen.
-      List<String> playerNamesOf(WidgetTester tester) {
-        return tester
-            .state<SetupScreenState>(find.byType(SetupScreen))
-            .playerNames;
+      /// Finds the start button.
+      final startButton = find.widgetWithText(FilledButton, 'Start');
+
+      /// Whether the start button on screen is enabled.
+      bool isStartEnabledOf(WidgetTester tester) {
+        return tester.widget<FilledButton>(startButton).enabled;
+      }
+
+      /// Shows the setup screen, returning the names it's started with each
+      /// time the start button is pressed.
+      Future<List<List<String>>> pumpSetupScreen(WidgetTester tester) async {
+        final starts = <List<String>>[];
+
+        await tester.pumpWidget(
+          MaterialApp(home: SetupScreen(onStart: starts.add)),
+        );
+
+        return starts;
+      }
+
+      /// Presses the start button, scrolling it into view first.
+      Future<void> tapStart(WidgetTester tester) async {
+        await tester.ensureVisible(startButton);
+        await tester.pumpAndSettle();
+        await tester.tap(startButton);
+        await tester.pump();
       }
 
       /// Returns the errors shown on the name fields on screen, in turn
@@ -159,28 +180,34 @@ void main() {
       );
 
       testWidgets(
-        'names each player playing, with the default name if none is typed',
+        'starts with each player playing, with the default name if none is typed',
         (tester) async {
-          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+          final starts = await pumpSetupScreen(tester);
           await tester.tap(find.text('3 players'));
           await tester.pump();
           await tester.enterText(nameFieldOf(1), 'Alex');
+          await tapStart(tester);
 
-          expect(playerNamesOf(tester), ['Alex', 'Player 2', 'Player 3']);
+          expect(starts, [
+            ['Alex', 'Player 2', 'Player 3'],
+          ]);
         },
       );
 
       testWidgets(
-        'leaves out the names of players no longer playing',
+        'starts without the players no longer playing',
         (tester) async {
-          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+          final starts = await pumpSetupScreen(tester);
           await tester.tap(find.text('3 players'));
           await tester.pump();
           await tester.enterText(nameFieldOf(3), 'Sam');
           await tester.tap(find.text('2 players'));
           await tester.pump();
+          await tapStart(tester);
 
-          expect(playerNamesOf(tester), ['Player 1', 'Player 2']);
+          expect(starts, [
+            ['Player 1', 'Player 2'],
+          ]);
         },
       );
 
@@ -252,6 +279,54 @@ void main() {
           await tester.pump();
 
           expect(nameErrorsOf(tester), [null, null]);
+        },
+      );
+
+      testWidgets(
+        'enables the start button when every name is different',
+        (tester) async {
+          await pumpSetupScreen(tester);
+
+          expect(isStartEnabledOf(tester), isTrue);
+        },
+      );
+
+      testWidgets(
+        'disables the start button while two players have the same name',
+        (tester) async {
+          final starts = await pumpSetupScreen(tester);
+          await tester.enterText(nameFieldOf(1), 'Sam');
+          await tester.enterText(nameFieldOf(2), 'sam');
+          await tester.pump();
+
+          expect(isStartEnabledOf(tester), isFalse);
+
+          await tapStart(tester);
+
+          expect(starts, isEmpty);
+        },
+      );
+
+      testWidgets(
+        'enables the start button once the names are told apart',
+        (tester) async {
+          await pumpSetupScreen(tester);
+          await tester.enterText(nameFieldOf(1), 'Sam');
+          await tester.enterText(nameFieldOf(2), 'Sam');
+          await tester.pump();
+          await tester.enterText(nameFieldOf(2), 'Sam B');
+          await tester.pump();
+
+          expect(isStartEnabledOf(tester), isTrue);
+        },
+      );
+
+      testWidgets(
+        'disables the start button without a callback',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+
+          expect(isStartEnabledOf(tester), isFalse);
         },
       );
     },

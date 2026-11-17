@@ -1,6 +1,7 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'game_screen.dart';
 import 'home_screen.dart';
 import 'setup_screen.dart';
 
@@ -42,7 +43,19 @@ class MyApp extends StatelessWidget {
             onPlay: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (context) => const SetupScreen(),
+                  builder: (context) {
+                    return SetupScreen(
+                      onStart: (playerNames) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) {
+                              return GameScreen(playerNames: playerNames);
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               );
             },
