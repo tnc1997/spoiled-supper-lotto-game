@@ -63,10 +63,10 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CardImagesScope(
-      images: widget.cardImages,
-      child: GameScope(
-        notifier: _notifier,
+    return GameScope(
+      notifier: _notifier,
+      child: CardImagesScope(
+        images: widget.cardImages,
         child: Scaffold(
           appBar: AppBar(title: const Text('Pass & Play')),
           body: Center(
