@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'card_images_data.dart';
 
 /// Holds the player's own card images for as long as it's shown, e.g. for
-/// the whole session above the app's navigator, and exposes them to the
+/// the whole session above the app's `MaterialApp`, and exposes them to the
 /// widgets below it, such as the `Card` widget, rebuilding the ones that
 /// depend on them whenever they change.
 ///
