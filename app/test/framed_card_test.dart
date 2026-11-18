@@ -43,21 +43,62 @@ void main() {
         },
       );
 
+      /// Returns the decoration around the card that has [property].
+      DecoratedBox decorationWith(
+        WidgetTester tester,
+        bool Function(BoxDecoration decoration) property,
+      ) {
+        return tester
+            .widgetList<DecoratedBox>(
+              find.descendant(
+                of: find.byType(FramedCard),
+                matching: find.ancestor(
+                  of: find.byType(Card),
+                  matching: find.byType(DecoratedBox),
+                ),
+              ),
+            )
+            .singleWhere((box) => property(box.decoration as BoxDecoration));
+      }
+
       testWidgets(
-        'casts a shadow with square corners',
+        'casts a shadow behind the card, with square corners',
         (tester) async {
           await pumpCard(tester);
 
-          final model = tester.widget<PhysicalModel>(
-            find.ancestor(
-              of: find.byType(Card),
-              matching: find.byType(PhysicalModel),
-            ),
+          final shadow = decorationWith(
+            tester,
+            (decoration) => decoration.boxShadow != null,
           );
+          final decoration = shadow.decoration as BoxDecoration;
 
-          expect(model.shape, BoxShape.rectangle);
-          expect(model.borderRadius, isNull);
-          expect(model.elevation, greaterThan(0));
+          expect(shadow.position, DecorationPosition.background);
+          expect(decoration.boxShadow, isNotEmpty);
+          expect(decoration.shape, BoxShape.rectangle);
+          expect(decoration.borderRadius, isNull);
+        },
+      );
+
+      testWidgets(
+        "outlines the card over its edge in the theme's outline colour",
+        (tester) async {
+          await pumpCard(tester);
+
+          final outline = decorationWith(
+            tester,
+            (decoration) => decoration.border != null,
+          );
+          final decoration = outline.decoration as BoxDecoration;
+          final colorScheme = Theme.of(
+            tester.element(find.byType(FramedCard)),
+          ).colorScheme;
+
+          expect(outline.position, DecorationPosition.foreground);
+          expect(
+            decoration.border,
+            Border.all(color: colorScheme.outlineVariant),
+          );
+          expect(decoration.borderRadius, isNull);
         },
       );
 
