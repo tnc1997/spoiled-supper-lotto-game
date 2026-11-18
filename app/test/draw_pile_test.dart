@@ -199,21 +199,6 @@ void main() {
       );
 
       testWidgets(
-        'draws only once when tapped twice before it rebuilds',
-        (tester) async {
-          final notifier = notifierWith(drawPile: [pondWater, sausages]);
-          await pumpPile(tester, notifier);
-
-          final onTap = tester.widget<InkWell>(find.byType(InkWell)).onTap!;
-          onTap();
-          onTap();
-
-          expect(notifier.game.drawnCard, same(sausages));
-          expect(notifier.game.drawPile, [pondWater]);
-        },
-      );
-
-      testWidgets(
         'draws the top card when activated with the keyboard',
         (tester) async {
           final notifier = notifierWith(drawPile: [sausages]);

@@ -24,15 +24,7 @@ class DrawPile extends StatelessWidget {
     final game = notifier.game;
     final count = game.drawPile.length;
     final countLabel = count == 1 ? '1 card' : '$count cards';
-    final onDraw = game.canDrawFromDrawPile
-        ? () {
-            // Checks again, since a second tap can land before the pile
-            // rebuilds to disable itself, once a card has been drawn.
-            if (notifier.game.canDrawFromDrawPile) {
-              notifier.drawFromDrawPile();
-            }
-          }
-        : null;
+    final onDraw = game.canDrawFromDrawPile ? notifier.drawFromDrawPile : null;
 
     // Makes the pile one button, which takes on the focus state and tap
     // action of its InkWell, so a screen reader announces it as it gains
