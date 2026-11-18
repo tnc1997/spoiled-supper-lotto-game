@@ -93,7 +93,12 @@ class _EmptySlot extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
-            border: Border.all(color: color, width: 2),
+            // Darkens the outline so that it stands out from a light board,
+            // even for the paler colours, like yellow.
+            border: Border.all(
+              color: HSLColor.fromColor(color).withLightness(0.4).toColor(),
+              width: 2,
+            ),
             borderRadius: FramedCard.borderRadius,
           ),
           child: Padding(
