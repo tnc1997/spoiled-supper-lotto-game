@@ -16,8 +16,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    // Holds the player's card images above the whole app, so that they last
-    // for the whole session and every screen uses them.
     return CardImages(
       child: MaterialApp(
         title: 'Spoiled Supper',
