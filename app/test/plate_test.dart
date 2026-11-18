@@ -3,7 +3,6 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_aspect_ratio.dart';
-import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/plate.dart';
@@ -66,21 +65,36 @@ void main() {
       }
 
       testWidgets(
-        'shows each card on the plate in a frame',
+        'shows each card on the plate',
         (tester) async {
           await pumpPlate(tester, alice);
 
           expect(
             [
-              for (final card in tester.widgetList<Card>(
-                find.descendant(
-                  of: find.byType(CardFrame),
-                  matching: find.byType(Card),
-                ),
-              ))
+              for (final card in tester.widgetList<Card>(find.byType(Card)))
                 card.card,
             ],
             unorderedEquals([sausages, pondWater]),
+          );
+        },
+      );
+
+      testWidgets(
+        'casts no shadow between neighbouring cards',
+        (tester) async {
+          await pumpPlate(tester, alice);
+
+          expect(
+            [
+              for (final box in tester.widgetList<DecoratedBox>(
+                find.descendant(
+                  of: find.byType(Plate),
+                  matching: find.byType(DecoratedBox),
+                ),
+              ))
+                (box.decoration as BoxDecoration).boxShadow,
+            ],
+            everyElement(isNull),
           );
         },
       );
@@ -174,8 +188,8 @@ void main() {
 
           const size = Size(120, 120 / cardAspectRatio);
           expect(tester.getSize(find.bySemanticsLabel('Dessert, empty')), size);
-          for (final framed in find.byType(CardFrame).evaluate()) {
-            expect(framed.size, size);
+          for (final card in find.byType(Card).evaluate()) {
+            expect(card.size, size);
           }
         },
       );

@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart' hide Card;
 
 import 'card.dart';
 import 'card_aspect_ratio.dart';
-import 'card_frame.dart';
 import 'category_label.dart';
 import 'empty_slot.dart';
 import 'game_scope.dart';
@@ -53,7 +52,12 @@ class Plate extends StatelessWidget {
         width: cardWidth,
         child: card == null
             ? _EmptySlot(category: category)
-            : CardFrame(child: Card(card: card)),
+            // Sits flat in its slot, like on the physical board, with no
+            // shadow, so that neighbouring cards join up into one picture.
+            : AspectRatio(
+                aspectRatio: cardAspectRatio,
+                child: Card(card: card),
+              ),
       );
     }
 
