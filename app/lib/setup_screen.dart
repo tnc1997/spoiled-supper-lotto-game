@@ -164,18 +164,52 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  /// Builds the button to choose card images, disabled and showing
-  /// progress while they're being chosen.
+  /// Builds the button to choose card images.
+  ///
+  /// While they're being chosen, the button is disabled and shrinks into a
+  /// circle showing progress, like Material 3's loading indicator, and then
+  /// grows back.
   Widget _buildChooseCardImagesButton() {
-    return OutlinedButton.icon(
+    return OutlinedButton(
       onPressed: _isChoosingCardImages ? null : _chooseCardImages,
-      icon: _isChoosingCardImages
-          ? const SizedBox.square(
-              dimension: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.photo_library_outlined),
-      label: const Text('Choose card images'),
+      // Without padding, and only as wide as it is high at least, so that
+      // the button is a circle around the progress indicator.
+      style: OutlinedButton.styleFrom(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size.square(40),
+      ),
+      // Animates the button's width as its contents change, so that it
+      // shrinks into the circle and grows back, rather than jumping.
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        child: _isChoosingCardImages
+            ? const SizedBox.square(
+                dimension: 40,
+                child: Center(
+                  child: SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      semanticsLabel: 'Loading card images',
+                    ),
+                  ),
+                ),
+              )
+            // The padding of a button with an icon, given here rather than
+            // to the button, so that it goes when the button shrinks.
+            : const Padding(
+                padding: EdgeInsetsDirectional.only(start: 16, end: 24),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8,
+                  children: [
+                    Icon(Icons.photo_library_outlined, size: 18),
+                    Text('Choose card images'),
+                  ],
+                ),
+              ),
+      ),
     );
   }
 
