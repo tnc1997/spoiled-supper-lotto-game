@@ -1,19 +1,23 @@
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
+import 'card_images.dart';
+import 'card_images_button.dart';
 import 'heading.dart';
 import 'player_count_selector.dart';
 import 'player_name_field.dart';
 
 /// The screen for setting up a Pass & Play game on this device: how many
-/// players are playing, and, optionally, their names.
+/// players are playing, and, optionally, their names and their own card
+/// images.
 class SetupScreen extends StatefulWidget {
   /// Called with the names of the players playing, in turn order, when the
   /// start button is pressed, or `null` to disable it.
   final ValueChanged<List<String>>? onStart;
 
-  /// Shows the setup screen, calling [onStart] with the players' names
-  /// when the start button is pressed.
+  /// Shows the setup screen, which must be below a [CardImages] for the
+  /// players to choose their card images, calling [onStart] with the
+  /// players' names when the start button is pressed.
   const SetupScreen({super.key, this.onStart});
 
   @override
@@ -125,6 +129,8 @@ class _SetupScreenState extends State<SetupScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
+                      child!,
+                      const SizedBox(height: 32),
                       FilledButton(
                         onPressed: onStart == null || hasDuplicateNames
                             ? null
@@ -134,6 +140,19 @@ class _SetupScreenState extends State<SetupScreen> {
                     ],
                   );
                 },
+                // The card images section, shown by the builder between the
+                // name fields and the start button. It doesn't depend on the
+                // names, so it's passed in as the child rather than built
+                // there, and isn't rebuilt as they're typed. Splitting the
+                // builder in two instead would work out the name errors
+                // twice, once for the fields and once for the start button.
+                child: const Column(
+                  children: [
+                    Heading('Do you have your own card images?'),
+                    SizedBox(height: 16),
+                    CardImagesButton(),
+                  ],
+                ),
               ),
             ],
           ),

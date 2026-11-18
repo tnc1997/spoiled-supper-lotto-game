@@ -7,8 +7,8 @@ import 'package:game_engine/game_engine.dart' as engine;
 ///
 /// Players can show their own images of the cards, e.g. scanned from a copy
 /// they own, by placing files with these names in a local override folder,
-/// with any of the `CardImages.imageExtensions`, e.g. `fish-fingers.jpg`,
-/// in any case, e.g. `Fish-Fingers.JPG`. `CardImages` loads them.
+/// with any of the `CardImagesData.imageExtensions`, e.g. `fish-fingers.jpg`,
+/// in any case, e.g. `Fish-Fingers.JPG`. `CardImagesData` loads them.
 /// Images cropped with `tools/crop-cards.sh` keep their scan's name, so must
 /// be renamed to match. A card without such a file is shown as a
 /// `PlaceholderCard`.

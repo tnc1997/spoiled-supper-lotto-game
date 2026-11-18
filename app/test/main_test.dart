@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/card_images.dart';
+import 'package:spoiled_supper_lotto_game/card_images_data.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
 import 'package:spoiled_supper_lotto_game/home_screen.dart';
 import 'package:spoiled_supper_lotto_game/main.dart';
@@ -50,6 +52,38 @@ void main() {
           expect(
             tester.widget<GameScreen>(find.byType(GameScreen)).playerNames,
             ['Sam', 'Player 2'],
+          );
+        },
+      );
+
+      testWidgets(
+        'keeps the card images chosen for the whole session',
+        (tester) async {
+          final images =
+              (await tester.runAsync(() => CardImagesData.load([])))!;
+          await tester.pumpWidget(const MyApp());
+          await tester.tap(find.widgetWithText(FilledButton, 'Play'));
+          await tester.pumpAndSettle();
+
+          // Chooses the images as the setup screen does, without opening the
+          // platform's file picker.
+          CardImages.of(tester.element(find.byType(SetupScreen))).images =
+              images;
+
+          // Goes back to the home screen, and then sets up and starts a game.
+          await tester.pageBack();
+          await tester.pumpAndSettle();
+          await tester.tap(find.widgetWithText(FilledButton, 'Play'));
+          await tester.pumpAndSettle();
+          await tester
+              .ensureVisible(find.widgetWithText(FilledButton, 'Start'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.widgetWithText(FilledButton, 'Start'));
+          await tester.pumpAndSettle();
+
+          expect(
+            CardImages.of(tester.element(find.byType(GameScreen))).images,
+            same(images),
           );
         },
       );

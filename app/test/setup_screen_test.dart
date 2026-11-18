@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/card_images_button.dart';
 import 'package:spoiled_supper_lotto_game/player_count_selector.dart';
 import 'package:spoiled_supper_lotto_game/player_name_field.dart';
 import 'package:spoiled_supper_lotto_game/setup_screen.dart';
@@ -37,7 +38,9 @@ void main() {
         final starts = <List<String>>[];
 
         await tester.pumpWidget(
-          MaterialApp(home: SetupScreen(onStart: starts.add)),
+          MaterialApp(
+            home: SetupScreen(onStart: starts.add),
+          ),
         );
 
         return starts;
@@ -338,6 +341,32 @@ void main() {
           await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
 
           expect(isStartEnabledOf(tester), isFalse);
+        },
+      );
+
+      testWidgets(
+        'asks whether the players have their own card images as a header',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+
+          expect(
+            tester.getSemantics(
+              find.text('Do you have your own card images?'),
+            ),
+            matchesSemantics(
+              label: 'Do you have your own card images?',
+              isHeader: true,
+            ),
+          );
+        },
+      );
+
+      testWidgets(
+        'lets the players choose their own card images',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+
+          expect(find.byType(CardImagesButton), findsOneWidget);
         },
       );
     },
