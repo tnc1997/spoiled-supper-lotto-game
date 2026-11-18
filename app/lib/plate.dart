@@ -2,7 +2,6 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
 import 'card_aspect_ratio.dart';
-import 'category_color.dart';
 import 'category_label.dart';
 import 'framed_card.dart';
 import 'game_scope.dart';
@@ -88,8 +87,12 @@ class Plate extends StatelessWidget {
   }
 }
 
-/// The empty slot for [category]: a card-shaped area tinted with the
-/// category's colour, labelled with the category.
+/// The empty slot for [category]: a plain card-shaped area, labelled with
+/// the category.
+///
+/// Like the physical board's plain white slots, it is the theme's lowest
+/// container colour: white in a light theme, and the darkest surface in a
+/// dark one.
 class _EmptySlot extends StatelessWidget {
   final engine.Category category;
 
@@ -106,7 +109,7 @@ class _EmptySlot extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: cardAspectRatio,
         child: ColoredBox(
-          color: category.color.withValues(alpha: 0.1),
+          color: theme.colorScheme.surfaceContainerLowest,
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Center(

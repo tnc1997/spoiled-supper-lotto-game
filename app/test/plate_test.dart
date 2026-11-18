@@ -177,6 +177,34 @@ void main() {
       );
 
       testWidgets(
+        "shows each empty slot plain, in the theme's lowest container colour",
+        (tester) async {
+          await pumpPlate(tester, bob);
+
+          final colorScheme = Theme.of(
+            tester.element(find.byType(Plate)),
+          ).colorScheme;
+
+          for (final category in [
+            'Dessert',
+            'Vegetable',
+            'Main',
+            'Carbohydrate',
+            'Drink',
+          ]) {
+            final box = tester.widget<ColoredBox>(
+              find.descendant(
+                of: find.bySemanticsLabel('$category, empty'),
+                matching: find.byType(ColoredBox),
+              ),
+            );
+
+            expect(box.color, colorScheme.surfaceContainerLowest);
+          }
+        },
+      );
+
+      testWidgets(
         "is announced as the player's plate",
         (tester) async {
           await pumpPlate(tester, alice);
