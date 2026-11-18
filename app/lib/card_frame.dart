@@ -8,7 +8,8 @@ import 'card_aspect_ratio.dart';
 ///
 /// Use this for anything shown as a card lying on the table, face up or
 /// face down, such as the top of a pile, so that every such card is framed
-/// alike, e.g. `CardFrame(child: Card(card: card))` for a card face up. A
+/// alike, e.g. `CardFrame(child: Card(card: card))` for a card face up, or
+/// `CardFrame(child: CardBack())` for one face down. A
 /// `PlaceholderCard` and the player's own image of a card are framed alike,
 /// so swapping one for the other doesn't change the card's look.
 ///

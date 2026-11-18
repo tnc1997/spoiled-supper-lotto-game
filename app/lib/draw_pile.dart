@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'card_back.dart';
 import 'card_frame.dart';
 import 'empty_slot.dart';
 import 'game_scope.dart';
@@ -48,7 +49,7 @@ class DrawPile extends StatelessWidget {
                 ExcludeSemantics(
                   child: count == 0
                       ? const EmptySlot(label: 'Empty')
-                      : const CardFrame(child: _CardBack()),
+                      : const CardFrame(child: CardBack()),
                 ),
                 // Lies over the pile, so that its ink and focus highlight
                 // show on top of the card back rather than behind it.
@@ -63,43 +64,6 @@ class DrawPile extends StatelessWidget {
           ),
           Text(countLabel, style: Theme.of(context).textTheme.labelLarge),
         ],
-      ),
-    );
-  }
-}
-
-/// The back of a card, to show in a [CardFrame].
-///
-/// It is an original design: the theme's primary container colour, with an
-/// inset border and a place-setting icon.
-class _CardBack extends StatelessWidget {
-  const _CardBack();
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ColoredBox(
-      color: colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: colorScheme.onPrimaryContainer, width: 2),
-          ),
-          child: Center(
-            // Scales the icon with the card.
-            child: FractionallySizedBox(
-              widthFactor: 0.5,
-              child: FittedBox(
-                child: Icon(
-                  Icons.restaurant,
-                  color: colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
