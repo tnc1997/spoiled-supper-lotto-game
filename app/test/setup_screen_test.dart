@@ -26,6 +26,12 @@ void main() {
       /// Finds the start button.
       final startButton = find.widgetWithText(FilledButton, 'Start');
 
+      /// Finds the button to choose card images.
+      final chooseCardImagesButton = find.ancestor(
+        of: find.text('Choose card images'),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      );
+
       /// Whether the start button on screen is enabled.
       bool isStartEnabledOf(WidgetTester tester) {
         return tester.widget<FilledButton>(startButton).enabled;
@@ -338,6 +344,53 @@ void main() {
           await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
 
           expect(isStartEnabledOf(tester), isFalse);
+        },
+      );
+
+      testWidgets(
+        'asks whether the players have their own card images as a header',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+
+          expect(
+            tester.getSemantics(
+              find.text('Do you have your own card images?'),
+            ),
+            matchesSemantics(
+              label: 'Do you have your own card images?',
+              isHeader: true,
+            ),
+          );
+        },
+      );
+
+      testWidgets(
+        'calls back when the button to choose card images is pressed',
+        (tester) async {
+          var chooses = 0;
+          await tester.pumpWidget(
+            MaterialApp(
+              home: SetupScreen(onChooseCardImages: () => chooses++),
+            ),
+          );
+          await tester.ensureVisible(chooseCardImagesButton);
+          await tester.pumpAndSettle();
+          await tester.tap(chooseCardImagesButton);
+          await tester.pump();
+
+          expect(chooses, 1);
+        },
+      );
+
+      testWidgets(
+        'disables the button to choose card images without a callback',
+        (tester) async {
+          await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
+
+          expect(
+            tester.widget<ButtonStyleButton>(chooseCardImagesButton).enabled,
+            isFalse,
+          );
         },
       );
     },

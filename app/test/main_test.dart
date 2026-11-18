@@ -1,5 +1,11 @@
+import 'dart:convert';
+
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/card_images.dart';
+import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
 import 'package:spoiled_supper_lotto_game/home_screen.dart';
 import 'package:spoiled_supper_lotto_game/main.dart';
@@ -12,6 +18,50 @@ void main() {
       /// Returns the text theme of the app on screen.
       TextTheme textThemeOf(WidgetTester tester) {
         return Theme.of(tester.element(find.byType(HomeScreen))).textTheme;
+      }
+
+      final fishBone = engine.buildDeck().singleWhere(
+            (card) => card.id == '22407c27-1682-4fca-b9b9-015208b86f18',
+          );
+
+      // A 1x1px PNG.
+      final png = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      );
+
+      /// Loads an image of Fish Bone.
+      ///
+      /// Once chosen, the images belong to the app, which disposes of them
+      /// when they're replaced or it's removed at the end of the test.
+      Future<CardImages> loadImages(WidgetTester tester) async {
+        return (await tester.runAsync(
+          () => CardImages.load([
+            XFile.fromData(png, name: 'fish-bone.png', path: 'fish-bone.png'),
+          ]),
+        ))!;
+      }
+
+      /// Returns the card images exposed to the screen of type [screen].
+      CardImages cardImagesOf(WidgetTester tester, Type screen) {
+        return CardImagesScope.of(tester.element(find.byType(screen)));
+      }
+
+      /// Presses [button], scrolling it into view first.
+      Future<void> tapButton(WidgetTester tester, Finder button) async {
+        await tester.ensureVisible(button);
+        await tester.pumpAndSettle();
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+      }
+
+      /// Opens the setup screen from the home screen.
+      Future<void> openSetupScreen(WidgetTester tester) {
+        return tapButton(tester, find.widgetWithText(FilledButton, 'Play'));
+      }
+
+      /// Presses the button to choose card images on the setup screen.
+      Future<void> chooseCardImages(WidgetTester tester) {
+        return tapButton(tester, find.text('Choose card images'));
       }
 
       testWidgets(
@@ -51,6 +101,68 @@ void main() {
             tester.widget<GameScreen>(find.byType(GameScreen)).playerNames,
             ['Sam', 'Player 2'],
           );
+        },
+      );
+
+      testWidgets(
+        'shows no card images until the player chooses some',
+        (tester) async {
+          await tester.pumpWidget(const MyApp());
+          await openSetupScreen(tester);
+
+          expect(cardImagesOf(tester, SetupScreen), same(CardImages.empty));
+        },
+      );
+
+      testWidgets(
+        'shows the card images chosen on the setup and game screens',
+        (tester) async {
+          final images = await loadImages(tester);
+          await tester.pumpWidget(MyApp(pickCardImages: () async => images));
+          await openSetupScreen(tester);
+          await chooseCardImages(tester);
+
+          expect(cardImagesOf(tester, SetupScreen), same(images));
+
+          await tapButton(tester, find.widgetWithText(FilledButton, 'Start'));
+
+          expect(cardImagesOf(tester, GameScreen), same(images));
+        },
+      );
+
+      testWidgets(
+        'keeps the card images shown when the player cancels',
+        (tester) async {
+          final images = await loadImages(tester);
+          final picks = [images, null];
+          await tester.pumpWidget(
+            MyApp(pickCardImages: () async => picks.removeAt(0)),
+          );
+          await openSetupScreen(tester);
+          await chooseCardImages(tester);
+          await chooseCardImages(tester);
+
+          expect(cardImagesOf(tester, SetupScreen), same(images));
+          expect(images[fishBone]!.debugDisposed, isFalse);
+        },
+      );
+
+      testWidgets(
+        'disposes of the card images replaced by the ones chosen',
+        (tester) async {
+          final oldImages = await loadImages(tester);
+          final newImages = await loadImages(tester);
+          final picks = [oldImages, newImages];
+          await tester.pumpWidget(
+            MyApp(pickCardImages: () async => picks.removeAt(0)),
+          );
+          await openSetupScreen(tester);
+          await chooseCardImages(tester);
+          await chooseCardImages(tester);
+
+          expect(cardImagesOf(tester, SetupScreen), same(newImages));
+          expect(oldImages[fishBone]!.debugDisposed, isTrue);
+          expect(newImages[fishBone]!.debugDisposed, isFalse);
         },
       );
 

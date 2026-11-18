@@ -48,6 +48,12 @@ class CardImages {
   /// 50 MB.
   static const imageSize = ui.Size(520, 520 / cardAspectRatio);
 
+  /// No images, so that every card is shown as a `PlaceholderCard`, e.g.
+  /// before the player has chosen theirs.
+  ///
+  /// It holds nothing to free, so disposing of it does nothing.
+  static const empty = CardImages._({});
+
   /// The images, keyed by [engine.Card.id].
   ///
   /// A card without an image has no entry, rather than a `null` one, so

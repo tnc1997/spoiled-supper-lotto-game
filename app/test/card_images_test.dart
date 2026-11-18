@@ -132,6 +132,22 @@ void main() {
         },
       );
 
+      test(
+        'has no image of any card when empty',
+        () {
+          expect([for (final card in deck) CardImages.empty[card]],
+              everyElement(isNull));
+        },
+      );
+
+      test(
+        'can dispose of no images more than once',
+        () {
+          CardImages.empty.dispose();
+          CardImages.empty.dispose();
+        },
+      );
+
       group(
         'load',
         () {

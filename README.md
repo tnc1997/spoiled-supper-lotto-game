@@ -109,10 +109,6 @@ Your images stay on your device. The app reads them from the files you
 choose and never uploads, syncs, or shares them, and they aren't bundled
 into any build. See the [Assets & Copyright Policy](#assets--copyright-policy).
 
-> **Note:** the loader is in place, but no screen offers it yet. The option
-> to choose your images arrives with the game setup screens
-> ([#34](https://github.com/tnc1997/spoiled-supper-lotto-game/issues/34)).
-
 ### Cropping scans with `tools/crop-cards.sh`
 
 If you've scanned your cards as A4 pages (`.jpg`) with each card in the
@@ -153,9 +149,14 @@ clone, so your images can't be committed by accident (see
 
 ### Choosing your images in the app
 
-Choose **all** the files in your folder when the app asks for your card
-images. On the web, browsers can't open a whole folder, so open the folder
+On the **Pass & Play** setup screen, press **Choose card images**, under
+"Do you have your own card images?", and choose **all** the files in your
+folder. On the web, browsers can't open a whole folder, so open the folder
 and select every file in it (e.g. Ctrl+A / Cmd+A).
+
+Your images are shown on the setup screen and throughout the game. To use
+other images, press **Choose card images** again; the new ones replace the
+old. If you cancel, the images you already chose are kept.
 
 Your images last for the current session only; choose them again next time
 you open the app.

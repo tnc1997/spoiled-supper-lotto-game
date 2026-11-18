@@ -6,15 +6,21 @@ import 'player_count_selector.dart';
 import 'player_name_field.dart';
 
 /// The screen for setting up a Pass & Play game on this device: how many
-/// players are playing, and, optionally, their names.
+/// players are playing, and, optionally, their names and their own card
+/// images.
 class SetupScreen extends StatefulWidget {
+  /// Called when the button to choose card images is pressed, or `null` to
+  /// disable it.
+  final VoidCallback? onChooseCardImages;
+
   /// Called with the names of the players playing, in turn order, when the
   /// start button is pressed, or `null` to disable it.
   final ValueChanged<List<String>>? onStart;
 
-  /// Shows the setup screen, calling [onStart] with the players' names
-  /// when the start button is pressed.
-  const SetupScreen({super.key, this.onStart});
+  /// Shows the setup screen, calling [onChooseCardImages] when the button
+  /// to choose card images is pressed, and [onStart] with the players'
+  /// names when the start button is pressed.
+  const SetupScreen({super.key, this.onChooseCardImages, this.onStart});
 
   @override
   State<SetupScreen> createState() => _SetupScreenState();
@@ -125,6 +131,8 @@ class _SetupScreenState extends State<SetupScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
+                      child!,
+                      const SizedBox(height: 32),
                       FilledButton(
                         onPressed: onStart == null || hasDuplicateNames
                             ? null
@@ -134,6 +142,19 @@ class _SetupScreenState extends State<SetupScreen> {
                     ],
                   );
                 },
+                // Doesn't depend on the names, so isn't rebuilt as they're
+                // typed.
+                child: Column(
+                  children: [
+                    const Heading('Do you have your own card images?'),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: widget.onChooseCardImages,
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: const Text('Choose card images'),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
