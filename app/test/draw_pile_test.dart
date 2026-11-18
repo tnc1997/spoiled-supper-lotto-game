@@ -157,12 +157,15 @@ void main() {
               isButton: true,
               hasEnabledState: true,
               isEnabled: true,
+              isFocusable: true,
               hasTapAction: true,
+              hasFocusAction: true,
             ),
           );
 
           notifier.drawFromDrawPile();
-          await tester.pump();
+          // Lets the focus state settle, which follows a frame later.
+          await tester.pumpAndSettle();
 
           expect(
             tester.getSemantics(find.byType(DrawPile)),
@@ -172,6 +175,41 @@ void main() {
               hasEnabledState: true,
             ),
           );
+        },
+      );
+
+      testWidgets(
+        'tells a screen reader when it has keyboard focus',
+        (tester) async {
+          await pumpPile(tester, notifierWith(drawPile: [sausages]));
+
+          await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+          await tester.pump();
+
+          expect(
+            tester.getSemantics(find.byType(DrawPile)),
+            isSemantics(
+              label: 'Draw pile, 1 card',
+              isButton: true,
+              isFocusable: true,
+              isFocused: true,
+            ),
+          );
+        },
+      );
+
+      testWidgets(
+        'draws only once when tapped twice before it rebuilds',
+        (tester) async {
+          final notifier = notifierWith(drawPile: [pondWater, sausages]);
+          await pumpPile(tester, notifier);
+
+          final onTap = tester.widget<InkWell>(find.byType(InkWell)).onTap!;
+          onTap();
+          onTap();
+
+          expect(notifier.game.drawnCard, same(sausages));
+          expect(notifier.game.drawPile, [pondWater]);
         },
       );
 
