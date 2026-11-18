@@ -153,7 +153,7 @@ void main() {
           expect(
             tester.getSemantics(find.byType(DrawPile)),
             matchesSemantics(
-              label: 'Draw pile, 2 cards',
+              label: 'Draw pile\n2 cards',
               isButton: true,
               hasEnabledState: true,
               isEnabled: true,
@@ -170,7 +170,7 @@ void main() {
           expect(
             tester.getSemantics(find.byType(DrawPile)),
             matchesSemantics(
-              label: 'Draw pile, 1 card',
+              label: 'Draw pile\n1 card',
               isButton: true,
               hasEnabledState: true,
             ),
@@ -189,7 +189,7 @@ void main() {
           expect(
             tester.getSemantics(find.byType(DrawPile)),
             isSemantics(
-              label: 'Draw pile, 1 card',
+              label: 'Draw pile\n1 card',
               isButton: true,
               isFocusable: true,
               isFocused: true,

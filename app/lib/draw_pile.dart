@@ -38,12 +38,12 @@ class DrawPile extends StatelessWidget {
 
     // Makes the pile one button, which takes on the focus state and tap
     // action of its InkWell, so a screen reader announces it as it gains
-    // keyboard focus.
+    // keyboard focus, and the count below it, e.g. "Draw pile", "1 card".
     return Semantics(
       container: true,
       button: true,
       enabled: onDraw != null,
-      label: 'Draw pile, $countLabel',
+      label: 'Draw pile',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 8,
@@ -55,7 +55,8 @@ class DrawPile extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Leaves the label to say what the pile shows.
+                  // Leaves the label and count to say what the pile shows,
+                  // rather than the empty slot's "Empty".
                   ExcludeSemantics(
                     child: count == 0
                         ? const EmptySlot(label: 'Empty')
@@ -76,9 +77,7 @@ class DrawPile extends StatelessWidget {
               ),
             ),
           ),
-          ExcludeSemantics(
-            child: Text(countLabel, style: theme.textTheme.labelLarge),
-          ),
+          Text(countLabel, style: theme.textTheme.labelLarge),
         ],
       ),
     );
