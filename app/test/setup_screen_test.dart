@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/player_count_selector.dart';
@@ -31,6 +33,11 @@ void main() {
         of: find.text('Choose card images'),
         matching: find.bySubtype<ButtonStyleButton>(),
       );
+
+      /// Whether the button to choose card images on screen is enabled.
+      bool isChooseCardImagesEnabledOf(WidgetTester tester) {
+        return tester.widget<ButtonStyleButton>(chooseCardImagesButton).enabled;
+      }
 
       /// Whether the start button on screen is enabled.
       bool isStartEnabledOf(WidgetTester tester) {
@@ -370,7 +377,7 @@ void main() {
           var chooses = 0;
           await tester.pumpWidget(
             MaterialApp(
-              home: SetupScreen(onChooseCardImages: () => chooses++),
+              home: SetupScreen(onChooseCardImages: () async => chooses++),
             ),
           );
           await tester.ensureVisible(chooseCardImagesButton);
@@ -383,14 +390,36 @@ void main() {
       );
 
       testWidgets(
+        'disables the button to choose card images until they are chosen',
+        (tester) async {
+          final choice = Completer<void>();
+          await tester.pumpWidget(
+            MaterialApp(
+              home: SetupScreen(onChooseCardImages: () => choice.future),
+            ),
+          );
+          await tester.ensureVisible(chooseCardImagesButton);
+          await tester.pumpAndSettle();
+          await tester.tap(chooseCardImagesButton);
+          await tester.pump();
+
+          expect(isChooseCardImagesEnabledOf(tester), isFalse);
+          expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+          choice.complete();
+          await tester.pump();
+
+          expect(isChooseCardImagesEnabledOf(tester), isTrue);
+          expect(find.byType(CircularProgressIndicator), findsNothing);
+        },
+      );
+
+      testWidgets(
         'disables the button to choose card images without a callback',
         (tester) async {
           await tester.pumpWidget(const MaterialApp(home: SetupScreen()));
 
-          expect(
-            tester.widget<ButtonStyleButton>(chooseCardImagesButton).enabled,
-            isFalse,
-          );
+          expect(isChooseCardImagesEnabledOf(tester), isFalse);
         },
       );
     },

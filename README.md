@@ -154,9 +154,10 @@ On the **Pass & Play** setup screen, press **Choose card images**, under
 folder. On the web, browsers can't open a whole folder, so open the folder
 and select every file in it (e.g. Ctrl+A / Cmd+A).
 
-Your images are shown on the setup screen and throughout the game. To use
-other images, press **Choose card images** again; the new ones replace the
-old. If you cancel, the images you already chose are kept.
+The app tells you how many cards it found images for, and uses them for
+every card in the game. To use other images, press **Choose card images**
+again; the new ones replace the old. If you cancel, or none of the files
+you choose are named after a card, the images you already chose are kept.
 
 Your images last for the current session only; choose them again next time
 you open the app.

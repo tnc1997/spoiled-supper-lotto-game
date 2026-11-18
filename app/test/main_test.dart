@@ -105,7 +105,7 @@ void main() {
       );
 
       testWidgets(
-        'shows no card images until the player chooses some',
+        'exposes no card images until the player chooses some',
         (tester) async {
           await tester.pumpWidget(const MyApp());
           await openSetupScreen(tester);
@@ -115,7 +115,7 @@ void main() {
       );
 
       testWidgets(
-        'shows the card images chosen on the setup and game screens',
+        'exposes the card images chosen to the setup and game screens',
         (tester) async {
           final images = await loadImages(tester);
           await tester.pumpWidget(MyApp(pickCardImages: () async => images));
@@ -123,6 +123,11 @@ void main() {
           await chooseCardImages(tester);
 
           expect(cardImagesOf(tester, SetupScreen), same(images));
+          expect(find.text('Using your image of 1 card.'), findsOneWidget);
+
+          // Waits for the message to go, so that it doesn't cover Start.
+          await tester.pump(const Duration(seconds: 5));
+          await tester.pumpAndSettle();
 
           await tapButton(tester, find.widgetWithText(FilledButton, 'Start'));
 
@@ -131,7 +136,7 @@ void main() {
       );
 
       testWidgets(
-        'keeps the card images shown when the player cancels',
+        'keeps the card images exposed when the player cancels',
         (tester) async {
           final images = await loadImages(tester);
           final picks = [images, null];
@@ -163,6 +168,60 @@ void main() {
           expect(cardImagesOf(tester, SetupScreen), same(newImages));
           expect(oldImages[fishBone]!.debugDisposed, isTrue);
           expect(newImages[fishBone]!.debugDisposed, isFalse);
+        },
+      );
+
+      testWidgets(
+        'keeps the card images exposed when no file is named after a card',
+        (tester) async {
+          final images = await loadImages(tester);
+          final noImages = (await tester.runAsync(
+            () => CardImages.load([
+              XFile.fromData(png, name: 'holiday.png', path: 'holiday.png'),
+            ]),
+          ))!;
+          final picks = [images, noImages];
+          await tester.pumpWidget(
+            MyApp(pickCardImages: () async => picks.removeAt(0)),
+          );
+          await openSetupScreen(tester);
+          await chooseCardImages(tester);
+          await chooseCardImages(tester);
+
+          expect(cardImagesOf(tester, SetupScreen), same(images));
+          expect(images[fishBone]!.debugDisposed, isFalse);
+          expect(
+            find.text(
+              'None of the files you chose are named after a card, so your '
+              'card images are unchanged.',
+            ),
+            findsOneWidget,
+          );
+        },
+      );
+
+      testWidgets(
+        'keeps the card images exposed and reports the error when choosing '
+        'them fails',
+        (tester) async {
+          final images = await loadImages(tester);
+          final picks = <Future<CardImages?> Function()>[
+            () async => images,
+            () => Future.error(StateError('failed')),
+          ];
+          await tester.pumpWidget(
+            MyApp(pickCardImages: () => picks.removeAt(0)()),
+          );
+          await openSetupScreen(tester);
+          await chooseCardImages(tester);
+          await chooseCardImages(tester);
+
+          expect(tester.takeException(), isStateError);
+          expect(cardImagesOf(tester, SetupScreen), same(images));
+          expect(
+            find.text("Your card images couldn't be opened. Please try again."),
+            findsOneWidget,
+          );
         },
       );
 

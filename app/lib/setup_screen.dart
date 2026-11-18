@@ -11,7 +11,11 @@ import 'player_name_field.dart';
 class SetupScreen extends StatefulWidget {
   /// Called when the button to choose card images is pressed, or `null` to
   /// disable it.
-  final VoidCallback? onChooseCardImages;
+  ///
+  /// The button is disabled, showing progress, until the [Future] this
+  /// returns completes, so the player can't start choosing again while
+  /// their images are still loading.
+  final Future<void> Function()? onChooseCardImages;
 
   /// Called with the names of the players playing, in turn order, when the
   /// start button is pressed, or `null` to disable it.
@@ -39,6 +43,9 @@ class _SetupScreenState extends State<SetupScreen> {
   );
 
   int _playerCount = engine.GameController.minPlayers;
+
+  /// Whether the player's card images are being chosen or loaded.
+  bool _isChoosingCardImages = false;
 
   /// The names of the players playing, in turn order, with the default
   /// name of any player who didn't type one.
@@ -142,17 +149,17 @@ class _SetupScreenState extends State<SetupScreen> {
                     ],
                   );
                 },
-                // Doesn't depend on the names, so isn't rebuilt as they're
-                // typed.
+                // The card images section, shown by the builder between the
+                // name fields and the start button. It doesn't depend on the
+                // names, so it's passed in as the child rather than built
+                // there, and isn't rebuilt as they're typed. Splitting the
+                // builder in two instead would work out the name errors
+                // twice, once for the fields and once for the start button.
                 child: Column(
                   children: [
                     const Heading('Do you have your own card images?'),
                     const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: widget.onChooseCardImages,
-                      icon: const Icon(Icons.photo_library_outlined),
-                      label: const Text('Choose card images'),
-                    ),
+                    _buildChooseCardImagesButton(),
                   ],
                 ),
               ),
@@ -161,6 +168,40 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
       ),
     );
+  }
+
+  /// Builds the button to choose card images, disabled and showing
+  /// progress while they're being chosen.
+  Widget _buildChooseCardImagesButton() {
+    final onChooseCardImages = widget.onChooseCardImages;
+
+    return OutlinedButton.icon(
+      onPressed: onChooseCardImages == null || _isChoosingCardImages
+          ? null
+          : () => _chooseCardImages(onChooseCardImages),
+      icon: _isChoosingCardImages
+          ? const SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.photo_library_outlined),
+      label: const Text('Choose card images'),
+    );
+  }
+
+  /// Calls [onChooseCardImages], disabling the button until it completes.
+  Future<void> _chooseCardImages(
+    Future<void> Function() onChooseCardImages,
+  ) async {
+    setState(() => _isChoosingCardImages = true);
+
+    try {
+      await onChooseCardImages();
+    } finally {
+      if (mounted) {
+        setState(() => _isChoosingCardImages = false);
+      }
+    }
   }
 
   /// Returns the error to show for the player at [index] in [names] if

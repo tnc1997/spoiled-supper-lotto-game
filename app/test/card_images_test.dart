@@ -141,6 +141,13 @@ void main() {
       );
 
       test(
+        'counts no cards when empty',
+        () {
+          expect(CardImages.empty.length, 0);
+        },
+      );
+
+      test(
         'can dispose of no images more than once',
         () {
           CardImages.empty.dispose();
@@ -157,6 +164,19 @@ void main() {
               final images = await load([fileOf('fish-fingers.png')]);
 
               expect(images[fishFingers], isNotNull);
+            },
+          );
+
+          test(
+            'counts the cards with an image',
+            () async {
+              final images = await load([
+                fileOf('fish-fingers.png'),
+                fileOf('sausages.png'),
+                fileOf('holiday.png'),
+              ]);
+
+              expect(images.length, 2);
             },
           );
 

@@ -284,6 +284,10 @@ class CardImages {
     }
   }
 
+  /// The number of cards that have an image, or 0 if none of the files
+  /// chosen are named after a card, or none of them could be loaded.
+  int get length => _imagesById.length;
+
   /// Returns the player's own image of [card], decoded to cover [imageSize],
   /// or `null` if they don't have one.
   ///
