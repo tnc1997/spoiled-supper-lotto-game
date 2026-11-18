@@ -2,7 +2,7 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
 import 'card_images.dart';
-import 'card_images_data.dart';
+import 'card_images_button.dart';
 import 'heading.dart';
 import 'player_count_selector.dart';
 import 'player_name_field.dart';
@@ -15,8 +15,8 @@ class SetupScreen extends StatefulWidget {
   /// start button is pressed, or `null` to disable it.
   final ValueChanged<List<String>>? onStart;
 
-  /// Shows the setup screen, choosing card images for the closest
-  /// [CardImages], which must be above it, and calling [onStart] with the
+  /// Shows the setup screen, which must be below a [CardImages] for the
+  /// players to choose their card images, calling [onStart] with the
   /// players' names when the start button is pressed.
   const SetupScreen({super.key, this.onStart});
 
@@ -37,9 +37,6 @@ class _SetupScreenState extends State<SetupScreen> {
   );
 
   int _playerCount = engine.GameController.minPlayers;
-
-  /// Whether the players' card images are being chosen or loaded.
-  bool _isChoosingCardImages = false;
 
   /// The names of the players playing, in turn order, with the default
   /// name of any player who didn't type one.
@@ -149,11 +146,11 @@ class _SetupScreenState extends State<SetupScreen> {
                 // there, and isn't rebuilt as they're typed. Splitting the
                 // builder in two instead would work out the name errors
                 // twice, once for the fields and once for the start button.
-                child: Column(
+                child: const Column(
                   children: [
-                    const Heading('Do you have your own card images?'),
-                    const SizedBox(height: 16),
-                    _buildChooseCardImagesButton(),
+                    Heading('Do you have your own card images?'),
+                    SizedBox(height: 16),
+                    CardImagesButton(),
                   ],
                 ),
               ),
@@ -162,101 +159,6 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
       ),
     );
-  }
-
-  /// Builds the button to choose card images.
-  ///
-  /// While they're being chosen, the button is disabled and shrinks around
-  /// a progress indicator, like Material 3's loading indicator, and then
-  /// grows back.
-  Widget _buildChooseCardImagesButton() {
-    return OutlinedButton(
-      onPressed: _isChoosingCardImages ? null : _chooseCardImages,
-      child: AnimatedSize(
-        duration: const Duration(milliseconds: 200),
-        child: _isChoosingCardImages
-            ? const CircularProgressIndicator(
-                strokeWidth: 2,
-                semanticsLabel: 'Loading card images',
-                constraints: BoxConstraints.tightFor(width: 18, height: 18),
-              )
-            : const Text('Choose card images'),
-      ),
-    );
-  }
-
-  /// Asks the player to choose their own card images, disabling the button
-  /// until they're loaded, and uses them in place of the ones used before,
-  /// for the whole session, by setting them in the closest [CardImages].
-  ///
-  /// Keeps the images already chosen if the player cancels, if choosing
-  /// them fails, or if none of the files chosen are named after a card,
-  /// telling the player why in the last two cases.
-  Future<void> _chooseCardImages() async {
-    setState(() => _isChoosingCardImages = true);
-
-    final CardImagesData? images;
-    try {
-      images = await CardImagesData.pick();
-    } catch (exception, stack) {
-      FlutterError.reportError(
-        FlutterErrorDetails(
-          exception: exception,
-          stack: stack,
-          library: 'card images',
-          context: ErrorDescription('while choosing card images'),
-        ),
-      );
-      _finishChoosingCardImages(
-        "Your card images couldn't be opened. Please try again.",
-      );
-      return;
-    }
-
-    if (images == null) {
-      _finishChoosingCardImages();
-      return;
-    }
-
-    if (!mounted) {
-      images.dispose();
-      return;
-    }
-
-    // Choosing the wrong folder mustn't throw away the images the player
-    // already chose.
-    if (images.length == 0) {
-      images.dispose();
-      _finishChoosingCardImages(
-        'None of the files you chose are named after a card, so your card '
-        'images are unchanged.',
-      );
-      return;
-    }
-
-    CardImages.of(context).images = images;
-
-    _finishChoosingCardImages(
-      images.length == 1
-          ? 'Using your image of 1 card.'
-          : 'Using your images of ${images.length} cards.',
-    );
-  }
-
-  /// Enables the button to choose card images again, and shows [message],
-  /// if there is one, in a snack bar in place of any already showing.
-  void _finishChoosingCardImages([String? message]) {
-    if (!mounted) {
-      return;
-    }
-
-    setState(() => _isChoosingCardImages = false);
-
-    if (message != null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(message)));
-    }
   }
 
   /// Returns the error to show for the player at [index] in [names] if
