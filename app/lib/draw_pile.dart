@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 
-import 'card_aspect_ratio.dart';
 import 'card_frame.dart';
 import 'empty_slot.dart';
 import 'game_scope.dart';
@@ -21,7 +20,6 @@ class DrawPile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final notifier = GameScope.of(context);
     final game = notifier.game;
     final count = game.drawPile.length;
@@ -50,34 +48,28 @@ class DrawPile extends StatelessWidget {
         children: [
           SizedBox(
             width: cardWidth,
-            child: AspectRatio(
-              aspectRatio: cardAspectRatio,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Leaves the label and count to say what the pile shows,
-                  // rather than the empty slot's "Empty".
-                  ExcludeSemantics(
-                    child: count == 0
-                        ? const EmptySlot(label: 'Empty')
-                        : const CardFrame(child: _CardBack()),
-                  ),
-                  // Lies over the pile, so that its ink and focus highlight
-                  // show on top of the card back rather than behind it.
-                  Material(
+            // Takes its size, in the card's shape, from the pile.
+            child: Stack(
+              children: [
+                // Leaves the label and count to say what the pile shows,
+                // rather than the empty slot's "Empty".
+                ExcludeSemantics(
+                  child: count == 0
+                      ? const EmptySlot(label: 'Empty')
+                      : const CardFrame(child: _CardBack()),
+                ),
+                // Lies over the pile, so that its ink and focus highlight
+                // show on top of the card back rather than behind it.
+                Positioned.fill(
+                  child: Material(
                     type: MaterialType.transparency,
-                    child: InkWell(
-                      onTap: onDraw,
-                      // Skips the pile with the keyboard while it is
-                      // disabled.
-                      canRequestFocus: onDraw != null,
-                    ),
+                    child: InkWell(onTap: onDraw),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          Text(countLabel, style: theme.textTheme.labelLarge),
+          Text(countLabel, style: Theme.of(context).textTheme.labelLarge),
         ],
       ),
     );
