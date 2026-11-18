@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'card_aspect_ratio.dart';
 import 'card_frame.dart';
+import 'empty_slot.dart';
 import 'game_scope.dart';
 
 /// Shows the draw pile, from the closest [GameScope], face down, with the
@@ -46,7 +47,7 @@ class DrawPile extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   count == 0
-                      ? const _EmptyPile()
+                      ? const EmptySlot(label: 'Empty')
                       : const CardFrame(child: _CardBack()),
                   // Lies over the pile, so that its ink and focus highlight
                   // show on top of the card back rather than behind it.
@@ -95,32 +96,6 @@ class _CardBack extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The space the draw pile takes once it is empty: a plain card-shaped
-/// area, like an empty slot on a plate, labelled "Empty".
-class _EmptyPile extends StatelessWidget {
-  const _EmptyPile();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ColoredBox(
-      color: theme.colorScheme.surfaceContainerLowest,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Center(
-          // Shrinks the label, rather than overflowing, at large text
-          // scales.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text('Empty', style: theme.textTheme.labelLarge),
           ),
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'card_aspect_ratio.dart';
 import 'category_label.dart';
+import 'empty_slot.dart';
 import 'framed_card.dart';
 import 'game_scope.dart';
 import 'plate_aspect_ratio.dart';
@@ -87,12 +88,7 @@ class Plate extends StatelessWidget {
   }
 }
 
-/// The empty slot for [category]: a plain card-shaped area, labelled with
-/// the category.
-///
-/// Like the physical board's plain white slots, it is the theme's lowest
-/// container colour: white in a light theme, and the darkest surface in a
-/// dark one.
+/// The empty slot for [category], labelled with the category.
 class _EmptySlot extends StatelessWidget {
   final engine.Category category;
 
@@ -100,32 +96,11 @@ class _EmptySlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Semantics(
       container: true,
       excludeSemantics: true,
       label: '${category.label}, empty',
-      child: AspectRatio(
-        aspectRatio: cardAspectRatio,
-        child: ColoredBox(
-          color: theme.colorScheme.surfaceContainerLowest,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Center(
-              // Shrinks the label, rather than overflowing, at large text
-              // scales.
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  category.label,
-                  style: theme.textTheme.labelLarge,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+      child: EmptySlot(label: category.label),
     );
   }
 }
