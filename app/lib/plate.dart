@@ -14,8 +14,6 @@ import 'game_scope.dart';
 /// Like the physical board, the slots sit in one row: the dessert, the
 /// vegetable, the main, the carbohydrate and the drink, so that the main
 /// is in the middle with its two sides either side of it.
-///
-/// Only rebuilt when the player's plate changes, not after every move.
 class Plate extends StatelessWidget {
   static const _gap = 16.0;
 
@@ -39,7 +37,7 @@ class Plate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final plate = GameScope.plateOf(context, player);
+    final plate = GameScope.of(context).game.plateOf(player);
 
     Widget slot(engine.Category category) {
       final card = plate[category];

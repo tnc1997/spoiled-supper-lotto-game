@@ -60,8 +60,7 @@ class _GameScreenState extends State<GameScreen> {
             padding: const EdgeInsets.all(24),
             child: Builder(
               builder: (context) {
-                // Only rebuilt when the turn passes, not after every move.
-                final player = GameScope.currentPlayerOf(context);
+                final player = GameScope.of(context).game.currentPlayer;
 
                 return Column(
                   spacing: 24,
