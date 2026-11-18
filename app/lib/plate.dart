@@ -1,10 +1,11 @@
 import 'package:game_engine/game_engine.dart' as engine;
-import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart' hide Card;
 
+import 'card.dart';
 import 'card_aspect_ratio.dart';
+import 'card_frame.dart';
 import 'category_label.dart';
 import 'empty_slot.dart';
-import 'framed_card.dart';
 import 'game_scope.dart';
 import 'plate_aspect_ratio.dart';
 
@@ -52,7 +53,7 @@ class Plate extends StatelessWidget {
         width: cardWidth,
         child: card == null
             ? _EmptySlot(category: category)
-            : FramedCard(card: card),
+            : CardFrame(child: Card(card: card)),
       );
     }
 

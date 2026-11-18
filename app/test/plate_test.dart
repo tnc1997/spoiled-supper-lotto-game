@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
-import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart' hide Card;
+import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_aspect_ratio.dart';
-import 'package:spoiled_supper_lotto_game/framed_card.dart';
+import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/plate.dart';
@@ -71,10 +72,13 @@ void main() {
 
           expect(
             [
-              for (final framed in tester.widgetList<FramedCard>(
-                find.byType(FramedCard),
+              for (final card in tester.widgetList<Card>(
+                find.descendant(
+                  of: find.byType(CardFrame),
+                  matching: find.byType(Card),
+                ),
               ))
-                framed.card,
+                card.card,
             ],
             unorderedEquals([sausages, pondWater]),
           );
@@ -100,7 +104,7 @@ void main() {
         (tester) async {
           await pumpPlate(tester, bob);
 
-          expect(find.byType(FramedCard), findsNothing);
+          expect(find.byType(Card), findsNothing);
           for (final category in [
             'Drink',
             'Dessert',
@@ -170,7 +174,7 @@ void main() {
 
           const size = Size(120, 120 / cardAspectRatio);
           expect(tester.getSize(find.bySemanticsLabel('Dessert, empty')), size);
-          for (final framed in find.byType(FramedCard).evaluate()) {
+          for (final framed in find.byType(CardFrame).evaluate()) {
             expect(framed.size, size);
           }
         },

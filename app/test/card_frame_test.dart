@@ -67,6 +67,27 @@ void main() {
       );
 
       testWidgets(
+        'has square corners, like the physical cards',
+        (tester) async {
+          await pumpFrame(tester);
+
+          final decorations = tester.widgetList<DecoratedBox>(
+            find.descendant(
+              of: find.byType(CardFrame),
+              matching: find.byType(DecoratedBox),
+            ),
+          );
+
+          for (final box in decorations) {
+            final decoration = box.decoration as BoxDecoration;
+
+            expect(decoration.shape, BoxShape.rectangle);
+            expect(decoration.borderRadius, isNull);
+          }
+        },
+      );
+
+      testWidgets(
         "fills the slot's width, in the card's shape",
         (tester) async {
           await pumpFrame(tester, width: 150);

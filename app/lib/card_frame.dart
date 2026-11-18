@@ -9,8 +9,10 @@ import 'card_aspect_ratio.dart';
 /// physical cards'.
 ///
 /// Use this for anything shown as a card on the board, face up or face
-/// down, so that every card there is framed alike. To show a card face up,
-/// use a `FramedCard`.
+/// down, so that every card there is framed alike, e.g.
+/// `CardFrame(child: Card(card: card))` for a card face up. A
+/// `PlaceholderCard` and the player's own image of a card are framed alike,
+/// so swapping one for the other doesn't change the card's look.
 ///
 /// The frame keeps the card's shape, [cardAspectRatio], and fills as much
 /// of the space its parent allows as it can.
