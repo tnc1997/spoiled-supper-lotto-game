@@ -21,10 +21,12 @@ import 'card_image_name.dart';
 ///
 /// 1. The player chooses their files, and [pick] loads them, or a test
 ///    loads its own files with [load].
-/// 2. The resulting [CardImages] is passed to a `CardImagesScope`, so that
-///    every `Card` widget below it can look up its image with `images[card]`.
-/// 3. When the player chooses other images, the old [CardImages] is
-///    replaced in the scope and then [dispose]d.
+/// 2. The resulting [CardImages] is given to a `CardImagesScope` with
+///    `CardImagesScope.of(context).replace(images)`, so that every `Card`
+///    widget below it can look up its image with `images[card]`. The scope
+///    owns them from then on.
+/// 3. When the player chooses other images, the scope replaces the old
+///    [CardImages] with them and then [dispose]s of the old ones.
 class CardImages {
   /// The extensions, without a dot, that a player's own card images can
   /// have, in the order they are tried.
@@ -276,8 +278,8 @@ class CardImages {
   /// outside of Dart's garbage collector, so they are only freed when they
   /// are disposed of.
   ///
-  /// Call this after replacing these images in the `CardImagesScope`, so
-  /// that no `Card` widget is still showing them.
+  /// A `CardImagesScope` calls this once these images are replaced in it,
+  /// or it's removed, so that no `Card` widget is still showing them.
   void dispose() {
     for (final image in _imagesById.values) {
       image.dispose();

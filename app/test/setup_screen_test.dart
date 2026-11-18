@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
-import 'package:spoiled_supper_lotto_game/card_images_host.dart';
 import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
 import 'package:spoiled_supper_lotto_game/player_count_selector.dart';
 import 'package:spoiled_supper_lotto_game/player_name_field.dart';
@@ -51,7 +50,7 @@ void main() {
 
       /// Loads an image of Fish Bone.
       ///
-      /// Once chosen, the images belong to the [CardImagesHost], which
+      /// Once chosen, the images belong to the [CardImagesScope], which
       /// disposes of them when they're replaced or it's removed.
       Future<CardImages> loadImages(WidgetTester tester) async {
         return (await tester.runAsync(
@@ -61,7 +60,7 @@ void main() {
         ))!;
       }
 
-      /// Shows the setup screen below a [CardImagesHost], choosing card
+      /// Shows the setup screen below a [CardImagesScope], choosing card
       /// images with each of [picks] in turn.
       Future<void> pumpWithPicks(
         WidgetTester tester,
@@ -69,7 +68,7 @@ void main() {
       ) {
         return tester.pumpWidget(
           MaterialApp(
-            builder: (context, child) => CardImagesHost(child: child!),
+            builder: (context, child) => CardImagesScope(child: child!),
             home: SetupScreen(pickCardImages: () => picks.removeAt(0)()),
           ),
         );
@@ -79,7 +78,7 @@ void main() {
       CardImages cardImagesOf(WidgetTester tester) {
         return CardImagesScope.of(
           tester.element(find.byType(PlayerCountSelector)),
-        );
+        ).images;
       }
 
       /// Presses the button to choose card images, scrolling it into view

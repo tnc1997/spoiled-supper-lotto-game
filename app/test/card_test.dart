@@ -20,16 +20,16 @@ void main() {
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
   );
 
-  /// Loads an image of Fish Bone, disposing of it after the test.
+  /// Loads an image of Fish Bone.
+  ///
+  /// Once replaced in a [CardImagesScope], the images belong to it, which
+  /// disposes of them when they're replaced or it's removed.
   Future<CardImages> loadImages(WidgetTester tester) async {
-    final images = (await tester.runAsync(
+    return (await tester.runAsync(
       () => CardImages.load([
         XFile.fromData(png, name: 'fish-bone.png', path: 'fish-bone.png'),
       ]),
     ))!;
-    addTearDown(images.dispose);
-
-    return images;
   }
 
   group(
@@ -42,7 +42,7 @@ void main() {
         WidgetTester tester, {
         CardImages? images,
         double? width = 200,
-      }) {
+      }) async {
         final card = Card(card: fishBone);
         final slot = width == null
             ? UnconstrainedBox(child: card)
@@ -51,13 +51,16 @@ void main() {
                 child: SizedBox(width: width, child: card),
               );
 
-        return tester.pumpWidget(
+        await tester.pumpWidget(
           MaterialApp(
-            home: images == null
-                ? slot
-                : CardImagesScope(images: images, child: slot),
+            home: images == null ? slot : CardImagesScope(child: slot),
           ),
         );
+
+        if (images != null) {
+          CardImagesScope.of(tester.element(find.byType(Card))).replace(images);
+          await tester.pump();
+        }
       }
 
       testWidgets(
@@ -168,62 +171,123 @@ void main() {
   group(
     'CardImagesScope',
     () {
-      /// Builds [builder] below a [CardImagesScope] of [images], or without
-      /// one if [images] is `null`.
-      Future<void> pumpScope(
-        WidgetTester tester,
-        CardImages? images,
-        void Function(BuildContext context) builder,
-      ) {
-        final child = Builder(
-          builder: (context) {
-            builder(context);
-            return const SizedBox();
-          },
-        );
+      /// The widget below the scope, from which to look it up.
+      const child = SizedBox();
 
-        return tester.pumpWidget(
-          images == null
-              ? child
-              : CardImagesScope(images: images, child: child),
-        );
+      /// Shows a scope with [child] below it.
+      Future<void> pumpScope(WidgetTester tester) {
+        return tester.pumpWidget(const CardImagesScope(child: child));
+      }
+
+      /// Returns the scope above [child].
+      CardImagesScopeState scopeOf(WidgetTester tester) {
+        return CardImagesScope.of(tester.element(find.byWidget(child)));
       }
 
       testWidgets(
-        'of returns the images of the scope',
+        'holds no card images to start with',
+        (tester) async {
+          await pumpScope(tester);
+
+          expect(scopeOf(tester).images, same(CardImages.empty));
+        },
+      );
+
+      testWidgets(
+        'holds the card images it is given',
         (tester) async {
           final images = await loadImages(tester);
-          CardImages? found;
-          await pumpScope(
-            tester,
-            images,
-            (context) => found = CardImagesScope.of(context),
-          );
+          await pumpScope(tester);
+          scopeOf(tester).replace(images);
 
-          expect(found, same(images));
+          expect(scopeOf(tester).images, same(images));
+        },
+      );
+
+      testWidgets(
+        'rebuilds its dependents when its card images are replaced',
+        (tester) async {
+          final images = await loadImages(tester);
+          final found = <CardImages>[];
+          await tester.pumpWidget(
+            CardImagesScope(
+              child: Builder(
+                builder: (context) {
+                  found.add(CardImagesScope.of(context).images);
+                  return const SizedBox();
+                },
+              ),
+            ),
+          );
+          CardImagesScope.of(tester.element(find.byType(SizedBox)))
+              .replace(images);
+          await tester.pump();
+
+          expect(found, [same(CardImages.empty), same(images)]);
+        },
+      );
+
+      testWidgets(
+        'disposes of the card images it replaces',
+        (tester) async {
+          final oldImages = await loadImages(tester);
+          final newImages = await loadImages(tester);
+          await pumpScope(tester);
+          scopeOf(tester)
+            ..replace(oldImages)
+            ..replace(newImages);
+
+          expect(oldImages[fishBone]!.debugDisposed, isTrue);
+          expect(newImages[fishBone]!.debugDisposed, isFalse);
+        },
+      );
+
+      testWidgets(
+        'keeps the card images it is given again',
+        (tester) async {
+          final images = await loadImages(tester);
+          await pumpScope(tester);
+          scopeOf(tester)
+            ..replace(images)
+            ..replace(images);
+
+          expect(images[fishBone]!.debugDisposed, isFalse);
+        },
+      );
+
+      testWidgets(
+        'disposes of its card images when removed',
+        (tester) async {
+          final images = await loadImages(tester);
+          await pumpScope(tester);
+          scopeOf(tester).replace(images);
+          await tester.pumpWidget(const SizedBox());
+
+          expect(images[fishBone]!.debugDisposed, isTrue);
         },
       );
 
       testWidgets(
         'of throws without a scope',
         (tester) async {
-          await pumpScope(tester, null, CardImagesScope.of);
+          await tester.pumpWidget(child);
 
-          expect(tester.takeException(), isA<FlutterError>());
+          expect(
+            () => CardImagesScope.of(tester.element(find.byWidget(child))),
+            throwsFlutterError,
+          );
         },
       );
 
       testWidgets(
         'maybeOf returns null without a scope',
         (tester) async {
-          Object? found = 'not looked up';
-          await pumpScope(
-            tester,
-            null,
-            (context) => found = CardImagesScope.maybeOf(context),
-          );
+          await tester.pumpWidget(child);
 
-          expect(found, isNull);
+          expect(
+            CardImagesScope.maybeOf(tester.element(find.byWidget(child))),
+            isNull,
+          );
         },
       );
     },

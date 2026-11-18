@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
-import 'package:spoiled_supper_lotto_game/card_images_host.dart';
 import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
 import 'package:spoiled_supper_lotto_game/home_screen.dart';
@@ -67,7 +66,7 @@ void main() {
 
           // Chooses the images as the setup screen does, without opening the
           // platform's file picker.
-          CardImagesHost.of(tester.element(find.byType(SetupScreen)))
+          CardImagesScope.of(tester.element(find.byType(SetupScreen)))
               .replace(images);
 
           // Goes back to the home screen, and then sets up and starts a game.
@@ -82,7 +81,7 @@ void main() {
           await tester.pumpAndSettle();
 
           expect(
-            CardImagesScope.of(tester.element(find.byType(GameScreen))),
+            CardImagesScope.of(tester.element(find.byType(GameScreen))).images,
             same(images),
           );
         },
