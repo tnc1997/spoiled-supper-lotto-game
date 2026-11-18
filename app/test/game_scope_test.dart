@@ -141,6 +141,185 @@ void main() {
         },
       );
 
+      group(
+        'plateOf',
+        () {
+          testWidgets(
+            "returns the player's plate and rebuilds only when it changes",
+            (tester) async {
+              final alice = notifier.game.players[0];
+              final plates = <engine.Plate>[];
+
+              await tester.pumpWidget(
+                GameScope(
+                  notifier: notifier,
+                  child: Builder(
+                    builder: (context) {
+                      plates.add(GameScope.plateOf(context, alice));
+
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+              );
+
+              notifier.drawFromDrawPile();
+              await tester.pump();
+
+              expect(plates, [engine.Plate()]);
+
+              notifier.placeDrawnCard();
+              await tester.pump();
+
+              expect(plates, [
+                engine.Plate(),
+                engine.Plate([sausages])
+              ]);
+            },
+          );
+
+          testWidgets(
+            "does not rebuild when another player's plate changes",
+            (tester) async {
+              final bob = notifier.game.players[1];
+              var plateBuilds = 0;
+
+              await tester.pumpWidget(
+                GameScope(
+                  notifier: notifier,
+                  child: Builder(
+                    builder: (context) {
+                      plateBuilds++;
+                      GameScope.plateOf(context, bob);
+
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+              );
+
+              notifier.drawFromDrawPile();
+              notifier.placeDrawnCard();
+              await tester.pump();
+
+              expect(plateBuilds, 1);
+            },
+          );
+
+          testWidgets(
+            'forgets the plates of the old game once given a new notifier',
+            (tester) async {
+              final names = <String>[];
+              final dependent = Builder(
+                builder: (context) {
+                  final player = GameScope.currentPlayerOf(context);
+                  GameScope.plateOf(context, player);
+                  names.add(player.name);
+
+                  return const SizedBox();
+                },
+              );
+
+              await tester.pumpWidget(
+                GameScope(notifier: notifier, child: dependent),
+              );
+              final newNotifier = notifierFor(['Carol', 'Dave']);
+              await tester.pumpWidget(
+                GameScope(notifier: newNotifier, child: dependent),
+              );
+
+              newNotifier.drawFromDrawPile();
+              newNotifier.placeDrawnCard();
+              await tester.pump();
+
+              expect(tester.takeException(), isNull);
+              expect(names, ['Alice', 'Carol', 'Dave']);
+            },
+          );
+
+          testWidgets(
+            'throws if there is no GameScope above the context',
+            (tester) async {
+              Object? error;
+
+              await tester.pumpWidget(
+                Builder(
+                  builder: (context) {
+                    try {
+                      GameScope.plateOf(context, engine.Player(name: 'Alice'));
+                    } catch (e) {
+                      error = e;
+                    }
+
+                    return const SizedBox();
+                  },
+                ),
+              );
+
+              expect(error, isA<FlutterError>());
+            },
+          );
+        },
+      );
+
+      group(
+        'currentPlayerOf',
+        () {
+          testWidgets(
+            'returns the current player and rebuilds only when the turn passes',
+            (tester) async {
+              final names = <String>[];
+
+              await tester.pumpWidget(
+                GameScope(
+                  notifier: notifier,
+                  child: Builder(
+                    builder: (context) {
+                      names.add(GameScope.currentPlayerOf(context).name);
+
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+              );
+
+              notifier.drawFromDrawPile();
+              await tester.pump();
+
+              expect(names, ['Alice']);
+
+              notifier.placeDrawnCard();
+              await tester.pump();
+
+              expect(names, ['Alice', 'Bob']);
+            },
+          );
+
+          testWidgets(
+            'throws if there is no GameScope above the context',
+            (tester) async {
+              Object? error;
+
+              await tester.pumpWidget(
+                Builder(
+                  builder: (context) {
+                    try {
+                      GameScope.currentPlayerOf(context);
+                    } catch (e) {
+                      error = e;
+                    }
+
+                    return const SizedBox();
+                  },
+                ),
+              );
+
+              expect(error, isA<FlutterError>());
+            },
+          );
+        },
+      );
+
       testWidgets(
         'rebuilds dependents once after each move',
         (tester) async {
