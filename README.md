@@ -207,7 +207,7 @@ prepare now keeps working. Add any of the supported extensions.
 
 The names are defined in
 [`app/lib/card_image_name.dart`](app/lib/card_image_name.dart), and the
-loader in [`app/lib/card_images.dart`](app/lib/card_images.dart).
+loader in [`app/lib/card_images_data.dart`](app/lib/card_images_data.dart).
 
 ---
 

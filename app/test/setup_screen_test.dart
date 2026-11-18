@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
-import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
+import 'package:spoiled_supper_lotto_game/card_images_data.dart';
 import 'package:spoiled_supper_lotto_game/player_count_selector.dart';
 import 'package:spoiled_supper_lotto_game/player_name_field.dart';
 import 'package:spoiled_supper_lotto_game/setup_screen.dart';
@@ -50,33 +50,33 @@ void main() {
 
       /// Loads an image of Fish Bone.
       ///
-      /// Once chosen, the images belong to the [CardImagesScope], which
+      /// Once chosen, the images belong to the [CardImages], which
       /// disposes of them when they're replaced or it's removed.
-      Future<CardImages> loadImages(WidgetTester tester) async {
+      Future<CardImagesData> loadImages(WidgetTester tester) async {
         return (await tester.runAsync(
-          () => CardImages.load([
+          () => CardImagesData.load([
             XFile.fromData(png, name: 'fish-bone.png', path: 'fish-bone.png'),
           ]),
         ))!;
       }
 
-      /// Shows the setup screen below a [CardImagesScope], choosing card
+      /// Shows the setup screen below a [CardImages], choosing card
       /// images with each of [picks] in turn.
       Future<void> pumpWithPicks(
         WidgetTester tester,
-        List<Future<CardImages?> Function()> picks,
+        List<Future<CardImagesData?> Function()> picks,
       ) {
         return tester.pumpWidget(
           MaterialApp(
-            builder: (context, child) => CardImagesScope(child: child!),
+            builder: (context, child) => CardImages(child: child!),
             home: SetupScreen(pickCardImages: () => picks.removeAt(0)()),
           ),
         );
       }
 
       /// Returns the card images the setup screen on screen exposes.
-      CardImages cardImagesOf(WidgetTester tester) {
-        return CardImagesScope.of(
+      CardImagesData cardImagesOf(WidgetTester tester) {
+        return CardImages.of(
           tester.element(find.byType(PlayerCountSelector)),
         ).images;
       }
@@ -461,7 +461,7 @@ void main() {
         (tester) async {
           final images = await loadImages(tester);
           final noImages = (await tester.runAsync(
-            () => CardImages.load([
+            () => CardImagesData.load([
               XFile.fromData(png, name: 'holiday.png', path: 'holiday.png'),
             ]),
           ))!;
@@ -511,7 +511,7 @@ void main() {
       testWidgets(
         'disables the button to choose card images until they are chosen',
         (tester) async {
-          final pick = Completer<CardImages?>();
+          final pick = Completer<CardImagesData?>();
           await pumpWithPicks(tester, [() => pick.future]);
           await tapChooseCardImages(tester);
 

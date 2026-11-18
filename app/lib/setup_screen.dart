@@ -2,7 +2,7 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
 import 'card_images.dart';
-import 'card_images_scope.dart';
+import 'card_images_data.dart';
 import 'heading.dart';
 import 'player_count_selector.dart';
 import 'player_name_field.dart';
@@ -14,19 +14,19 @@ class SetupScreen extends StatefulWidget {
   /// Asks the player to choose their own card images, returning `null` if
   /// they cancel.
   ///
-  /// Defaults to [CardImages.pick]; a test can pass its own.
-  final Future<CardImages?> Function() pickCardImages;
+  /// Defaults to [CardImagesData.pick]; a test can pass its own.
+  final Future<CardImagesData?> Function() pickCardImages;
 
   /// Called with the names of the players playing, in turn order, when the
   /// start button is pressed, or `null` to disable it.
   final ValueChanged<List<String>>? onStart;
 
   /// Shows the setup screen, choosing card images with [pickCardImages]
-  /// for the closest [CardImagesScope], which must be above it, and calling
+  /// for the closest [CardImages], which must be above it, and calling
   /// [onStart] with the players' names when the start button is pressed.
   const SetupScreen({
     super.key,
-    this.pickCardImages = CardImages.pick,
+    this.pickCardImages = CardImagesData.pick,
     this.onStart,
   });
 
@@ -191,7 +191,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   /// Asks the player to choose their own card images, disabling the button
   /// until they're loaded, and uses them in place of the ones used before,
-  /// for the whole session, by replacing them in the [CardImagesScope].
+  /// for the whole session, by setting them in the closest [CardImages].
   ///
   /// Keeps the images already chosen if the player cancels, if choosing
   /// them fails, or if none of the files chosen are named after a card,
@@ -199,7 +199,7 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _chooseCardImages() async {
     setState(() => _isChoosingCardImages = true);
 
-    final CardImages? images;
+    final CardImagesData? images;
     try {
       images = await widget.pickCardImages();
     } catch (exception, stack) {
@@ -238,7 +238,7 @@ class _SetupScreenState extends State<SetupScreen> {
       return;
     }
 
-    CardImagesScope.of(context).replace(images);
+    CardImages.of(context).images = images;
 
     _finishChoosingCardImages(
       images.length == 1

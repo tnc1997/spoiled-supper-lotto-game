@@ -1,7 +1,7 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'card_images_scope.dart';
+import 'card_images.dart';
 import 'game_screen.dart';
 import 'home_screen.dart';
 import 'setup_screen.dart';
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
       // Holds the player's card images above the navigator, so that they
       // last for the whole session and every screen uses them.
       builder: (context, child) {
-        return CardImagesScope(child: child!);
+        return CardImages(child: child!);
       },
       home: Builder(
         builder: (context) {
