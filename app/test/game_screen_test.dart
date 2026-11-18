@@ -110,6 +110,26 @@ void main() {
       );
 
       testWidgets(
+        'fits the plate on a narrow screen',
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(360, 740)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(tester.takeException(), isNull);
+          expect(
+            tester.getRect(find.byType(Plate)).width,
+            lessThanOrEqualTo(360 - 2 * 24),
+          );
+        },
+      );
+
+      testWidgets(
         'disposes of the game when removed',
         (tester) async {
           await tester.pumpWidget(

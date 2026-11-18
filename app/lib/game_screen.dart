@@ -67,7 +67,12 @@ class _GameScreenState extends State<GameScreen> {
                   spacing: 24,
                   children: [
                     Heading("${player.name}'s turn"),
-                    Plate(player: player),
+                    // Shrinks the plate, rather than overflowing, on narrow
+                    // screens.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Plate(player: player),
+                    ),
                   ],
                 );
               },
