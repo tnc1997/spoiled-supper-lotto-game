@@ -166,42 +166,21 @@ class _SetupScreenState extends State<SetupScreen> {
 
   /// Builds the button to choose card images.
   ///
-  /// While they're being chosen, the button is disabled and shrinks into a
-  /// circle showing progress, like Material 3's loading indicator, and then
+  /// While they're being chosen, the button is disabled and shrinks around
+  /// a progress indicator, like Material 3's loading indicator, and then
   /// grows back.
   Widget _buildChooseCardImagesButton() {
     return OutlinedButton(
       onPressed: _isChoosingCardImages ? null : _chooseCardImages,
-      // Without padding, and at least as wide as it is high, so that the
-      // button is a circle around the progress indicator, which it centres.
-      style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size.square(40),
-      ),
-      // Animates the button's width as its contents change, so that it
-      // shrinks into the circle and grows back, rather than jumping.
       child: AnimatedSize(
         duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
         child: _isChoosingCardImages
             ? const CircularProgressIndicator(
                 strokeWidth: 2,
                 semanticsLabel: 'Loading card images',
                 constraints: BoxConstraints.tightFor(width: 18, height: 18),
               )
-            // The padding of a button with an icon, given here rather than
-            // to the button, so that it goes when the button shrinks.
-            : const Padding(
-                padding: EdgeInsetsDirectional.only(start: 16, end: 24),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 8,
-                  children: [
-                    Icon(Icons.photo_library_outlined, size: 18),
-                    Text('Choose card images'),
-                  ],
-                ),
-              ),
+            : const Text('Choose card images'),
       ),
     );
   }

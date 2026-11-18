@@ -553,8 +553,8 @@ void main() {
       );
 
       testWidgets(
-        'shrinks the button to choose card images into a circle until they '
-        'are chosen, saying that they are loading',
+        'shrinks the button to choose card images until they are chosen, '
+        'saying that they are loading',
         (tester) async {
           final pick = Completer<List<PlatformFile>>();
           await pumpWithPicks(tester, [() => pick.future]);
@@ -567,9 +567,10 @@ void main() {
           // progress indicator keeps spinning.
           await tester.pump(const Duration(milliseconds: 300));
 
-          expect(size.width, greaterThan(size.height));
           expect(
-              tester.getSize(chooseCardImagesButton), Size.square(size.height));
+            tester.getSize(chooseCardImagesButton).width,
+            lessThan(size.width),
+          );
           expect(find.bySemanticsLabel('Loading card images'), findsOneWidget);
           expect(find.text('Choose card images'), findsNothing);
 
