@@ -118,23 +118,25 @@ void main() {
       );
 
       testWidgets(
-        'lays out the drink and dessert above the main and its sides',
+        'lays out the slots in one row, like the physical board',
         (tester) async {
           await pumpPlate(tester, bob);
 
-          final drink = slotCentre(tester, 'Drink, empty');
-          final dessert = slotCentre(tester, 'Dessert, empty');
-          final vegetable = slotCentre(tester, 'Vegetable, empty');
-          final main = slotCentre(tester, 'Main, empty');
-          final carbohydrate = slotCentre(tester, 'Carbohydrate, empty');
+          final centres = [
+            for (final category in [
+              'Dessert',
+              'Vegetable',
+              'Main',
+              'Carbohydrate',
+              'Drink',
+            ])
+              slotCentre(tester, '$category, empty'),
+          ];
 
-          expect(drink.dy, dessert.dy);
-          expect(drink.dx, lessThan(dessert.dx));
-          expect(vegetable.dy, main.dy);
-          expect(carbohydrate.dy, main.dy);
-          expect(drink.dy, lessThan(main.dy));
-          expect(vegetable.dx, lessThan(main.dx));
-          expect(main.dx, lessThan(carbohydrate.dx));
+          for (var i = 1; i < centres.length; i++) {
+            expect(centres[i].dy, centres[0].dy);
+            expect(centres[i].dx, greaterThan(centres[i - 1].dx));
+          }
         },
       );
 

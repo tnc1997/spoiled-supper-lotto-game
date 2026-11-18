@@ -11,12 +11,22 @@ import 'game_scope.dart';
 /// with a slot for each category that shows the card in it, or that the
 /// slot is empty.
 ///
-/// The drink and dessert sit above the meal, with the main in the middle
-/// and its two sides, the vegetable and carbohydrate, either side of it.
+/// Like the physical board, the slots sit in one row: the dessert, the
+/// vegetable, the main, the carbohydrate and the drink, so that the main
+/// is in the middle with its two sides either side of it.
 ///
 /// Only rebuilt when the player's plate changes, not after every move.
 class Plate extends StatelessWidget {
   static const _gap = 16.0;
+
+  /// The categories of the slots, from left to right.
+  static const _categories = [
+    engine.Category.dessert,
+    engine.Category.vegetable,
+    engine.Category.main,
+    engine.Category.carbohydrate,
+    engine.Category.drink,
+  ];
 
   /// The player whose plate to show.
   final engine.Player player;
@@ -45,27 +55,11 @@ class Plate extends StatelessWidget {
     return Semantics(
       container: true,
       label: "${player.name}'s plate",
-      child: Column(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
+        spacing: _gap,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: _gap,
-            children: [
-              slot(engine.Category.drink),
-              slot(engine.Category.dessert),
-            ],
-          ),
-          const SizedBox(height: _gap),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: _gap,
-            children: [
-              slot(engine.Category.vegetable),
-              slot(engine.Category.main),
-              slot(engine.Category.carbohydrate),
-            ],
-          ),
+          for (final category in _categories) slot(category),
         ],
       ),
     );
