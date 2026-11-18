@@ -44,7 +44,7 @@ void main() {
       );
 
       testWidgets(
-        'rounds the corners and casts a shadow',
+        'casts a shadow with square corners',
         (tester) async {
           await pumpCard(tester);
 
@@ -55,8 +55,8 @@ void main() {
             ),
           );
 
-          expect(model.borderRadius, FramedCard.borderRadius);
-          expect(model.clipBehavior, isNot(Clip.none));
+          expect(model.shape, BoxShape.rectangle);
+          expect(model.borderRadius, isNull);
           expect(model.elevation, greaterThan(0));
         },
       );

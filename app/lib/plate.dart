@@ -99,7 +99,6 @@ class _EmptySlot extends StatelessWidget {
               color: HSLColor.fromColor(color).withLightness(0.4).toColor(),
               width: 2,
             ),
-            borderRadius: FramedCard.borderRadius,
           ),
           child: Padding(
             padding: const EdgeInsets.all(8),
