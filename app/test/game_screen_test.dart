@@ -2,6 +2,9 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/card_frame.dart';
+import 'package:spoiled_supper_lotto_game/draw_pile.dart';
+import 'package:spoiled_supper_lotto_game/empty_slot.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
@@ -110,6 +113,20 @@ void main() {
       );
 
       testWidgets(
+        'shows the draw pile',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          final count = notifierOf(tester).game.drawPile.length;
+
+          expect(find.byType(DrawPile), findsOneWidget);
+          expect(find.text('$count cards'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
         'fits the plate on a narrow screen',
         (tester) async {
           tester.view
@@ -126,6 +143,40 @@ void main() {
             tester.getRect(find.byType(Plate)).width,
             lessThanOrEqualTo(360 - 2 * 24),
           );
+        },
+      );
+
+      testWidgets(
+        "shrinks the draw pile with the plate, keeping it the plate's card size",
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(360, 740)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          // Measures them on screen, after the plate has been shrunk.
+          final pile = tester.getRect(
+            find.descendant(
+              of: find.byType(DrawPile),
+              matching: find.byType(CardFrame),
+            ),
+          );
+          final slot = tester.getRect(
+            find
+                .descendant(
+                  of: find.byType(Plate),
+                  matching: find.byType(EmptySlot),
+                )
+                .first,
+          );
+
+          expect(tester.takeException(), isNull);
+          expect(slot.width, lessThan(120));
+          expect(pile.width, moreOrLessEquals(slot.width));
         },
       );
 
