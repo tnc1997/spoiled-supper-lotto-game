@@ -207,6 +207,70 @@ void main() {
           );
 
           testWidgets(
+            'stops rebuilding for a plate once it is no longer read',
+            (tester) async {
+              const peas = engine.Card(
+                id: '3',
+                type: engine.CardType.standard,
+                category: engine.Category.vegetable,
+                name: 'Peas',
+              );
+              final alice = engine.Player(name: 'Alice');
+              final bob = engine.Player(name: 'Bob');
+              final notifier = GameNotifier(
+                engine.GameController(
+                  players: [alice, bob],
+                  drawPile: [peas, milk, sausages],
+                ),
+              );
+              addTearDown(notifier.dispose);
+              var plateBuilds = 0;
+
+              /// Pumps a dependent that reads [player]'s plate, which is
+              /// rebuilt rather than replaced on each pump.
+              Future<void> pumpPlateOf(engine.Player player) {
+                return tester.pumpWidget(
+                  GameScope(
+                    notifier: notifier,
+                    child: Builder(
+                      builder: (context) {
+                        plateBuilds++;
+                        GameScope.plateOf(context, player);
+
+                        return const SizedBox();
+                      },
+                    ),
+                  ),
+                );
+              }
+
+              /// Makes the current player draw and place a card.
+              Future<void> play() async {
+                notifier
+                  ..drawFromDrawPile()
+                  ..placeDrawnCard();
+                await tester.pump();
+              }
+
+              await pumpPlateOf(alice);
+              await pumpPlateOf(bob);
+              expect(plateBuilds, 2);
+
+              // Alice's plate may still rebuild the dependent once, after
+              // which it is forgotten.
+              await play();
+              final afterAlice = plateBuilds;
+              expect(afterAlice, lessThanOrEqualTo(3));
+
+              await play();
+              expect(plateBuilds, afterAlice + 1);
+
+              await play();
+              expect(plateBuilds, afterAlice + 1);
+            },
+          );
+
+          testWidgets(
             'forgets the plates of the old game once given a new notifier',
             (tester) async {
               final names = <String>[];

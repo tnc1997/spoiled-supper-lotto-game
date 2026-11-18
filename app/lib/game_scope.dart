@@ -50,7 +50,7 @@ class GameScope extends InheritedNotifier<GameNotifier> {
   /// Throws a [FlutterError] if there is no [GameScope] above [context], or
   /// an [ArgumentError] if [player] isn't playing in its game.
   static engine.Plate plateOf(BuildContext context, engine.Player player) {
-    return _select(context, _PlateAspect(player), 'plateOf') as engine.Plate;
+    return _select(context, _PlateAspect(player), 'plateOf');
   }
 
   /// Returns the player whose turn it is in the game of the closest
@@ -59,8 +59,7 @@ class GameScope extends InheritedNotifier<GameNotifier> {
   ///
   /// Throws a [FlutterError] if there is no [GameScope] above [context].
   static engine.Player currentPlayerOf(BuildContext context) {
-    return _select(context, const _CurrentPlayerAspect(), 'currentPlayerOf')
-        as engine.Player;
+    return _select(context, const _CurrentPlayerAspect(), 'currentPlayerOf');
   }
 
   /// Returns [aspect] of the game of the closest [GameScope] above [context],
@@ -68,9 +67,9 @@ class GameScope extends InheritedNotifier<GameNotifier> {
   ///
   /// Throws a [FlutterError], naming [method], if there is no [GameScope]
   /// above [context].
-  static Object? _select(
+  static T _select<T>(
     BuildContext context,
-    _Aspect aspect,
+    _Aspect<T> aspect,
     String method,
   ) {
     final scope = context.dependOnInheritedWidgetOfExactType<GameScope>(
@@ -99,16 +98,16 @@ class GameScope extends InheritedNotifier<GameNotifier> {
 ///
 /// Equal aspects must select the same part, so that a widget that reads the
 /// same part on every build depends on it once.
-sealed class _Aspect {
+sealed class _Aspect<T> {
   const _Aspect();
 
   /// Returns this part of [game], which is compared with `==` to the part
   /// as it was to tell whether it has changed.
-  Object? select(engine.Game game);
+  T select(engine.Game game);
 }
 
 /// The plate of [player].
-final class _PlateAspect extends _Aspect {
+final class _PlateAspect extends _Aspect<engine.Plate> {
   final engine.Player player;
 
   const _PlateAspect(this.player);
@@ -125,11 +124,17 @@ final class _PlateAspect extends _Aspect {
 }
 
 /// The player whose turn it is.
-final class _CurrentPlayerAspect extends _Aspect {
+final class _CurrentPlayerAspect extends _Aspect<engine.Player> {
   const _CurrentPlayerAspect();
 
   @override
   engine.Player select(engine.Game game) => game.currentPlayer;
+
+  @override
+  bool operator ==(Object other) => other is _CurrentPlayerAspect;
+
+  @override
+  int get hashCode => (_CurrentPlayerAspect).hashCode;
 }
 
 /// The parts of the game that a dependent depends on, each with its value
@@ -140,7 +145,7 @@ final class _CurrentPlayerAspect extends _Aspect {
 class _Dependencies {
   bool isWhole = false;
 
-  final Map<_Aspect, Object?> values = {};
+  final Map<_Aspect<Object?>, Object?> values = {};
 }
 
 /// The element of a [GameScope], which listens to its notifier like an
@@ -191,7 +196,7 @@ class _GameScopeElement extends InheritedElement {
     if (aspect == null) {
       dependencies.isWhole = true;
     } else {
-      aspect as _Aspect;
+      aspect as _Aspect<Object?>;
       dependencies.values[aspect] = aspect.select(_notifier.game);
     }
 
@@ -234,6 +239,9 @@ class _GameScopeElement extends InheritedElement {
     }
 
     if (hasChanged) {
+      // Forgets what the dependent read, which it reads again as it
+      // rebuilds, so that it stops depending on what it no longer reads.
+      dependencies.values.clear();
       dependent.didChangeDependencies();
     }
   }
