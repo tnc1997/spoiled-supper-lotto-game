@@ -11,11 +11,19 @@ import 'game_scope.dart';
 /// with a slot for each category that shows the card in it, or that the
 /// slot is empty.
 ///
-/// Like the physical board, the slots sit in one row: the dessert, the
-/// vegetable, the main, the carbohydrate and the drink, so that the main
-/// is in the middle with its two sides either side of it.
+/// Like the physical board, the slots sit edge to edge in one row, split by
+/// thin dividers: the dessert, the vegetable, the main, the carbohydrate and
+/// the drink, so that the main is in the middle with its two sides either
+/// side of it. The row runs the board's full width, with plain board above
+/// and below it.
 class Plate extends StatelessWidget {
-  static const _gap = 16.0;
+  /// The width of the dividers between neighbouring slots, in logical
+  /// pixels.
+  static const _dividerWidth = 1.0;
+
+  /// The height of the board above and below the slots, as a fraction of a
+  /// slot's width, in proportion to the physical board.
+  static const _marginRatio = 0.84;
 
   /// The categories of the slots, from left to right.
   static const _categories = [
@@ -37,6 +45,7 @@ class Plate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final plate = GameScope.of(context).game.plateOf(player);
 
     Widget slot(engine.Category category) {
@@ -50,22 +59,36 @@ class Plate extends StatelessWidget {
       );
     }
 
+    final divider = SizedBox(
+      width: _dividerWidth,
+      height: cardWidth / cardAspectRatio,
+      child: ColoredBox(color: colorScheme.outlineVariant),
+    );
+
     return Semantics(
       container: true,
       label: "${player.name}'s plate",
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: _gap,
-        children: [
-          for (final category in _categories) slot(category),
-        ],
+      child: ColoredBox(
+        color: colorScheme.surfaceContainer,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: cardWidth * _marginRatio),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (index, category) in _categories.indexed) ...[
+                if (index > 0) divider,
+                slot(category),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-/// The empty slot for [category]: a card-shaped outline in the category's
-/// colour, labelled with the category.
+/// The empty slot for [category]: a card-shaped area tinted with the
+/// category's colour, labelled with the category.
 class _EmptySlot extends StatelessWidget {
   final engine.Category category;
 
@@ -74,7 +97,6 @@ class _EmptySlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = category.color;
 
     return Semantics(
       container: true,
@@ -82,16 +104,8 @@ class _EmptySlot extends StatelessWidget {
       label: '${category.label}, empty',
       child: AspectRatio(
         aspectRatio: cardAspectRatio,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            // Darkens the outline so that it stands out from a light board,
-            // even for the paler colours, like yellow.
-            border: Border.all(
-              color: HSLColor.fromColor(color).withLightness(0.4).toColor(),
-              width: 2,
-            ),
-          ),
+        child: ColoredBox(
+          color: category.color.withValues(alpha: 0.1),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Center(

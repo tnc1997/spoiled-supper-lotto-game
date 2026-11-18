@@ -63,11 +63,6 @@ void main() {
         );
       }
 
-      /// Returns the centre of the slot announced as [label].
-      Offset slotCentre(WidgetTester tester, String label) {
-        return tester.getCenter(find.bySemanticsLabel(label));
-      }
-
       testWidgets(
         'shows each card on the plate in a frame',
         (tester) async {
@@ -118,11 +113,11 @@ void main() {
       );
 
       testWidgets(
-        'lays out the slots in one row, like the physical board',
+        'lays out the slots edge to edge in one row, like the physical board',
         (tester) async {
           await pumpPlate(tester, bob);
 
-          final centres = [
+          final slots = [
             for (final category in [
               'Dessert',
               'Vegetable',
@@ -130,13 +125,33 @@ void main() {
               'Carbohydrate',
               'Drink',
             ])
-              slotCentre(tester, '$category, empty'),
+              tester.getRect(find.bySemanticsLabel('$category, empty')),
           ];
 
-          for (var i = 1; i < centres.length; i++) {
-            expect(centres[i].dy, centres[0].dy);
-            expect(centres[i].dx, greaterThan(centres[i - 1].dx));
+          for (var i = 1; i < slots.length; i++) {
+            expect(slots[i].top, slots[0].top);
+            // Split only by a hairline divider.
+            expect(slots[i].left - slots[i - 1].right, 1);
           }
+        },
+      );
+
+      testWidgets(
+        'runs the slots across the full width of the board, with board '
+        'above and below them',
+        (tester) async {
+          await pumpPlate(tester, bob);
+
+          final board = tester.getRect(find.byType(Plate));
+          final dessert = tester.getRect(
+            find.bySemanticsLabel('Dessert, empty'),
+          );
+          final drink = tester.getRect(find.bySemanticsLabel('Drink, empty'));
+
+          expect(dessert.left, board.left);
+          expect(drink.right, board.right);
+          expect(dessert.top - board.top, moreOrLessEquals(0.84 * 120));
+          expect(board.bottom - dessert.bottom, moreOrLessEquals(0.84 * 120));
         },
       );
 
