@@ -172,8 +172,8 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget _buildChooseCardImagesButton() {
     return OutlinedButton(
       onPressed: _isChoosingCardImages ? null : _chooseCardImages,
-      // Without padding, and only as wide as it is high at least, so that
-      // the button is a circle around the progress indicator.
+      // Without padding, and at least as wide as it is high, so that the
+      // button is a circle around the progress indicator, which it centres.
       style: OutlinedButton.styleFrom(
         padding: EdgeInsets.zero,
         minimumSize: const Size.square(40),
@@ -184,17 +184,10 @@ class _SetupScreenState extends State<SetupScreen> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         child: _isChoosingCardImages
-            ? const SizedBox.square(
-                dimension: 40,
-                child: Center(
-                  child: SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      semanticsLabel: 'Loading card images',
-                    ),
-                  ),
-                ),
+            ? const CircularProgressIndicator(
+                strokeWidth: 2,
+                semanticsLabel: 'Loading card images',
+                constraints: BoxConstraints.tightFor(width: 18, height: 18),
               )
             // The padding of a button with an icon, given here rather than
             // to the button, so that it goes when the button shrinks.
