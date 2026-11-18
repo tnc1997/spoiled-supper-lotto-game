@@ -2,7 +2,7 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
 import 'card_images.dart';
-import 'card_images_scope.dart';
+import 'card_images_host.dart';
 import 'heading.dart';
 import 'player_count_selector.dart';
 import 'player_name_field.dart';
@@ -17,18 +17,13 @@ class SetupScreen extends StatefulWidget {
   /// Defaults to [CardImages.pick]; a test can pass its own.
   final Future<CardImages?> Function() pickCardImages;
 
-  /// Called with the names of the players playing, in turn order, and
-  /// their own card images, when the start button is pressed, or `null` to
-  /// disable it.
-  ///
-  /// The card images are [CardImages.empty] if the players didn't choose
-  /// any. They belong to the setup screen, which disposes of them once
-  /// they're replaced or it's removed, so they mustn't be used after that.
-  final void Function(List<String> playerNames, CardImages cardImages)? onStart;
+  /// Called with the names of the players playing, in turn order, when the
+  /// start button is pressed, or `null` to disable it.
+  final ValueChanged<List<String>>? onStart;
 
-  /// Shows the setup screen, choosing card images with [pickCardImages],
-  /// and calling [onStart] with the players' names and card images when the
-  /// start button is pressed.
+  /// Shows the setup screen, choosing card images with [pickCardImages]
+  /// for the closest [CardImagesHost], which must be above it, and calling
+  /// [onStart] with the players' names when the start button is pressed.
   const SetupScreen({
     super.key,
     this.pickCardImages = CardImages.pick,
@@ -52,10 +47,6 @@ class _SetupScreenState extends State<SetupScreen> {
   );
 
   int _playerCount = engine.GameController.minPlayers;
-
-  /// The players' own card images, or [CardImages.empty] until they choose
-  /// some.
-  CardImages _cardImages = CardImages.empty;
 
   /// Whether the players' card images are being chosen or loaded.
   bool _isChoosingCardImages = false;
@@ -97,91 +88,86 @@ class _SetupScreenState extends State<SetupScreen> {
       controller.dispose();
     }
 
-    _cardImages.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CardImagesScope(
-      images: _cardImages,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Pass & Play')),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Heading('How many players?'),
-                const SizedBox(height: 16),
-                PlayerCountSelector(
-                  playerCount: _playerCount,
-                  onChanged: (playerCount) {
-                    setState(() => _playerCount = playerCount);
-                  },
-                ),
-                const SizedBox(height: 32),
-                const Heading("What are the players' names?"),
-                const SizedBox(height: 16),
-                ListenableBuilder(
-                  listenable: Listenable.merge(_nameControllers),
-                  builder: (context, child) {
-                    final errors = _nameErrors;
-                    final onStart = widget.onStart;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Pass & Play')),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Heading('How many players?'),
+              const SizedBox(height: 16),
+              PlayerCountSelector(
+                playerCount: _playerCount,
+                onChanged: (playerCount) {
+                  setState(() => _playerCount = playerCount);
+                },
+              ),
+              const SizedBox(height: 32),
+              const Heading("What are the players' names?"),
+              const SizedBox(height: 16),
+              ListenableBuilder(
+                listenable: Listenable.merge(_nameControllers),
+                builder: (context, child) {
+                  final errors = _nameErrors;
+                  final onStart = widget.onStart;
 
-                    // Two players with the same name can't start the game
-                    // until one of them changes it.
-                    final hasDuplicateNames =
-                        errors.any((error) => error != null);
+                  // Two players with the same name can't start the game
+                  // until one of them changes it.
+                  final hasDuplicateNames =
+                      errors.any((error) => error != null);
 
-                    return Column(
-                      children: [
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 400),
-                          child: Column(
-                            spacing: 8,
-                            children: [
-                              for (var index = 0; index < _playerCount; index++)
-                                PlayerNameField(
-                                  number: index + 1,
-                                  controller: _nameControllers[index],
-                                  textInputAction: index == _playerCount - 1
-                                      ? TextInputAction.done
-                                      : TextInputAction.next,
-                                  errorText: errors[index],
-                                ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        child!,
-                        const SizedBox(height: 32),
-                        FilledButton(
-                          onPressed: onStart == null || hasDuplicateNames
-                              ? null
-                              : () => onStart(playerNames, _cardImages),
-                          child: const Text('Start'),
-                        ),
-                      ],
-                    );
-                  },
-                  // The card images section, shown by the builder between the
-                  // name fields and the start button. It doesn't depend on the
-                  // names, so it's passed in as the child rather than built
-                  // there, and isn't rebuilt as they're typed. Splitting the
-                  // builder in two instead would work out the name errors
-                  // twice, once for the fields and once for the start button.
-                  child: Column(
+                  return Column(
                     children: [
-                      const Heading('Do you have your own card images?'),
-                      const SizedBox(height: 16),
-                      _buildChooseCardImagesButton(),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: Column(
+                          spacing: 8,
+                          children: [
+                            for (var index = 0; index < _playerCount; index++)
+                              PlayerNameField(
+                                number: index + 1,
+                                controller: _nameControllers[index],
+                                textInputAction: index == _playerCount - 1
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
+                                errorText: errors[index],
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      child!,
+                      const SizedBox(height: 32),
+                      FilledButton(
+                        onPressed: onStart == null || hasDuplicateNames
+                            ? null
+                            : () => onStart(playerNames),
+                        child: const Text('Start'),
+                      ),
                     ],
-                  ),
+                  );
+                },
+                // The card images section, shown by the builder between the
+                // name fields and the start button. It doesn't depend on the
+                // names, so it's passed in as the child rather than built
+                // there, and isn't rebuilt as they're typed. Splitting the
+                // builder in two instead would work out the name errors
+                // twice, once for the fields and once for the start button.
+                child: Column(
+                  children: [
+                    const Heading('Do you have your own card images?'),
+                    const SizedBox(height: 16),
+                    _buildChooseCardImagesButton(),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -204,7 +190,8 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   /// Asks the player to choose their own card images, disabling the button
-  /// until they're loaded, and uses them in place of the ones used before.
+  /// until they're loaded, and uses them in place of the ones used before,
+  /// for the whole session, by replacing them in the [CardImagesHost].
   ///
   /// Keeps the images already chosen if the player cancels, if choosing
   /// them fails, or if none of the files chosen are named after a card,
@@ -251,16 +238,7 @@ class _SetupScreenState extends State<SetupScreen> {
       return;
     }
 
-    // Copied, since images isn't promoted to non-null inside the closure.
-    final newImages = images;
-    final oldImages = _cardImages;
-    setState(() => _cardImages = newImages);
-
-    // The Card widgets showing the old images haven't rebuilt yet, but it's
-    // safe to dispose of them straight away: each RawImage paints its own
-    // clone of an image, which it disposes of itself once it's given
-    // another.
-    oldImages.dispose();
+    CardImagesHost.of(context).replace(images);
 
     _finishChoosingCardImages(
       images.length == 1

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_images.dart';
+import 'package:spoiled_supper_lotto_game/card_images_host.dart';
 import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
 import 'package:spoiled_supper_lotto_game/player_count_selector.dart';
 import 'package:spoiled_supper_lotto_game/player_name_field.dart';
@@ -50,8 +51,8 @@ void main() {
 
       /// Loads an image of Fish Bone.
       ///
-      /// Once chosen, the images belong to the setup screen, which disposes
-      /// of them when they're replaced or it's removed.
+      /// Once chosen, the images belong to the [CardImagesHost], which
+      /// disposes of them when they're replaced or it's removed.
       Future<CardImages> loadImages(WidgetTester tester) async {
         return (await tester.runAsync(
           () => CardImages.load([
@@ -60,24 +61,18 @@ void main() {
         ))!;
       }
 
-      /// Shows the setup screen, choosing card images with each of [picks]
-      /// in turn, and returns the card images it's started with each time
-      /// the start button is pressed.
-      Future<List<CardImages>> pumpWithPicks(
+      /// Shows the setup screen below a [CardImagesHost], choosing card
+      /// images with each of [picks] in turn.
+      Future<void> pumpWithPicks(
         WidgetTester tester,
         List<Future<CardImages?> Function()> picks,
-      ) async {
-        final starts = <CardImages>[];
-        await tester.pumpWidget(
+      ) {
+        return tester.pumpWidget(
           MaterialApp(
-            home: SetupScreen(
-              pickCardImages: () => picks.removeAt(0)(),
-              onStart: (_, cardImages) => starts.add(cardImages),
-            ),
+            builder: (context, child) => CardImagesHost(child: child!),
+            home: SetupScreen(pickCardImages: () => picks.removeAt(0)()),
           ),
         );
-
-        return starts;
       }
 
       /// Returns the card images the setup screen on screen exposes.
@@ -113,7 +108,7 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: SetupScreen(onStart: (names, _) => starts.add(names)),
+            home: SetupScreen(onStart: starts.add),
           ),
         );
 
@@ -436,34 +431,16 @@ void main() {
       );
 
       testWidgets(
-        'exposes no card images until some are chosen',
-        (tester) async {
-          final starts = await pumpWithPicks(tester, []);
-          await tapStart(tester);
-
-          expect(cardImagesOf(tester), same(CardImages.empty));
-          expect(starts, [same(CardImages.empty)]);
-        },
-      );
-
-      testWidgets(
-        'uses the card images chosen, saying how many cards',
+        'uses the card images chosen for the session, saying how many cards',
         (tester) async {
           final images = await loadImages(tester);
-          final starts = await pumpWithPicks(tester, [() async => images]);
+          await pumpWithPicks(tester, [() async => images]);
           await tapChooseCardImages(tester);
 
           expect(cardImagesOf(tester), same(images));
           await tester.pumpAndSettle();
 
           expect(find.text('Using your image of 1 card.'), findsOneWidget);
-
-          // Waits for the message to go, so that it doesn't cover Start.
-          await tester.pump(const Duration(seconds: 5));
-          await tester.pumpAndSettle();
-          await tapStart(tester);
-
-          expect(starts, [same(images)]);
         },
       );
 
@@ -529,36 +506,6 @@ void main() {
             findsOneWidget,
           );
           expect(isChooseCardImagesEnabledOf(tester), isTrue);
-        },
-      );
-
-      testWidgets(
-        'disposes of the card images replaced by the ones chosen',
-        (tester) async {
-          final oldImages = await loadImages(tester);
-          final newImages = await loadImages(tester);
-          await pumpWithPicks(
-            tester,
-            [() async => oldImages, () async => newImages],
-          );
-          await tapChooseCardImages(tester);
-          await tapChooseCardImages(tester);
-
-          expect(cardImagesOf(tester), same(newImages));
-          expect(oldImages[fishBone]!.debugDisposed, isTrue);
-          expect(newImages[fishBone]!.debugDisposed, isFalse);
-        },
-      );
-
-      testWidgets(
-        'disposes of the card images chosen when removed',
-        (tester) async {
-          final images = await loadImages(tester);
-          await pumpWithPicks(tester, [() async => images]);
-          await tapChooseCardImages(tester);
-          await tester.pumpWidget(const SizedBox());
-
-          expect(images[fishBone]!.debugDisposed, isTrue);
         },
       );
 

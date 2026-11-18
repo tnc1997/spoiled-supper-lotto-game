@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/card_images.dart';
+import 'package:spoiled_supper_lotto_game/card_images_host.dart';
 import 'package:spoiled_supper_lotto_game/card_images_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
 import 'package:spoiled_supper_lotto_game/home_screen.dart';
@@ -56,9 +58,21 @@ void main() {
       );
 
       testWidgets(
-        "starts the game with the setup screen's card images",
+        'keeps the card images chosen for the whole session',
         (tester) async {
+          final images = (await tester.runAsync(() => CardImages.load([])))!;
           await tester.pumpWidget(const MyApp());
+          await tester.tap(find.widgetWithText(FilledButton, 'Play'));
+          await tester.pumpAndSettle();
+
+          // Chooses the images as the setup screen does, without opening the
+          // platform's file picker.
+          CardImagesHost.of(tester.element(find.byType(SetupScreen)))
+              .replace(images);
+
+          // Goes back to the home screen, and then sets up and starts a game.
+          await tester.pageBack();
+          await tester.pumpAndSettle();
           await tester.tap(find.widgetWithText(FilledButton, 'Play'));
           await tester.pumpAndSettle();
           await tester
@@ -67,14 +81,9 @@ void main() {
           await tester.tap(find.widgetWithText(FilledButton, 'Start'));
           await tester.pumpAndSettle();
 
-          // Below the setup screen's own CardImagesScope, now offstage.
-          final setupScreenContent = find.descendant(
-            of: find.byType(SetupScreen, skipOffstage: false),
-            matching: find.byType(Scaffold, skipOffstage: false),
-          );
           expect(
-            tester.widget<GameScreen>(find.byType(GameScreen)).cardImages,
-            same(CardImagesScope.of(tester.element(setupScreenContent))),
+            CardImagesScope.of(tester.element(find.byType(GameScreen))),
+            same(images),
           );
         },
       );

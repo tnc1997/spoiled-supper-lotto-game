@@ -1,6 +1,7 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'card_images_host.dart';
 import 'game_screen.dart';
 import 'home_screen.dart';
 import 'setup_screen.dart';
@@ -37,6 +38,11 @@ class MyApp extends StatelessWidget {
           labelSmall: GoogleFonts.fredoka(),
         ),
       ),
+      // Holds the player's card images above the navigator, so that they
+      // last for the whole session and every screen uses them.
+      builder: (context, child) {
+        return CardImagesHost(child: child!);
+      },
       home: Builder(
         builder: (context) {
           return HomeScreen(
@@ -45,14 +51,11 @@ class MyApp extends StatelessWidget {
                 MaterialPageRoute<void>(
                   builder: (context) {
                     return SetupScreen(
-                      onStart: (playerNames, cardImages) {
+                      onStart: (playerNames) {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (context) {
-                              return GameScreen(
-                                playerNames: playerNames,
-                                cardImages: cardImages,
-                              );
+                              return GameScreen(playerNames: playerNames);
                             },
                           ),
                         );
