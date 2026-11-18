@@ -34,34 +34,27 @@ void main() {
       );
 
       testWidgets(
-        'casts a shadow behind the child and outlines it',
+        'casts a shadow behind the child, without an outline',
         (tester) async {
           await pumpFrame(tester);
 
-          final boxes = tester
-              .widgetList<DecoratedBox>(
-                find.descendant(
-                  of: find.byType(CardFrame),
-                  matching: find.byType(DecoratedBox),
-                ),
-              )
-              .toList();
-          final colorScheme = Theme.of(
-            tester.element(find.byType(CardFrame)),
-          ).colorScheme;
+          final decorations = [
+            for (final box in tester.widgetList<DecoratedBox>(
+              find.descendant(
+                of: find.byType(CardFrame),
+                matching: find.byType(DecoratedBox),
+              ),
+            ))
+              box.decoration as BoxDecoration,
+          ];
 
           expect(
-            boxes.map((box) => (box.decoration as BoxDecoration).boxShadow),
+            decorations.map((decoration) => decoration.boxShadow),
             contains(isNotEmpty),
           );
           expect(
-            boxes.where(
-              (box) =>
-                  box.position == DecorationPosition.foreground &&
-                  (box.decoration as BoxDecoration).border ==
-                      Border.all(color: colorScheme.outlineVariant),
-            ),
-            hasLength(1),
+            decorations.map((decoration) => decoration.border),
+            everyElement(isNull),
           );
         },
       );
