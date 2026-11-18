@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
+import 'draw_pile.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
 import 'heading.dart';
@@ -72,6 +73,7 @@ class _GameScreenState extends State<GameScreen> {
                       fit: BoxFit.scaleDown,
                       child: Plate(player: player),
                     ),
+                    const DrawPile(),
                   ],
                 );
               },

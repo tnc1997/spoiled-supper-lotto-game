@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/draw_pile.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
@@ -106,6 +107,18 @@ void main() {
             tester.widget<Plate>(find.byType(Plate)).player,
             same(game.players[1]),
           );
+        },
+      );
+
+      testWidgets(
+        'shows the draw pile',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(find.byType(DrawPile), findsOneWidget);
+          expect(find.text('30 cards'), findsOneWidget);
         },
       );
 
