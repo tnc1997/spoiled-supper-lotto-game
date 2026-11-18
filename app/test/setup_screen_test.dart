@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cross_file/cross_file.dart';
+import 'package:file_picker_platform_interface/file_picker_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
@@ -10,6 +10,8 @@ import 'package:spoiled_supper_lotto_game/card_images_data.dart';
 import 'package:spoiled_supper_lotto_game/player_count_selector.dart';
 import 'package:spoiled_supper_lotto_game/player_name_field.dart';
 import 'package:spoiled_supper_lotto_game/setup_screen.dart';
+
+import 'fake_file_picker.dart';
 
 void main() {
   group(
@@ -48,29 +50,22 @@ void main() {
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
       );
 
-      /// Loads an image of Fish Bone.
-      ///
-      /// Once chosen, the images belong to the [CardImages], which
-      /// disposes of them when they're replaced or it's removed.
-      Future<CardImagesData> loadImages(WidgetTester tester) async {
-        return (await tester.runAsync(
-          () => CardImagesData.load([
-            XFile.fromData(png, name: 'fish-bone.png', path: 'fish-bone.png'),
-          ]),
-        ))!;
-      }
+      /// An image of Fish Bone, as the player would choose it.
+      final fishBoneFile = FakePlatformFile('fish-bone.png', png);
 
-      /// Shows the setup screen below a [CardImages], choosing card
-      /// images with each of [picks] in turn.
+      /// A file that isn't named after a card.
+      final holidayFile = FakePlatformFile('holiday.png', png);
+
+      /// Shows the setup screen below a [CardImages], with a fake file
+      /// picker answering with each of [picks] in turn.
       Future<void> pumpWithPicks(
         WidgetTester tester,
-        List<Future<CardImagesData?> Function()> picks,
+        List<Future<List<PlatformFile>> Function()> picks,
       ) {
+        FakeFilePicker.install(picks);
+
         return tester.pumpWidget(
-          MaterialApp(
-            builder: (context, child) => CardImages(child: child!),
-            home: SetupScreen(pickCardImages: () => picks.removeAt(0)()),
-          ),
+          const CardImages(child: MaterialApp(home: SetupScreen())),
         );
       }
 
@@ -87,6 +82,32 @@ void main() {
         await tester.ensureVisible(chooseCardImagesButton);
         await tester.pumpAndSettle();
         await tester.tap(chooseCardImagesButton);
+        await tester.pump();
+      }
+
+      /// Presses the button to choose card images, scrolling it into view
+      /// first, and waits for the images chosen to load.
+      ///
+      /// Decoding the images only finishes outside of the test's fake
+      /// clock, so the button is pressed with [WidgetTester.runAsync]. Use
+      /// [tapChooseCardImages] when no images are loaded, e.g. when the
+      /// player cancels.
+      Future<void> chooseCardImages(WidgetTester tester) async {
+        await tester.ensureVisible(chooseCardImagesButton);
+        await tester.pumpAndSettle();
+
+        final oldImages = cardImagesOf(tester);
+        await tester.runAsync(() async {
+          tester.widget<ButtonStyleButton>(chooseCardImagesButton).onPressed!();
+
+          for (var i = 0; identical(cardImagesOf(tester), oldImages); i++) {
+            if (i == 500) {
+              fail('The card images chosen did not load.');
+            }
+
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+          }
+        });
         await tester.pump();
       }
 
@@ -432,13 +453,13 @@ void main() {
       testWidgets(
         'uses the card images chosen for the session, saying how many cards',
         (tester) async {
-          final images = await loadImages(tester);
-          await pumpWithPicks(tester, [() async => images]);
-          await tapChooseCardImages(tester);
-
-          expect(cardImagesOf(tester), same(images));
+          await pumpWithPicks(tester, [
+            () async => [fishBoneFile]
+          ]);
+          await chooseCardImages(tester);
           await tester.pumpAndSettle();
 
+          expect(cardImagesOf(tester)[fishBone], isNotNull);
           expect(find.text('Using your image of 1 card.'), findsOneWidget);
         },
       );
@@ -446,9 +467,15 @@ void main() {
       testWidgets(
         'keeps the card images chosen when the player cancels',
         (tester) async {
-          final images = await loadImages(tester);
-          await pumpWithPicks(tester, [() async => images, () async => null]);
-          await tapChooseCardImages(tester);
+          await pumpWithPicks(
+            tester,
+            [
+              () async => [fishBoneFile],
+              () async => []
+            ],
+          );
+          await chooseCardImages(tester);
+          final images = cardImagesOf(tester);
           await tapChooseCardImages(tester);
 
           expect(cardImagesOf(tester), same(images));
@@ -459,17 +486,15 @@ void main() {
       testWidgets(
         'keeps the card images chosen when no file is named after a card',
         (tester) async {
-          final images = await loadImages(tester);
-          final noImages = (await tester.runAsync(
-            () => CardImagesData.load([
-              XFile.fromData(png, name: 'holiday.png', path: 'holiday.png'),
-            ]),
-          ))!;
           await pumpWithPicks(
             tester,
-            [() async => images, () async => noImages],
+            [
+              () async => [fishBoneFile],
+              () async => [holidayFile]
+            ],
           );
-          await tapChooseCardImages(tester);
+          await chooseCardImages(tester);
+          final images = cardImagesOf(tester);
           await tapChooseCardImages(tester);
           await tester.pumpAndSettle();
 
@@ -489,12 +514,15 @@ void main() {
         'keeps the card images chosen, and reports the error, when choosing '
         'fails',
         (tester) async {
-          final images = await loadImages(tester);
           await pumpWithPicks(
             tester,
-            [() async => images, () => Future.error(StateError('failed'))],
+            [
+              () async => [fishBoneFile],
+              () => Future.error(StateError('failed')),
+            ],
           );
-          await tapChooseCardImages(tester);
+          await chooseCardImages(tester);
+          final images = cardImagesOf(tester);
           await tapChooseCardImages(tester);
           await tester.pumpAndSettle();
 
@@ -511,14 +539,14 @@ void main() {
       testWidgets(
         'disables the button to choose card images until they are chosen',
         (tester) async {
-          final pick = Completer<CardImagesData?>();
+          final pick = Completer<List<PlatformFile>>();
           await pumpWithPicks(tester, [() => pick.future]);
           await tapChooseCardImages(tester);
 
           expect(isChooseCardImagesEnabledOf(tester), isFalse);
           expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-          pick.complete(null);
+          pick.complete([]);
           await tester.pump();
 
           expect(isChooseCardImagesEnabledOf(tester), isTrue);

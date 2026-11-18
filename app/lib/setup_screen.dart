@@ -11,24 +11,14 @@ import 'player_name_field.dart';
 /// players are playing, and, optionally, their names and their own card
 /// images.
 class SetupScreen extends StatefulWidget {
-  /// Asks the player to choose their own card images, returning `null` if
-  /// they cancel.
-  ///
-  /// Defaults to [CardImagesData.pick]; a test can pass its own.
-  final Future<CardImagesData?> Function() pickCardImages;
-
   /// Called with the names of the players playing, in turn order, when the
   /// start button is pressed, or `null` to disable it.
   final ValueChanged<List<String>>? onStart;
 
-  /// Shows the setup screen, choosing card images with [pickCardImages]
-  /// for the closest [CardImages], which must be above it, and calling
-  /// [onStart] with the players' names when the start button is pressed.
-  const SetupScreen({
-    super.key,
-    this.pickCardImages = CardImagesData.pick,
-    this.onStart,
-  });
+  /// Shows the setup screen, choosing card images for the closest
+  /// [CardImages], which must be above it, and calling [onStart] with the
+  /// players' names when the start button is pressed.
+  const SetupScreen({super.key, this.onStart});
 
   @override
   State<SetupScreen> createState() => _SetupScreenState();
@@ -201,7 +191,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
     final CardImagesData? images;
     try {
-      images = await widget.pickCardImages();
+      images = await CardImagesData.pick();
     } catch (exception, stack) {
       FlutterError.reportError(
         FlutterErrorDetails(

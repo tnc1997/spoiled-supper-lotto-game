@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:cross_file/cross_file.dart';
+import 'package:file_picker_platform_interface/file_picker_platform_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:spoiled_supper_lotto_game/card_images_data.dart';
+
+import 'fake_file_picker.dart';
 
 /// Returns a PNG [width]x[height]px, made of [colors] in equal vertical
 /// stripes from left to right.
@@ -411,6 +414,55 @@ void main() {
               final images = await load([fileOf('sausages.png')]);
 
               expect(images[fishFingers], isNull);
+            },
+          );
+        },
+      );
+
+      group(
+        'pick',
+        () {
+          /// Picks card images with a fake file picker answering with
+          /// [files], disposing of the images after the test.
+          Future<CardImagesData?> pick(
+            List<PlatformFile> files,
+          ) async {
+            FakeFilePicker.install([() async => files]);
+            final images = await CardImagesData.pick();
+            if (images != null) {
+              addTearDown(images.dispose);
+            }
+
+            return images;
+          }
+
+          test(
+            'loads the files the player chooses',
+            () async {
+              final images = await pick([
+                FakePlatformFile('fish-fingers.png', redPng),
+              ]);
+
+              expect(images?[fishFingers], isNotNull);
+            },
+          );
+
+          test(
+            'returns null when the player cancels',
+            () async {
+              expect(await pick([]), isNull);
+            },
+          );
+
+          test(
+            'only lets the player choose files with the image extensions',
+            () async {
+              final picker = FakeFilePicker.install([() async => []]);
+              await CardImagesData.pick();
+
+              expect(picker.types, [FileType.custom]);
+              expect(
+                  picker.allowedExtensions, [CardImagesData.imageExtensions]);
             },
           );
         },
