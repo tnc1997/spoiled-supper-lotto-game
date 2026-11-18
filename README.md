@@ -159,8 +159,8 @@ every card in the game. To use other images, press **Choose card images**
 again; the new ones replace the old. If you cancel, or none of the files
 you choose are named after a card, the images you already chose are kept.
 
-Your images last for the current session only; choose them again next time
-you open the app.
+Your images last until you leave the setup screen for the home screen;
+choose them again next time you set up a game.
 
 If an image can't be read or decoded, e.g. because the file is damaged or
 was moved after you chose it, that card is shown as a placeholder and the
