@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
+import 'package:spoiled_supper_lotto_game/plate.dart';
 
 void main() {
   group(
@@ -78,6 +79,52 @@ void main() {
           expect(
             tester.getSemantics(find.text("Sam's turn")),
             matchesSemantics(label: "Sam's turn", isHeader: true),
+          );
+        },
+      );
+
+      testWidgets(
+        "shows the current player's plate",
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+          final game = notifierOf(tester).game;
+
+          expect(
+            tester.widget<Plate>(find.byType(Plate)).player,
+            same(game.players[0]),
+          );
+
+          notifierOf(tester)
+            ..drawFromDrawPile()
+            ..placeDrawnCard();
+          await tester.pump();
+
+          expect(find.text("Alex's turn"), findsOneWidget);
+          expect(
+            tester.widget<Plate>(find.byType(Plate)).player,
+            same(game.players[1]),
+          );
+        },
+      );
+
+      testWidgets(
+        'fits the plate on a narrow screen',
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(360, 740)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(tester.takeException(), isNull);
+          expect(
+            tester.getRect(find.byType(Plate)).width,
+            lessThanOrEqualTo(360 - 2 * 24),
           );
         },
       );

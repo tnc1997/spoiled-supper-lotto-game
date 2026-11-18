@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
 import 'heading.dart';
+import 'plate.dart';
 
 /// The screen for playing a new Pass & Play game between players with the
 /// names given, which sets up the game and exposes it through a [GameScope]
@@ -59,9 +60,20 @@ class _GameScreenState extends State<GameScreen> {
             padding: const EdgeInsets.all(24),
             child: Builder(
               builder: (context) {
-                final game = GameScope.of(context).game;
+                final player = GameScope.of(context).game.currentPlayer;
 
-                return Heading("${game.currentPlayer.name}'s turn");
+                return Column(
+                  spacing: 24,
+                  children: [
+                    Heading("${player.name}'s turn"),
+                    // Shrinks the plate, rather than overflowing, on narrow
+                    // screens.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Plate(player: player),
+                    ),
+                  ],
+                );
               },
             ),
           ),
