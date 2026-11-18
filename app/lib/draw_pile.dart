@@ -36,51 +36,50 @@ class DrawPile extends StatelessWidget {
           }
         : null;
 
-    // Merges the pile into one button, keeping the focus state and tap
-    // action from its InkWell, so a screen reader announces it as it gains
+    // Makes the pile one button, which takes on the focus state and tap
+    // action of its InkWell, so a screen reader announces it as it gains
     // keyboard focus.
-    return MergeSemantics(
-      child: Semantics(
-        button: true,
-        enabled: onDraw != null,
-        label: 'Draw pile, $countLabel',
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 8,
-          children: [
-            SizedBox(
-              width: cardWidth,
-              child: AspectRatio(
-                aspectRatio: cardAspectRatio,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Leaves the label to say what the pile shows.
-                    ExcludeSemantics(
-                      child: count == 0
-                          ? const EmptySlot(label: 'Empty')
-                          : const CardFrame(child: _CardBack()),
+    return Semantics(
+      container: true,
+      button: true,
+      enabled: onDraw != null,
+      label: 'Draw pile, $countLabel',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 8,
+        children: [
+          SizedBox(
+            width: cardWidth,
+            child: AspectRatio(
+              aspectRatio: cardAspectRatio,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Leaves the label to say what the pile shows.
+                  ExcludeSemantics(
+                    child: count == 0
+                        ? const EmptySlot(label: 'Empty')
+                        : const CardFrame(child: _CardBack()),
+                  ),
+                  // Lies over the pile, so that its ink and focus highlight
+                  // show on top of the card back rather than behind it.
+                  Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      onTap: onDraw,
+                      // Skips the pile with the keyboard while it is
+                      // disabled.
+                      canRequestFocus: onDraw != null,
                     ),
-                    // Lies over the pile, so that its ink and focus highlight
-                    // show on top of the card back rather than behind it.
-                    Material(
-                      type: MaterialType.transparency,
-                      child: InkWell(
-                        onTap: onDraw,
-                        // Skips the pile with the keyboard while it is
-                        // disabled.
-                        canRequestFocus: onDraw != null,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            ExcludeSemantics(
-              child: Text(countLabel, style: theme.textTheme.labelLarge),
-            ),
-          ],
-        ),
+          ),
+          ExcludeSemantics(
+            child: Text(countLabel, style: theme.textTheme.labelLarge),
+          ),
+        ],
       ),
     );
   }
