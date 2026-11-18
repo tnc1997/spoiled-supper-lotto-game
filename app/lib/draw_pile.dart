@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import 'card_aspect_ratio.dart';
+import 'card_frame.dart';
 import 'game_scope.dart';
 
 /// Shows the draw pile, from the closest [GameScope], face down, with the
@@ -44,7 +45,9 @@ class DrawPile extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  count == 0 ? const _EmptyPile() : const _CardBack(),
+                  count == 0
+                      ? const _EmptyPile()
+                      : const CardFrame(child: _CardBack()),
                   // Lies over the pile, so that its ink and focus highlight
                   // show on top of the card back rather than behind it.
                   Material(
@@ -62,8 +65,7 @@ class DrawPile extends StatelessWidget {
   }
 }
 
-/// The back of a card, framed like a card on the board, with a subtle
-/// shadow and a thin outline.
+/// The back of a card, to show in a [CardFrame].
 ///
 /// It is an original design: the theme's primary container colour, with an
 /// inset border and a place-setting icon.
@@ -74,12 +76,8 @@ class _CardBack extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        border: Border.all(color: colorScheme.outlineVariant),
-        boxShadow: kElevationToShadow[2],
-      ),
+    return ColoredBox(
+      color: colorScheme.primaryContainer,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: DecoratedBox(

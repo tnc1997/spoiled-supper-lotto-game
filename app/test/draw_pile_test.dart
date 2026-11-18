@@ -202,10 +202,12 @@ void main() {
           );
 
           final size = tester.getSize(
-            find.descendant(
-              of: find.byType(DrawPile),
-              matching: find.byType(AspectRatio),
-            ),
+            find
+                .descendant(
+                  of: find.byType(DrawPile),
+                  matching: find.byType(AspectRatio),
+                )
+                .first,
           );
 
           expect(size.width, 80);
