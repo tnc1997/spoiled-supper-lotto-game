@@ -14,16 +14,16 @@ import 'game_scope.dart';
 /// Like the physical board, the slots sit edge to edge in one row, split by
 /// thin dividers: the dessert, the vegetable, the main, the carbohydrate and
 /// the drink, so that the main is in the middle with its two sides either
-/// side of it. The row runs the board's full width, with plain board above
-/// and below it.
+/// side of it. The row runs the full width of a plain 3:2 board, the shape
+/// of the physical board, centred from top to bottom.
 class Plate extends StatelessWidget {
   /// The width of the dividers between neighbouring slots, in logical
   /// pixels.
   static const _dividerWidth = 1.0;
 
-  /// The height of the board above and below the slots, as a fraction of a
-  /// slot's width, in proportion to the physical board.
-  static const _marginRatio = 0.84;
+  /// The shape of the board, as its width divided by its height, like the
+  /// physical board's.
+  static const _aspectRatio = 3 / 2;
 
   /// The categories of the slots, from left to right.
   static const _categories = [
@@ -65,22 +65,26 @@ class Plate extends StatelessWidget {
       child: ColoredBox(color: colorScheme.outlineVariant),
     );
 
+    // The row of slots runs the board's full width.
+    final width = _categories.length * cardWidth +
+        (_categories.length - 1) * _dividerWidth;
+
     return Semantics(
       container: true,
       label: "${player.name}'s plate",
-      child: ColoredBox(
+      child: Container(
+        width: width,
+        height: width / _aspectRatio,
         color: colorScheme.surfaceContainer,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: cardWidth * _marginRatio),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final (index, category) in _categories.indexed) ...[
-                if (index > 0) divider,
-                slot(category),
-              ],
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (index, category) in _categories.indexed) ...[
+              if (index > 0) divider,
+              slot(category),
             ],
-          ),
+          ],
         ),
       ),
     );

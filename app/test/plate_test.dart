@@ -137,8 +137,8 @@ void main() {
       );
 
       testWidgets(
-        'runs the slots across the full width of the board, with board '
-        'above and below them',
+        'runs the slots across the full width of a 3:2 board, centred from '
+        'top to bottom',
         (tester) async {
           await pumpPlate(tester, bob);
 
@@ -148,10 +148,14 @@ void main() {
           );
           final drink = tester.getRect(find.bySemanticsLabel('Drink, empty'));
 
+          expect(board.width / board.height, moreOrLessEquals(3 / 2));
           expect(dessert.left, board.left);
           expect(drink.right, board.right);
-          expect(dessert.top - board.top, moreOrLessEquals(0.84 * 120));
-          expect(board.bottom - dessert.bottom, moreOrLessEquals(0.84 * 120));
+          expect(
+            dessert.top - board.top,
+            moreOrLessEquals(board.bottom - dessert.bottom),
+          );
+          expect(dessert.top, greaterThan(board.top));
         },
       );
 
