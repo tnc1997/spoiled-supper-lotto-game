@@ -6,6 +6,7 @@ import 'package:spoiled_supper_lotto_game/framed_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/plate.dart';
+import 'package:spoiled_supper_lotto_game/plate_aspect_ratio.dart';
 
 void main() {
   group(
@@ -148,7 +149,10 @@ void main() {
           );
           final drink = tester.getRect(find.bySemanticsLabel('Drink, empty'));
 
-          expect(board.width / board.height, moreOrLessEquals(3 / 2));
+          expect(
+            board.width / board.height,
+            moreOrLessEquals(plateAspectRatio),
+          );
           expect(dessert.left, board.left);
           expect(drink.right, board.right);
           expect(

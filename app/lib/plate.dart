@@ -6,6 +6,7 @@ import 'category_color.dart';
 import 'category_label.dart';
 import 'framed_card.dart';
 import 'game_scope.dart';
+import 'plate_aspect_ratio.dart';
 
 /// Shows a [player]'s place-setting board, from the closest [GameScope],
 /// with a slot for each category that shows the card in it, or that the
@@ -14,16 +15,12 @@ import 'game_scope.dart';
 /// Like the physical board, the slots sit edge to edge in one row, split by
 /// thin dividers: the dessert, the vegetable, the main, the carbohydrate and
 /// the drink, so that the main is in the middle with its two sides either
-/// side of it. The row runs the full width of a plain 3:2 board, the shape
-/// of the physical board, centred from top to bottom.
+/// side of it. The row runs the full width of a plain board, centred from
+/// top to bottom, in the physical board's shape, [plateAspectRatio].
 class Plate extends StatelessWidget {
   /// The width of the dividers between neighbouring slots, in logical
   /// pixels.
   static const _dividerWidth = 1.0;
-
-  /// The shape of the board, as its width divided by its height, like the
-  /// physical board's.
-  static const _aspectRatio = 3 / 2;
 
   /// The categories of the slots, from left to right.
   static const _categories = [
@@ -74,7 +71,7 @@ class Plate extends StatelessWidget {
       label: "${player.name}'s plate",
       child: Container(
         width: width,
-        height: width / _aspectRatio,
+        height: width / plateAspectRatio,
         color: colorScheme.surfaceContainer,
         alignment: Alignment.center,
         child: Row(
