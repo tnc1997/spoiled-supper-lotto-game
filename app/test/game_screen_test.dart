@@ -10,6 +10,7 @@ import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
 import 'package:spoiled_supper_lotto_game/plate.dart';
+import 'package:spoiled_supper_lotto_game/turn_banner.dart';
 
 void main() {
   group(
@@ -74,15 +75,18 @@ void main() {
       );
 
       testWidgets(
-        'shows whose turn it is as a header',
+        'shows whose turn it is in the turn banner',
         (tester) async {
           await tester.pumpWidget(
             const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
           );
 
           expect(
-            tester.getSemantics(find.text("Sam's turn")),
-            matchesSemantics(label: "Sam's turn", isHeader: true),
+            find.descendant(
+              of: find.byType(TurnBanner),
+              matching: find.text("Sam's turn"),
+            ),
+            findsOneWidget,
           );
         },
       );

@@ -7,8 +7,8 @@ import 'discard_pile.dart';
 import 'draw_pile.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
-import 'heading.dart';
 import 'plate.dart';
+import 'turn_banner.dart';
 
 /// The screen for playing a new Pass & Play game between players with the
 /// names given, which sets up the game and exposes it through a [GameScope]
@@ -67,7 +67,7 @@ class _GameScreenState extends State<GameScreen> {
                 return Column(
                   spacing: 24,
                   children: [
-                    Heading("${player.name}'s turn"),
+                    const TurnBanner(),
                     // Shrinks the plate and piles together, rather than
                     // overflowing, on narrow screens, so that the piles'
                     // cards stay the size of the plate's.
