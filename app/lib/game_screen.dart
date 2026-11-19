@@ -76,23 +76,34 @@ class _GameScreenState extends State<GameScreen> {
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                     ),
-                    // Shrinks the plate and piles together, rather than
-                    // overflowing, on narrow screens, so that the piles'
-                    // cards stay the size of the plate's.
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Column(
+                    DrawnCard(
+                      builder: (context, drawnCard, actions) => Column(
                         spacing: 24,
                         children: [
-                          Plate(player: player),
-                          const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            // Keeps the piles in line with the drawn card
-                            // while it shows its actions below it.
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 24,
-                            children: [DrawPile(), DiscardPile(), DrawnCard()],
+                          // Shrinks the plate and piles together, rather
+                          // than overflowing, on narrow screens, so that the
+                          // piles' cards stay the size of the plate's.
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(
+                              spacing: 24,
+                              children: [
+                                Plate(player: player),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 24,
+                                  children: [
+                                    const DrawPile(),
+                                    const DiscardPile(),
+                                    drawnCard,
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
+                          // Keeps the drawn card's actions full size, below
+                          // the table, so that they're easy to tap.
+                          actions,
                         ],
                       ),
                     ),

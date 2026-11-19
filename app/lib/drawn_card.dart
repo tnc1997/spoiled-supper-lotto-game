@@ -15,13 +15,16 @@ import 'game_scope.dart';
 /// [GameScope], turning it over from face down to face up as it's drawn.
 ///
 /// Once the card is face up, if the player has a choice, because it's a
-/// standard card whose slot on their plate is already filled, it offers to
-/// place it, replacing the card in that slot, or to discard it. Otherwise
-/// the card can only be played one way, so after a moment it's placed or
-/// discarded for them.
+/// standard card whose slot on their plate is already filled, its actions
+/// offer to place it, replacing the card in that slot, or to discard it.
+/// Otherwise the card can only be played one way, so after a moment it's
+/// placed or discarded for them.
 ///
-/// While no card has been drawn, it keeps its space on the table, empty,
-/// so that nothing around it moves when a card is drawn.
+/// The card and its actions are passed to [builder] to lay out separately,
+/// so that the card can be scaled with the table while the actions stay
+/// full size. Both keep their space, empty, while there's nothing to show
+/// in them, so that nothing around them moves when a card is drawn or
+/// played.
 class DrawnCard extends StatefulWidget {
   /// How long the card takes to turn face up.
   static const flipDuration = Duration(milliseconds: 400);
@@ -33,8 +36,14 @@ class DrawnCard extends StatefulWidget {
   /// The width of the card, in logical pixels.
   final double cardWidth;
 
-  /// Shows the drawn card, [cardWidth] logical pixels wide.
-  const DrawnCard({super.key, this.cardWidth = 120});
+  /// Lays out the [card], [cardWidth] logical pixels wide, and its
+  /// [actions].
+  final Widget Function(BuildContext context, Widget card, Widget actions)
+      builder;
+
+  /// Shows the drawn card, [cardWidth] logical pixels wide, and its
+  /// actions, laid out by [builder].
+  const DrawnCard({super.key, this.cardWidth = 120, required this.builder});
 
   @override
   State<DrawnCard> createState() => _DrawnCardState();
@@ -109,70 +118,85 @@ class _DrawnCardState extends State<DrawnCard>
   @override
   Widget build(BuildContext context) {
     final card = _card;
-
-    if (card == null) {
-      return SizedBox(
-        width: widget.cardWidth,
-        height: widget.cardWidth / cardAspectRatio,
-      );
-    }
-
     final game = _notifier.game;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
-    return AnimatedBuilder(
+    /// Whether the card is face up, once it's been turned over.
+    bool isFaceUp() => reduceMotion || _flip.value == 1;
+
+    final cardView = SizedBox(
+      width: widget.cardWidth,
+      height: widget.cardWidth / cardAspectRatio,
+      child: card == null
+          ? null
+          : AnimatedBuilder(
+              animation: _flip,
+              builder: (context, child) {
+                // Turns the card over about its upright axis, swapping its
+                // back for its face halfway, when it's edge on.
+                final angle = reduceMotion ? 0.0 : _flip.value * pi;
+                final showsFace = angle >= pi / 2;
+
+                // Announces the card once it's face up, as a screen reader
+                // can't see it turn over.
+                return Semantics(
+                  container: true,
+                  liveRegion: true,
+                  excludeSemantics: true,
+                  label: isFaceUp()
+                      ? 'Drawn card, ${card.semanticLabel}'
+                      : 'Drawn card',
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.identity()
+                      // Adds perspective, so the near edge looks bigger.
+                      ..setEntry(3, 2, 0.001)
+                      ..rotateY(showsFace ? angle - pi : angle),
+                    child: CardFrame(
+                      child: showsFace || reduceMotion
+                          ? Card(card: card)
+                          : const CardBack(),
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+
+    final actions = AnimatedBuilder(
       animation: _flip,
       builder: (context, child) {
-        final isFaceUp = reduceMotion || _flip.value == 1;
-        // Turns the card over about its upright axis, swapping its back for
-        // its face halfway, when it's edge on.
-        final angle = reduceMotion ? 0.0 : _flip.value * pi;
-        final showsFace = angle >= pi / 2;
+        final hasChoice = card != null &&
+            isFaceUp() &&
+            game.canPlaceDrawnCard &&
+            game.canDiscardDrawnCard;
 
-        return SizedBox(
-          width: widget.cardWidth,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 8,
+        // Keeps the actions' space while they're hidden, and disables them
+        // so that they can't be focused.
+        return Visibility(
+          visible: hasChoice,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              // Announces the card once it's face up, as a screen reader
-              // can't see it turn over.
-              Semantics(
-                container: true,
-                liveRegion: true,
-                excludeSemantics: true,
-                label: isFaceUp
-                    ? 'Drawn card, ${card.semanticLabel}'
-                    : 'Drawn card',
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    // Adds perspective, so the near edge looks bigger.
-                    ..setEntry(3, 2, 0.001)
-                    ..rotateY(showsFace ? angle - pi : angle),
-                  child: CardFrame(
-                    child: showsFace || reduceMotion
-                        ? Card(card: card)
-                        : const CardBack(),
-                  ),
-                ),
+              FilledButton(
+                onPressed: hasChoice ? _notifier.placeDrawnCard : null,
+                child: const Text('Place'),
               ),
-              if (isFaceUp &&
-                  game.canPlaceDrawnCard &&
-                  game.canDiscardDrawnCard) ...[
-                FilledButton(
-                  onPressed: _notifier.placeDrawnCard,
-                  child: const Text('Place'),
-                ),
-                OutlinedButton(
-                  onPressed: _notifier.discardDrawnCard,
-                  child: const Text('Discard'),
-                ),
-              ],
+              OutlinedButton(
+                onPressed: hasChoice ? _notifier.discardDrawnCard : null,
+                child: const Text('Discard'),
+              ),
             ],
           ),
         );
       },
     );
+
+    return widget.builder(context, cardView, actions);
   }
 }

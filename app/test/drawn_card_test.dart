@@ -71,7 +71,14 @@ void main() {
               data: MediaQueryData(disableAnimations: disableAnimations),
               child: GameScope(
                 notifier: notifier,
-                child: const Center(child: DrawnCard()),
+                child: Center(
+                  child: DrawnCard(
+                    builder: (context, card, actions) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [card, actions],
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -153,7 +160,7 @@ void main() {
 
           expect(find.byType(CardBack), findsNothing);
           expect(find.byType(Card), findsOneWidget);
-          expect(find.text('Place'), findsOneWidget);
+          expect(find.text('Place').hitTestable(), findsOneWidget);
         },
       );
 
@@ -168,7 +175,7 @@ void main() {
           await tester.pump();
           await tester.pump(DrawnCard.flipDuration);
 
-          expect(find.text('Place'), findsNothing);
+          expect(find.text('Place').hitTestable(), findsNothing);
           expect(notifier.game.drawnCard, sausages);
 
           await tester.pumpAndSettle();
@@ -214,13 +221,13 @@ void main() {
           notifier.drawFromDrawPile();
           await tester.pump();
 
-          expect(find.text('Place'), findsNothing);
-          expect(find.text('Discard'), findsNothing);
+          expect(find.text('Place').hitTestable(), findsNothing);
+          expect(find.text('Discard').hitTestable(), findsNothing);
 
           await tester.pumpAndSettle();
 
-          expect(find.text('Place'), findsOneWidget);
-          expect(find.text('Discard'), findsOneWidget);
+          expect(find.text('Place').hitTestable(), findsOneWidget);
+          expect(find.text('Discard').hitTestable(), findsOneWidget);
           expect(notifier.game.drawnCard, sausages);
         },
       );
@@ -237,12 +244,12 @@ void main() {
 
           notifier.drawFromDrawPile();
           await tester.pumpAndSettle();
-          await tester.tap(find.text('Place'));
+          await tester.tap(find.text('Place').hitTestable());
           await tester.pump();
 
           expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
           expect(notifier.game.discardPile, [fishFingers]);
-          expect(find.text('Place'), findsNothing);
+          expect(find.text('Place').hitTestable(), findsNothing);
         },
       );
 
@@ -257,7 +264,7 @@ void main() {
 
           notifier.drawFromDrawPile();
           await tester.pumpAndSettle();
-          await tester.tap(find.text('Discard'));
+          await tester.tap(find.text('Discard').hitTestable());
           await tester.pump();
 
           expect(
@@ -265,14 +272,18 @@ void main() {
             fishFingers,
           );
           expect(notifier.game.discardPile, [sausages]);
-          expect(find.text('Discard'), findsNothing);
+          expect(find.text('Discard').hitTestable(), findsNothing);
         },
       );
 
       testWidgets(
-        'keeps its space on the table while no card is drawn',
+        'keeps the space of the card and its actions while there is nothing '
+        'to show in them',
         (tester) async {
-          final notifier = notifierWith(drawn: sausages);
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
           await pumpDrawnCard(tester, notifier);
 
           final emptySize = tester.getSize(find.byType(DrawnCard));
@@ -281,6 +292,29 @@ void main() {
           await tester.pump();
 
           expect(tester.getSize(find.byType(DrawnCard)), emptySize);
+
+          await tester.pumpAndSettle();
+
+          expect(find.text('Place').hitTestable(), findsOneWidget);
+          expect(tester.getSize(find.byType(DrawnCard)), emptySize);
+        },
+      );
+
+      testWidgets(
+        'disables its actions while they are hidden',
+        (tester) async {
+          await pumpDrawnCard(tester, notifierWith(drawn: sausages));
+
+          expect(
+            tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+            isNull,
+          );
+          expect(
+            tester
+                .widget<OutlinedButton>(find.byType(OutlinedButton))
+                .onPressed,
+            isNull,
+          );
         },
       );
     },

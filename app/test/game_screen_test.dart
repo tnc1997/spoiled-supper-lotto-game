@@ -202,6 +202,28 @@ void main() {
       );
 
       testWidgets(
+        "keeps the drawn card's actions full size on a narrow screen",
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(360, 740)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          // Measures the actions, which keep their space while hidden.
+          for (final button in [FilledButton, OutlinedButton]) {
+            expect(
+              tester.getSize(find.byType(button)).height,
+              greaterThanOrEqualTo(kMinInteractiveDimension),
+            );
+          }
+        },
+      );
+
+      testWidgets(
         "shrinks the piles with the plate, keeping them the plate's card size",
         (tester) async {
           tester.view
