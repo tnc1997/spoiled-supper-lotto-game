@@ -6,7 +6,6 @@ import 'package:material_ui/material_ui.dart' hide Card;
 import 'card.dart';
 import 'card_aspect_ratio.dart';
 import 'card_back.dart';
-import 'card_flip_duration.dart';
 import 'card_frame.dart';
 import 'card_semantic_label.dart';
 import 'game_notifier.dart';
@@ -14,7 +13,7 @@ import 'game_scope.dart';
 
 /// Shows the card the current player has drawn, from the closest
 /// [GameScope], turning it over from face down to face up as it's drawn,
-/// over [cardFlipDuration].
+/// over [flipDuration].
 ///
 /// If the card can only be played one way, it's then held face up for
 /// [holdDuration] before it's placed or discarded for the player. Otherwise
@@ -23,6 +22,9 @@ import 'game_scope.dart';
 /// While no card has been drawn, it keeps its space on the table, empty,
 /// so that nothing around it moves when a card is drawn.
 class DrawnCard extends StatelessWidget {
+  /// How long the card takes to turn face up.
+  static const flipDuration = Duration(milliseconds: 400);
+
   /// How long the card stays face up before it's played for the player,
   /// when they have no choice.
   static const holdDuration = Duration(milliseconds: 600);
@@ -51,11 +53,11 @@ class DrawnCard extends StatelessWidget {
               // Turns the card over, then holds it face up, or only holds
               // it if animations are disabled.
               duration:
-                  reduceMotion ? holdDuration : cardFlipDuration + holdDuration,
+                  reduceMotion ? holdDuration : flipDuration + holdDuration,
               curve: Interval(
                 0,
-                cardFlipDuration.inMicroseconds /
-                    (cardFlipDuration + holdDuration).inMicroseconds,
+                flipDuration.inMicroseconds /
+                    (flipDuration + holdDuration).inMicroseconds,
                 curve: Curves.easeInOut,
               ),
               onEnd: () => _playIfNoChoice(notifier, card),

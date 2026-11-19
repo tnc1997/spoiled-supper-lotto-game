@@ -3,7 +3,6 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_back.dart';
-import 'package:spoiled_supper_lotto_game/card_flip_duration.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
@@ -104,7 +103,7 @@ void main() {
           expect(find.byType(CardBack), findsOneWidget);
           expect(find.byType(Card), findsNothing);
 
-          await tester.pump(cardFlipDuration);
+          await tester.pump(DrawnCard.flipDuration);
 
           expect(find.byType(CardBack), findsNothing);
           expect(tester.widget<Card>(find.byType(Card)).card, sausages);
@@ -128,7 +127,7 @@ void main() {
             findsOneWidget,
           );
 
-          await tester.pump(cardFlipDuration);
+          await tester.pump(DrawnCard.flipDuration);
 
           expect(
             tester.getSemantics(
@@ -182,7 +181,7 @@ void main() {
 
           notifier.drawFromDrawPile();
           await tester.pump();
-          await tester.pump(cardFlipDuration);
+          await tester.pump(DrawnCard.flipDuration);
 
           expect(notifier.game.drawnCard, sausages);
 

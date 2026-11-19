@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
-import 'package:spoiled_supper_lotto_game/card_flip_duration.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card_actions.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
@@ -53,27 +52,19 @@ void main() {
       }
 
       /// Shows the drawn card's actions in the game of [notifier].
-      Future<void> pumpActions(
-        WidgetTester tester,
-        GameNotifier notifier, {
-        bool disableAnimations = false,
-      }) {
+      Future<void> pumpActions(WidgetTester tester, GameNotifier notifier) {
         return tester.pumpWidget(
           MaterialApp(
-            home: MediaQuery(
-              data: MediaQueryData(disableAnimations: disableAnimations),
-              child: GameScope(
-                notifier: notifier,
-                child: const Center(child: DrawnCardActions()),
-              ),
+            home: GameScope(
+              notifier: notifier,
+              child: const Center(child: DrawnCardActions()),
             ),
           ),
         );
       }
 
       testWidgets(
-        'shows once the drawn card has turned face up, if the player has a '
-        'choice',
+        'shows once a card is drawn, if the player has a choice',
         (tester) async {
           final notifier = notifierWith(
             drawn: sausages,
@@ -81,32 +72,14 @@ void main() {
           );
           await pumpActions(tester, notifier);
 
-          notifier.drawFromDrawPile();
-          await tester.pump();
-
           expect(find.text('Place').hitTestable(), findsNothing);
           expect(find.text('Discard').hitTestable(), findsNothing);
 
-          await tester.pump(cardFlipDuration);
-
-          expect(find.text('Place').hitTestable(), findsOneWidget);
-          expect(find.text('Discard').hitTestable(), findsOneWidget);
-        },
-      );
-
-      testWidgets(
-        'shows straight away if animations are disabled',
-        (tester) async {
-          final notifier = notifierWith(
-            drawn: sausages,
-            plate: [fishFingers],
-          );
-          await pumpActions(tester, notifier, disableAnimations: true);
-
           notifier.drawFromDrawPile();
           await tester.pump();
 
           expect(find.text('Place').hitTestable(), findsOneWidget);
+          expect(find.text('Discard').hitTestable(), findsOneWidget);
         },
       );
 
@@ -117,7 +90,7 @@ void main() {
           await pumpActions(tester, notifier);
 
           notifier.drawFromDrawPile();
-          await tester.pumpAndSettle();
+          await tester.pump();
 
           expect(find.text('Place').hitTestable(), findsNothing);
           expect(find.text('Discard').hitTestable(), findsNothing);
@@ -135,7 +108,7 @@ void main() {
           await pumpActions(tester, notifier);
 
           notifier.drawFromDrawPile();
-          await tester.pumpAndSettle();
+          await tester.pump();
           await tester.tap(find.text('Place').hitTestable());
           await tester.pump();
 
@@ -155,7 +128,7 @@ void main() {
           await pumpActions(tester, notifier);
 
           notifier.drawFromDrawPile();
-          await tester.pumpAndSettle();
+          await tester.pump();
           await tester.tap(find.text('Discard').hitTestable());
           await tester.pump();
 
@@ -180,7 +153,7 @@ void main() {
           final hiddenSize = tester.getSize(find.byType(DrawnCardActions));
 
           notifier.drawFromDrawPile();
-          await tester.pumpAndSettle();
+          await tester.pump();
 
           expect(find.text('Place').hitTestable(), findsOneWidget);
           expect(tester.getSize(find.byType(DrawnCardActions)), hiddenSize);
