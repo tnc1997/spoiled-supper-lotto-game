@@ -134,7 +134,7 @@ void main() {
       );
 
       testWidgets(
-        'refills from the discard pile when tapped while empty',
+        'does nothing when tapped while empty',
         (tester) async {
           final notifier = notifierWith(drawPile: [], discardPile: [sausages]);
           await pumpPile(tester, notifier);
@@ -142,7 +142,28 @@ void main() {
           await tester.tap(find.byType(DrawPile));
           await tester.pump();
 
-          expect(notifier.game.drawnCard, same(sausages));
+          expect(notifier.game.drawnCard, isNull);
+          expect(notifier.game.discardPile, [sausages]);
+          expect(find.text('Empty'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'is announced as a disabled button while empty',
+        (tester) async {
+          await pumpPile(
+            tester,
+            notifierWith(drawPile: [], discardPile: [sausages]),
+          );
+
+          expect(
+            tester.getSemantics(find.byType(DrawPile)),
+            matchesSemantics(
+              label: 'Draw pile\n0 cards',
+              isButton: true,
+              hasEnabledState: true,
+            ),
+          );
         },
       );
 

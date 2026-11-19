@@ -39,8 +39,10 @@ class GameController implements Game {
   /// and not yet played. A player whose plate is already full is the
   /// [winner], so the game is over and [currentPlayerIndex] defaults to
   /// theirs; otherwise it defaults to the first player's. Pass a seeded
-  /// [random] for reproducible reshuffles of the discard pile. To set up a
-  /// new game, use [GameController.start] instead.
+  /// [random] for reproducible reshuffles of the discard pile. The piles
+  /// are held as given, so an empty draw pile is only refilled at the end
+  /// of the next play. To set up a new game, use [GameController.start]
+  /// instead.
   ///
   /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
   /// than [maxPlayers] players, if the same [Player] instance is in
@@ -218,13 +220,10 @@ class GameController implements Game {
   }
 
   /// Whether [drawFromDrawPile] can be called, i.e. the game isn't over, no
-  /// card has been drawn yet and either the draw pile or the discard pile
-  /// has cards in it.
+  /// card has been drawn yet and the draw pile has cards in it.
   @override
   bool get canDrawFromDrawPile =>
-      !isGameOver &&
-      _drawnCard == null &&
-      (_drawPile.isNotEmpty || _discardPile.isNotEmpty);
+      !isGameOver && _drawnCard == null && _drawPile.isNotEmpty;
 
   /// Whether [drawFromDiscardPile] can be called, i.e. the game isn't over,
   /// no card has been drawn yet and the discard pile has cards in it.
@@ -235,12 +234,12 @@ class GameController implements Game {
   /// Removes the top card from the draw pile and holds it as the
   /// [drawnCard] until the current player plays it.
   ///
-  /// If the draw pile is empty, the whole discard pile, including its top
-  /// card, is first shuffled into it, leaving the discard pile empty.
+  /// An empty draw pile isn't refilled here, since it's refilled from the
+  /// discard pile at the end of the play that empties it, whenever the
+  /// discard pile has a card under its top card.
   ///
   /// Throws a [StateError] if the game is over, if a card has already been
-  /// drawn and not yet played, or if both the draw pile and the discard
-  /// pile are empty.
+  /// drawn and not yet played, or if the draw pile is empty.
   void drawFromDrawPile() {
     _requireGameNotOver();
 
@@ -249,15 +248,7 @@ class GameController implements Game {
     }
 
     if (_drawPile.isEmpty) {
-      if (_discardPile.isEmpty) {
-        throw StateError(
-          'Cannot draw when both the draw and discard piles are empty',
-        );
-      }
-
-      _drawPile.addAll(_discardPile);
-      _discardPile.clear();
-      shuffle(_drawPile, _random);
+      throw StateError('Cannot draw from an empty draw pile');
     }
 
     _drawnCard = _drawPile.removeLast();
@@ -349,7 +340,8 @@ class GameController implements Game {
   ///
   /// If their plate is now full, they are the [winner] and the game is
   /// over. Otherwise, the turn passes to the next player in turn order,
-  /// going back to the first player after the last.
+  /// going back to the first player after the last, and the draw pile is
+  /// refilled if it has run out.
   void _finishPlay() {
     _drawnCard = null;
     _lastPlayerIndex = _currentPlayerIndex;
@@ -358,7 +350,29 @@ class GameController implements Game {
       _winnerIndex = _currentPlayerIndex;
     } else {
       _currentPlayerIndex = (_currentPlayerIndex + 1) % _seats.length;
+      _refillDrawPile();
     }
+  }
+
+  /// Refills the draw pile if it's empty by shuffling every card under the
+  /// top card of the discard pile into it, as players do at the table,
+  /// leaving the top card face up on the discard pile.
+  ///
+  /// Does nothing if the draw pile has cards or the discard pile has fewer
+  /// than 2, so the draw pile is only ever empty while the discard pile
+  /// has 1 card or none.
+  void _refillDrawPile() {
+    if (_drawPile.isNotEmpty || _discardPile.length < 2) {
+      return;
+    }
+
+    final top = _discardPile.removeLast();
+
+    _drawPile.addAll(_discardPile);
+    _discardPile
+      ..clear()
+      ..add(top);
+    shuffle(_drawPile, _random);
   }
 
   /// Returns a seat for each of [players], in turn order, with the cards

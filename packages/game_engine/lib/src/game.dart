@@ -29,6 +29,12 @@ abstract interface class Game {
   Plate plateOf(Player player);
 
   /// The cards still to be drawn, with the top of the pile last.
+  ///
+  /// Once the last card is drawn, the pile is refilled at the end of that
+  /// play, unless it wins the game, by shuffling every card under the top
+  /// card of the [discardPile] into it, so during play it's only empty
+  /// while the discard pile has 1 card or none. A game built with an
+  /// empty draw pile keeps it empty until the end of the next play.
   List<Card> get drawPile;
 
   /// The discarded cards, with the most recently discarded card last.
@@ -86,9 +92,7 @@ abstract interface class Game {
   bool get canDiscardDrawnCard;
 
   /// Whether a card can be drawn from the draw pile, i.e. the game isn't
-  /// over, no card has been drawn yet and either the draw pile or the
-  /// discard pile has cards in it, since an empty draw pile is refilled
-  /// from the discard pile.
+  /// over, no card has been drawn yet and the draw pile has cards in it.
   bool get canDrawFromDrawPile;
 
   /// Whether a card can be drawn from the discard pile, i.e. the game isn't
