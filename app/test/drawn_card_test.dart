@@ -165,6 +165,22 @@ void main() {
       );
 
       testWidgets(
+        'holds a card the player has no choice about only for a moment if '
+        'animations are disabled',
+        (tester) async {
+          final notifier = notifierWith(drawn: sausages);
+          await pumpDrawnCard(tester, notifier, disableAnimations: true);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.holdDuration);
+          await tester.pump(const Duration(milliseconds: 1));
+
+          expect(notifier.game.drawnCard, isNull);
+        },
+      );
+
+      testWidgets(
         'places a card whose slot is empty once it has been face up for a '
         'moment',
         (tester) async {

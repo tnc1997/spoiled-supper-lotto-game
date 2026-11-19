@@ -60,7 +60,7 @@ class _DrawnCardState extends State<DrawnCard>
   )..addStatusListener(_onStatusChanged);
 
   /// The part of [_controller] in which the card turns face up.
-  late final Animation<double> _flip = CurvedAnimation(
+  late final CurvedAnimation _flip = CurvedAnimation(
     parent: _controller,
     curve: Interval(
       0,
@@ -88,13 +88,19 @@ class _DrawnCardState extends State<DrawnCard>
       if (card == null) {
         _controller.reset();
       } else {
-        _controller.forward(from: 0);
+        _controller.forward(
+          from: MediaQuery.disableAnimationsOf(context)
+              ? DrawnCard.flipDuration.inMicroseconds /
+                  _controller.duration!.inMicroseconds
+              : 0,
+        );
       }
     }
   }
 
   @override
   void dispose() {
+    _flip.dispose();
     _controller.dispose();
     super.dispose();
   }
