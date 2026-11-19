@@ -10,7 +10,6 @@ import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/game_screen.dart';
 import 'package:spoiled_supper_lotto_game/plate.dart';
-import 'package:spoiled_supper_lotto_game/turn_banner.dart';
 
 void main() {
   group(
@@ -75,19 +74,40 @@ void main() {
       );
 
       testWidgets(
-        'shows whose turn it is in the turn banner',
+        'announces whose turn it is as a header in a live region',
         (tester) async {
           await tester.pumpWidget(
             const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
           );
 
           expect(
-            find.descendant(
-              of: find.byType(TurnBanner),
-              matching: find.text("Sam's turn"),
+            tester.getSemantics(find.text("Sam's turn")),
+            matchesSemantics(
+              label: "Sam's turn",
+              isHeader: true,
+              isLiveRegion: true,
             ),
-            findsOneWidget,
           );
+        },
+      );
+
+      testWidgets(
+        'shows whose turn it is in the headlineSmall text style',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: ThemeData(
+                textTheme: const TextTheme(
+                  headlineSmall: TextStyle(fontFamily: 'Fredoka'),
+                ),
+              ),
+              home: const GameScreen(playerNames: ['Sam', 'Alex']),
+            ),
+          );
+
+          final text = tester.widget<Text>(find.text("Sam's turn"));
+
+          expect(text.style?.fontFamily, 'Fredoka');
         },
       );
 
