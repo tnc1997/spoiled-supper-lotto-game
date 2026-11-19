@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 
+import 'discard_pile.dart';
 import 'draw_pile.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
@@ -67,16 +68,20 @@ class _GameScreenState extends State<GameScreen> {
                   spacing: 24,
                   children: [
                     Heading("${player.name}'s turn"),
-                    // Shrinks the plate and draw pile together, rather than
-                    // overflowing, on narrow screens, so that the pile's
-                    // card stays the size of the plate's.
+                    // Shrinks the plate and piles together, rather than
+                    // overflowing, on narrow screens, so that the piles'
+                    // cards stay the size of the plate's.
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Column(
                         spacing: 24,
                         children: [
                           Plate(player: player),
-                          const DrawPile(),
+                          const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 24,
+                            children: [DrawPile(), DiscardPile()],
+                          ),
                         ],
                       ),
                     ),

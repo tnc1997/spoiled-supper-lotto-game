@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_frame.dart';
+import 'package:spoiled_supper_lotto_game/discard_pile.dart';
 import 'package:spoiled_supper_lotto_game/draw_pile.dart';
 import 'package:spoiled_supper_lotto_game/empty_slot.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
@@ -127,6 +128,24 @@ void main() {
       );
 
       testWidgets(
+        'shows the discard pile, empty at the start of the game',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(find.byType(DiscardPile), findsOneWidget);
+          expect(
+            find.descendant(
+              of: find.byType(DiscardPile),
+              matching: find.text('0 cards'),
+            ),
+            findsOneWidget,
+          );
+        },
+      );
+
+      testWidgets(
         'fits the plate on a narrow screen',
         (tester) async {
           tester.view
@@ -147,7 +166,7 @@ void main() {
       );
 
       testWidgets(
-        "shrinks the draw pile with the plate, keeping it the plate's card size",
+        "shrinks the piles with the plate, keeping them the plate's card size",
         (tester) async {
           tester.view
             ..physicalSize = const Size(360, 740)
@@ -174,9 +193,17 @@ void main() {
                 .first,
           );
 
+          final discardPile = tester.getRect(
+            find.descendant(
+              of: find.byType(DiscardPile),
+              matching: find.byType(EmptySlot),
+            ),
+          );
+
           expect(tester.takeException(), isNull);
           expect(slot.width, lessThan(120));
           expect(pile.width, moreOrLessEquals(slot.width));
+          expect(discardPile.width, moreOrLessEquals(slot.width));
         },
       );
 
