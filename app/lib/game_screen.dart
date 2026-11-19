@@ -86,8 +86,12 @@ class _GameScreenState extends State<GameScreen> {
                         spacing: 24,
                         children: [
                           Plate(player: player),
+                          // Lines up the cards' tops, rather than centring
+                          // them, so that the piles' count labels hang below
+                          // and don't push the drawn card down.
                           const Row(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 24,
                             children: [DrawPile(), DiscardPile(), DrawnCard()],
                           ),

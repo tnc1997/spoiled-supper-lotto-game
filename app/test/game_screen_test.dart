@@ -184,6 +184,35 @@ void main() {
       );
 
       testWidgets(
+        'lines up the drawn card with the draw and discard piles',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          notifierOf(tester).drawFromDrawPile();
+          await tester.pump();
+
+          final drawPile = tester.getRect(
+            find.descendant(
+              of: find.byType(DrawPile),
+              matching: find.byType(CardFrame),
+            ),
+          );
+          final discardPile = tester.getRect(
+            find.descendant(
+              of: find.byType(DiscardPile),
+              matching: find.byType(EmptySlot),
+            ),
+          );
+          final drawnCard = tester.getRect(find.byType(DrawnCard));
+
+          expect(drawnCard.top, moreOrLessEquals(drawPile.top));
+          expect(drawnCard.top, moreOrLessEquals(discardPile.top));
+        },
+      );
+
+      testWidgets(
         'fits the plate on a narrow screen',
         (tester) async {
           tester.view
