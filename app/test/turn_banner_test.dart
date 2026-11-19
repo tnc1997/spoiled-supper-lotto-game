@@ -52,16 +52,41 @@ void main() {
         );
       }
 
-      /// Returns the decoration around [name] in the list of players.
-      ShapeDecoration decorationOf(WidgetTester tester, String name) {
-        return tester
-            .widget<DecoratedBox>(
-              find.ancestor(
-                of: find.text(name),
-                matching: find.byType(DecoratedBox),
-              ),
-            )
-            .decoration as ShapeDecoration;
+      /// Expects [current]'s name to be highlighted, with a different fill,
+      /// border and text colour from each of the [others], which all look the
+      /// same.
+      void expectHighlighted(
+        WidgetTester tester,
+        String current,
+        List<String> others,
+      ) {
+        ({Color? fill, ShapeBorder border, Color? text}) lookOf(String name) {
+          final decoration = tester
+              .widget<DecoratedBox>(
+                find.ancestor(
+                  of: find.text(name),
+                  matching: find.byType(DecoratedBox),
+                ),
+              )
+              .decoration as ShapeDecoration;
+
+          return (
+            fill: decoration.color,
+            border: decoration.shape,
+            text: tester.widget<Text>(find.text(name)).style?.color,
+          );
+        }
+
+        final highlighted = lookOf(current);
+
+        for (final other in others) {
+          final look = lookOf(other);
+
+          expect(look, lookOf(others.first));
+          expect(look.fill, isNot(highlighted.fill));
+          expect(look.border, isNot(highlighted.border));
+          expect(look.text, isNot(highlighted.text));
+        }
       }
 
       testWidgets(
@@ -124,9 +149,7 @@ void main() {
         (tester) async {
           await pumpBanner(tester, notifierFor());
 
-          expect(decorationOf(tester, 'Sam').color, isNotNull);
-          expect(decorationOf(tester, 'Alex').color, isNull);
-          expect(decorationOf(tester, 'Jo').color, isNull);
+          expectHighlighted(tester, 'Sam', ['Alex', 'Jo']);
         },
       );
 
@@ -162,8 +185,7 @@ void main() {
           await tester.pump();
 
           expect(find.text("Alex's turn"), findsOneWidget);
-          expect(decorationOf(tester, 'Sam').color, isNull);
-          expect(decorationOf(tester, 'Alex').color, isNotNull);
+          expectHighlighted(tester, 'Alex', ['Sam', 'Jo']);
         },
       );
     },
