@@ -8,9 +8,10 @@ import 'pile.dart';
 /// number of cards left in it below.
 ///
 /// Tapping the pile draws its top card, while the current player can draw
-/// from it. Once the pile is empty, it shows as a plain card-shaped area,
-/// and drawing from it refills it from the discard pile, as the game's
-/// rules do.
+/// from it. Once the pile is empty, it shows as a plain card-shaped area
+/// that can't be drawn from. The game refills it from the discard pile at
+/// the end of the play that empties it, so it only stays empty while the
+/// discard pile has 1 card or none.
 class DrawPile extends StatelessWidget {
   /// The width of the pile, in logical pixels.
   final double cardWidth;
