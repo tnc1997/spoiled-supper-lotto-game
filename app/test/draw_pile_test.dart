@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_aspect_ratio.dart';
+import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/draw_pile.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
@@ -128,6 +129,7 @@ void main() {
 
           expect(find.text('Empty'), findsOneWidget);
           expect(find.text('0 cards'), findsOneWidget);
+          expect(find.byType(CardFrame), findsNothing);
         },
       );
 
