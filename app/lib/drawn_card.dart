@@ -1,4 +1,3 @@
-import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
 import 'card_aspect_ratio.dart';
@@ -56,7 +55,7 @@ class DrawnCard extends StatelessWidget {
                     (flipDuration + holdDuration).inMicroseconds,
                 curve: Curves.easeInOut,
               ),
-              onEnd: () => _playIfNoChoice(notifier, card),
+              onEnd: () => _playIfNoChoice(notifier),
               builder: (context, value, child) {
                 final progress = reduceMotion ? 1.0 : value;
 
@@ -75,14 +74,13 @@ class DrawnCard extends StatelessWidget {
     );
   }
 
-  /// Places or discards [card] for the player, if it's still drawn and can
-  /// only be played one way.
-  static void _playIfNoChoice(GameNotifier notifier, engine.Card card) {
+  /// Places or discards the drawn card for the player, if it can only be
+  /// played one way.
+  ///
+  /// Does nothing once the card has been played, since no card is drawn
+  /// again until [DrawnCard] has rebuilt, which ends this card's animation.
+  static void _playIfNoChoice(GameNotifier notifier) {
     final game = notifier.game;
-
-    if (game.drawnCard != card) {
-      return;
-    }
 
     if (game.canPlaceDrawnCard && !game.canDiscardDrawnCard) {
       notifier.placeDrawnCard();
