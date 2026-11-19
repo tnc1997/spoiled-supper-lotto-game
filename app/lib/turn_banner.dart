@@ -65,7 +65,9 @@ class _PlayerName extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Semantics(
-      selected: isCurrent,
+      // Leaves the other players without a selected state, rather than
+      // announcing them as not selected, since the names can't be chosen.
+      selected: isCurrent ? true : null,
       child: DecoratedBox(
         decoration: ShapeDecoration(
           color: isCurrent ? colorScheme.primaryContainer : null,

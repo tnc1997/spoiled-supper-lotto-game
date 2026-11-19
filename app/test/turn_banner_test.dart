@@ -131,7 +131,7 @@ void main() {
       );
 
       testWidgets(
-        'announces the current player as selected',
+        'announces only the current player as selected',
         (tester) async {
           await pumpBanner(tester, notifierFor());
 
@@ -145,7 +145,7 @@ void main() {
           );
           expect(
             tester.getSemantics(find.text('Alex')),
-            matchesSemantics(label: 'Alex', hasSelectedState: true),
+            matchesSemantics(label: 'Alex'),
           );
         },
       );
