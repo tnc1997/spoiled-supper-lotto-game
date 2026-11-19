@@ -31,9 +31,10 @@ abstract interface class Game {
   /// The cards still to be drawn, with the top of the pile last.
   ///
   /// Once the last card is drawn, the pile is refilled at the end of that
-  /// play by shuffling every card under the top card of the [discardPile]
-  /// into it, so it's only empty while the discard pile has 1 card or
-  /// none.
+  /// play, unless it wins the game, by shuffling every card under the top
+  /// card of the [discardPile] into it, so during play it's only empty
+  /// while the discard pile has 1 card or none. A game built with an
+  /// empty draw pile keeps it empty until the end of the next play.
   List<Card> get drawPile;
 
   /// The discarded cards, with the most recently discarded card last.
