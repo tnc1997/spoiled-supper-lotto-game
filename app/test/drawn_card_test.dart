@@ -3,6 +3,7 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_back.dart';
+import 'package:spoiled_supper_lotto_game/card_flip_duration.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
@@ -71,14 +72,7 @@ void main() {
               data: MediaQueryData(disableAnimations: disableAnimations),
               child: GameScope(
                 notifier: notifier,
-                child: Center(
-                  child: DrawnCard(
-                    builder: (context, card, actions) => Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [card, actions],
-                    ),
-                  ),
-                ),
+                child: const Center(child: DrawnCard()),
               ),
             ),
           ),
@@ -110,7 +104,7 @@ void main() {
           expect(find.byType(CardBack), findsOneWidget);
           expect(find.byType(Card), findsNothing);
 
-          await tester.pump(DrawnCard.flipDuration);
+          await tester.pump(cardFlipDuration);
 
           expect(find.byType(CardBack), findsNothing);
           expect(tester.widget<Card>(find.byType(Card)).card, sausages);
@@ -134,7 +128,7 @@ void main() {
             findsOneWidget,
           );
 
-          await tester.pump(DrawnCard.flipDuration);
+          await tester.pump(cardFlipDuration);
 
           expect(
             tester.getSemantics(
@@ -160,7 +154,6 @@ void main() {
 
           expect(find.byType(CardBack), findsNothing);
           expect(find.byType(Card), findsOneWidget);
-          expect(find.text('Place').hitTestable(), findsOneWidget);
         },
       );
 
@@ -189,9 +182,8 @@ void main() {
 
           notifier.drawFromDrawPile();
           await tester.pump();
-          await tester.pump(DrawnCard.flipDuration);
+          await tester.pump(cardFlipDuration);
 
-          expect(find.text('Place').hitTestable(), findsNothing);
           expect(notifier.game.drawnCard, sausages);
 
           await tester.pumpAndSettle();
@@ -235,71 +227,17 @@ void main() {
           await pumpDrawnCard(tester, notifier);
 
           notifier.drawFromDrawPile();
-          await tester.pump();
-
-          expect(find.text('Place').hitTestable(), findsNothing);
-          expect(find.text('Discard').hitTestable(), findsNothing);
-
           await tester.pumpAndSettle();
 
-          expect(find.text('Place').hitTestable(), findsOneWidget);
-          expect(find.text('Discard').hitTestable(), findsOneWidget);
           expect(notifier.game.drawnCard, sausages);
+          expect(tester.widget<Card>(find.byType(Card)).card, sausages);
         },
       );
 
       testWidgets(
-        'places the card, discarding the one it replaces, when Place is '
-        'tapped',
+        'keeps its space on the table while no card is drawn',
         (tester) async {
-          final notifier = notifierWith(
-            drawn: sausages,
-            plate: [fishFingers],
-          );
-          await pumpDrawnCard(tester, notifier);
-
-          notifier.drawFromDrawPile();
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Place').hitTestable());
-          await tester.pump();
-
-          expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
-          expect(notifier.game.discardPile, [fishFingers]);
-          expect(find.text('Place').hitTestable(), findsNothing);
-        },
-      );
-
-      testWidgets(
-        'discards the card when Discard is tapped',
-        (tester) async {
-          final notifier = notifierWith(
-            drawn: sausages,
-            plate: [fishFingers],
-          );
-          await pumpDrawnCard(tester, notifier);
-
-          notifier.drawFromDrawPile();
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Discard').hitTestable());
-          await tester.pump();
-
-          expect(
-            notifier.game.plateOf(alice)[engine.Category.main],
-            fishFingers,
-          );
-          expect(notifier.game.discardPile, [sausages]);
-          expect(find.text('Discard').hitTestable(), findsNothing);
-        },
-      );
-
-      testWidgets(
-        'keeps the space of the card and its actions while there is nothing '
-        'to show in them',
-        (tester) async {
-          final notifier = notifierWith(
-            drawn: sausages,
-            plate: [fishFingers],
-          );
+          final notifier = notifierWith(drawn: sausages);
           await pumpDrawnCard(tester, notifier);
 
           final emptySize = tester.getSize(find.byType(DrawnCard));
@@ -308,29 +246,6 @@ void main() {
           await tester.pump();
 
           expect(tester.getSize(find.byType(DrawnCard)), emptySize);
-
-          await tester.pumpAndSettle();
-
-          expect(find.text('Place').hitTestable(), findsOneWidget);
-          expect(tester.getSize(find.byType(DrawnCard)), emptySize);
-        },
-      );
-
-      testWidgets(
-        'disables its actions while they are hidden',
-        (tester) async {
-          await pumpDrawnCard(tester, notifierWith(drawn: sausages));
-
-          expect(
-            tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
-            isNull,
-          );
-          expect(
-            tester
-                .widget<OutlinedButton>(find.byType(OutlinedButton))
-                .onPressed,
-            isNull,
-          );
         },
       );
     },

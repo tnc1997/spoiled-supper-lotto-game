@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'discard_pile.dart';
 import 'draw_pile.dart';
 import 'drawn_card.dart';
+import 'drawn_card_actions.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
 import 'heading.dart';
@@ -76,37 +77,26 @@ class _GameScreenState extends State<GameScreen> {
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                     ),
-                    DrawnCard(
-                      builder: (context, drawnCard, actions) => Column(
+                    // Shrinks the plate and piles together, rather than
+                    // overflowing, on narrow screens, so that the piles'
+                    // cards stay the size of the plate's.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
                         spacing: 24,
                         children: [
-                          // Shrinks the plate and piles together, rather
-                          // than overflowing, on narrow screens, so that the
-                          // piles' cards stay the size of the plate's.
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Column(
-                              spacing: 24,
-                              children: [
-                                Plate(player: player),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: 24,
-                                  children: [
-                                    const DrawPile(),
-                                    const DiscardPile(),
-                                    drawnCard,
-                                  ],
-                                ),
-                              ],
-                            ),
+                          Plate(player: player),
+                          const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 24,
+                            children: [DrawPile(), DiscardPile(), DrawnCard()],
                           ),
-                          // Keeps the drawn card's actions full size, below
-                          // the table, so that they're easy to tap.
-                          actions,
                         ],
                       ),
                     ),
+                    // Keeps the drawn card's actions full size, below the
+                    // table, so that they're easy to tap.
+                    const DrawnCardActions(),
                   ],
                 );
               },

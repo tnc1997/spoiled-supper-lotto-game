@@ -6,6 +6,7 @@ import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/discard_pile.dart';
 import 'package:spoiled_supper_lotto_game/draw_pile.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
+import 'package:spoiled_supper_lotto_game/drawn_card_actions.dart';
 import 'package:spoiled_supper_lotto_game/empty_slot.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
@@ -153,13 +154,14 @@ void main() {
       );
 
       testWidgets(
-        'shows the drawn card',
+        'shows the drawn card and its actions',
         (tester) async {
           await tester.pumpWidget(
             const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
           );
 
           expect(find.byType(DrawnCard), findsOneWidget);
+          expect(find.byType(DrawnCardActions), findsOneWidget);
         },
       );
 
