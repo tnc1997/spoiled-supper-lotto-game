@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/discard_pile.dart';
 import 'package:spoiled_supper_lotto_game/draw_pile.dart';
+import 'package:spoiled_supper_lotto_game/drawn_card.dart';
 import 'package:spoiled_supper_lotto_game/empty_slot.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
@@ -148,6 +149,17 @@ void main() {
 
           expect(find.byType(DrawPile), findsOneWidget);
           expect(find.text('$count cards'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'shows the drawn card',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(find.byType(DrawnCard), findsOneWidget);
         },
       );
 

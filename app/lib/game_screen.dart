@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'discard_pile.dart';
 import 'draw_pile.dart';
+import 'drawn_card.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
 import 'heading.dart';
@@ -86,8 +87,11 @@ class _GameScreenState extends State<GameScreen> {
                           Plate(player: player),
                           const Row(
                             mainAxisSize: MainAxisSize.min,
+                            // Keeps the piles in line with the drawn card
+                            // while it shows its actions below it.
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 24,
-                            children: [DrawPile(), DiscardPile()],
+                            children: [DrawPile(), DiscardPile(), DrawnCard()],
                           ),
                         ],
                       ),
