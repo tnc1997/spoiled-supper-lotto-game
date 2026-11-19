@@ -74,7 +74,7 @@ void main() {
       );
 
       testWidgets(
-        'shows whose turn it is as a header',
+        'announces whose turn it is as a header in a live region',
         (tester) async {
           await tester.pumpWidget(
             const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
@@ -82,8 +82,32 @@ void main() {
 
           expect(
             tester.getSemantics(find.text("Sam's turn")),
-            matchesSemantics(label: "Sam's turn", isHeader: true),
+            matchesSemantics(
+              label: "Sam's turn",
+              isHeader: true,
+              isLiveRegion: true,
+            ),
           );
+        },
+      );
+
+      testWidgets(
+        'shows whose turn it is in the headlineSmall text style',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: ThemeData(
+                textTheme: const TextTheme(
+                  headlineSmall: TextStyle(fontFamily: 'Fredoka'),
+                ),
+              ),
+              home: const GameScreen(playerNames: ['Sam', 'Alex']),
+            ),
+          );
+
+          final text = tester.widget<Text>(find.text("Sam's turn"));
+
+          expect(text.style?.fontFamily, 'Fredoka');
         },
       );
 

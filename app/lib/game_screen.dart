@@ -67,7 +67,14 @@ class _GameScreenState extends State<GameScreen> {
                 return Column(
                   spacing: 24,
                   children: [
-                    Heading("${player.name}'s turn"),
+                    // Announces each new turn to a screen reader.
+                    Semantics(
+                      liveRegion: true,
+                      child: Heading(
+                        "${player.name}'s turn",
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                    ),
                     // Shrinks the plate and piles together, rather than
                     // overflowing, on narrow screens, so that the piles'
                     // cards stay the size of the plate's.
