@@ -1,13 +1,9 @@
-import 'dart:math';
-
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
-import 'card.dart';
 import 'card_aspect_ratio.dart';
-import 'card_back.dart';
-import 'card_frame.dart';
 import 'card_semantic_label.dart';
+import 'flipping_card.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
 
@@ -61,32 +57,18 @@ class DrawnCard extends StatelessWidget {
                 curve: Curves.easeInOut,
               ),
               onEnd: () => _playIfNoChoice(notifier, card),
-              builder: (context, flip, child) {
-                final isFaceUp = reduceMotion || flip == 1;
-                // Turns the card over about its upright axis, swapping its
-                // back for its face halfway, when it's edge on.
-                final angle = reduceMotion ? pi : flip * pi;
-                final showsFace = angle >= pi / 2;
+              builder: (context, value, child) {
+                final progress = reduceMotion ? 1.0 : value;
 
                 // Announces the card once it's face up, as a screen reader
                 // can't see it turn over.
                 return Semantics(
                   container: true,
                   liveRegion: true,
-                  excludeSemantics: true,
-                  label: isFaceUp
+                  label: progress == 1
                       ? 'Drawn card, ${card.semanticLabel}'
                       : 'Drawn card',
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.identity()
-                      // Adds perspective, so the near edge looks bigger.
-                      ..setEntry(3, 2, 0.001)
-                      ..rotateY(showsFace ? angle - pi : angle),
-                    child: CardFrame(
-                      child: showsFace ? Card(card: card) : const CardBack(),
-                    ),
-                  ),
+                  child: FlippingCard(card: card, progress: progress),
                 );
               },
             ),
