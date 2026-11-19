@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/discard_pile.dart';
 import 'package:spoiled_supper_lotto_game/draw_pile.dart';
+import 'package:spoiled_supper_lotto_game/drawn_card.dart';
+import 'package:spoiled_supper_lotto_game/drawn_card_actions.dart';
 import 'package:spoiled_supper_lotto_game/empty_slot.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
@@ -152,6 +154,18 @@ void main() {
       );
 
       testWidgets(
+        'shows the drawn card and its actions',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(find.byType(DrawnCard), findsOneWidget);
+          expect(find.byType(DrawnCardActions), findsOneWidget);
+        },
+      );
+
+      testWidgets(
         'shows the discard pile, empty at the start of the game',
         (tester) async {
           await tester.pumpWidget(
@@ -186,6 +200,28 @@ void main() {
             tester.getRect(find.byType(Plate)).width,
             lessThanOrEqualTo(360 - 2 * 24),
           );
+        },
+      );
+
+      testWidgets(
+        "keeps the drawn card's actions full size on a narrow screen",
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(360, 740)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          // Measures the actions, which keep their space while hidden.
+          for (final button in [FilledButton, OutlinedButton]) {
+            expect(
+              tester.getSize(find.byType(button)).height,
+              greaterThanOrEqualTo(kMinInteractiveDimension),
+            );
+          }
         },
       );
 

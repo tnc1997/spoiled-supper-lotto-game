@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 
 import 'discard_pile.dart';
 import 'draw_pile.dart';
+import 'drawn_card.dart';
+import 'drawn_card_actions.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
 import 'heading.dart';
@@ -87,11 +89,14 @@ class _GameScreenState extends State<GameScreen> {
                           const Row(
                             mainAxisSize: MainAxisSize.min,
                             spacing: 24,
-                            children: [DrawPile(), DiscardPile()],
+                            children: [DrawPile(), DiscardPile(), DrawnCard()],
                           ),
                         ],
                       ),
                     ),
+                    // Keeps the drawn card's actions full size, below the
+                    // table, so that they're easy to tap.
+                    const DrawnCardActions(),
                   ],
                 );
               },
