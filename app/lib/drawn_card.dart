@@ -47,7 +47,7 @@ class DrawnCard extends StatelessWidget {
       height: cardWidth / cardAspectRatio,
       child: card == null
           ? null
-          // Starts again from face down for each card drawn.
+          // Starts again for each card drawn.
           : TweenAnimationBuilder<double>(
               key: ObjectKey(card),
               tween: Tween(begin: 0, end: 1),

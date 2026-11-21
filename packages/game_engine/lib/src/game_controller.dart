@@ -38,13 +38,13 @@ class GameController implements Game {
   /// by player, and a player without an entry starts with an empty plate.
   /// [currentPlayerIndex] is the index into [players] of the player
   /// whose turn it is, and [drawnCard] is a card they have already drawn
-  /// and not yet played, from the pile given by [drawnFrom]. A player whose plate is already full is the
-  /// [winner], so the game is over and [currentPlayerIndex] defaults to
-  /// theirs; otherwise it defaults to the first player's. Pass a seeded
-  /// [random] for reproducible reshuffles of the discard pile. The piles
-  /// are held as given, so an empty draw pile is only refilled at the end
-  /// of the next play. To set up a new game, use [GameController.start]
-  /// instead.
+  /// and not yet played, from the pile given by [drawnFrom]. A player
+  /// whose plate is already full is the [winner], so the game is over and
+  /// [currentPlayerIndex] defaults to theirs; otherwise it defaults to the
+  /// first player's. Pass a seeded [random] for reproducible reshuffles of
+  /// the discard pile. The piles are held as given, so an empty draw pile
+  /// is only refilled at the end of the next play. To set up a new game,
+  /// use [GameController.start] instead.
   ///
   /// Throws an [ArgumentError] if there are fewer than [minPlayers] or more
   /// than [maxPlayers] players, if the same [Player] instance is in
