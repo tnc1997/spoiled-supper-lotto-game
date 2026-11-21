@@ -53,7 +53,7 @@ class GameController implements Game {
   /// share a category, if more than one player's plate is full, since a
   /// game can only have one winner, if [currentPlayerIndex] is out of
   /// range, if it isn't the winner's index once the game is over, or if
-  /// [drawnFrom] is given without a [drawnCard].
+  /// only one of [drawnCard] and [drawnFrom] is given.
   GameController({
     required List<Player> players,
     Map<Player, List<Card>> plates = const {},
@@ -98,11 +98,11 @@ class GameController implements Game {
       );
     }
 
-    if (drawnFrom != null && drawnCard == null) {
+    if ((drawnCard == null) != (drawnFrom == null)) {
       throw ArgumentError.value(
         drawnFrom,
         'drawnFrom',
-        'Must only be given with a drawnCard',
+        'Must be given if and only if drawnCard is given',
       );
     }
 

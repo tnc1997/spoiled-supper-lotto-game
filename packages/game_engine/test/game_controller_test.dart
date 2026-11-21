@@ -99,6 +99,7 @@ void main() {
             drawPile: drawPile,
             discardPile: discardPile,
             drawnCard: drawnCard,
+            drawnFrom: drawnCard == null ? null : Pile.draw,
           );
 
       /// A game in which [alice] has drawn [drawnCard] and not yet played it.
@@ -111,6 +112,7 @@ void main() {
             plates: plates,
             drawPile: [],
             drawnCard: drawnCard,
+            drawnFrom: Pile.draw,
           );
 
       /// Makes [move], ignoring the [StateError] it throws, so that a test
@@ -528,6 +530,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [sausages],
                 drawnCard: milk,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.drawnCard, milk);
@@ -535,15 +538,19 @@ void main() {
           );
 
           test(
-            'defaults to not knowing which pile the drawn card came from',
+            'throws if a drawn card is given without its pile',
             () {
-              final controller = GameController(
-                players: [alice, bob],
-                drawPile: [sausages],
-                drawnCard: milk,
+              expect(
+                () => GameController(
+                  players: [alice, bob],
+                  drawPile: [sausages],
+                  drawnCard: milk,
+                ),
+                throwsA(
+                  isA<ArgumentError>()
+                      .having((e) => e.name, 'name', 'drawnFrom'),
+                ),
               );
-
-              expect(controller.drawnFrom, isNull);
             },
           );
 
@@ -860,6 +867,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -878,6 +886,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
               final before = controller.plateOf(alice);
 
@@ -897,6 +906,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
               final before = controller.plateOf(alice);
 
@@ -976,6 +986,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -1059,6 +1070,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [fishFingers, milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller
@@ -1108,6 +1120,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -1126,6 +1139,7 @@ void main() {
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -1165,6 +1179,7 @@ void main() {
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
               controller
                 ..discardDrawnCard()
@@ -1253,6 +1268,7 @@ void main() {
                 },
                 drawPile: [fishFingers],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -1271,6 +1287,7 @@ void main() {
                 },
                 drawPile: [fishFingers],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -1289,6 +1306,7 @@ void main() {
                 },
                 drawPile: [fishFingers],
                 drawnCard: fishBone,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -1307,6 +1325,7 @@ void main() {
                 },
                 drawPile: [fishFingers],
                 drawnCard: leatherBoot,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -1388,6 +1407,7 @@ void main() {
                 },
                 drawPile: [fishFingers],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -1774,6 +1794,7 @@ void main() {
                 drawPile: [sausages],
                 discardPile: [milk],
                 drawnCard: fishFingers,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.canDrawFromDrawPile, isFalse);
@@ -1825,6 +1846,7 @@ void main() {
                 drawPile: [],
                 discardPile: [milk],
                 drawnCard: fishFingers,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.canDrawFromDiscardPile, isFalse);
@@ -1921,6 +1943,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [sausages],
                 drawnCard: milk,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.drawFromDrawPile, throwsStateError);
@@ -1982,6 +2005,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [sausages],
                 drawnCard: milk,
+                drawnFrom: Pile.draw,
               );
 
               attempt(controller.drawFromDrawPile);
@@ -2125,6 +2149,7 @@ void main() {
                 drawPile: [],
                 discardPile: [sausages],
                 drawnCard: milk,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.drawFromDiscardPile, throwsStateError);
@@ -2158,6 +2183,7 @@ void main() {
                 drawPile: [],
                 discardPile: [sausages],
                 drawnCard: milk,
+                drawnFrom: Pile.draw,
               );
 
               attempt(controller.drawFromDiscardPile);
@@ -2189,6 +2215,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2204,6 +2231,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [],
                 drawnCard: fishBone,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2220,6 +2248,7 @@ void main() {
                 drawPile: [],
                 discardPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2238,6 +2267,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2257,6 +2287,7 @@ void main() {
                 drawPile: [water],
                 discardPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2275,6 +2306,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2294,6 +2326,7 @@ void main() {
                 drawPile: [water],
                 discardPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2388,6 +2421,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2421,6 +2455,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2436,6 +2471,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2451,6 +2487,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2469,6 +2506,7 @@ void main() {
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.placeDrawnCard();
@@ -2547,6 +2585,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: fishBone,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.placeDrawnCard, throwsStateError);
@@ -2563,6 +2602,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: fishBone,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.placeDrawnCard, throwsStateError);
@@ -2602,6 +2642,7 @@ void main() {
                     },
                     drawPile: [milk],
                     drawnCard: fishBone,
+                    drawnFrom: Pile.draw,
                   );
 
               test(
@@ -2666,6 +2707,7 @@ void main() {
                 drawPile: [water],
                 discardPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2684,6 +2726,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2703,6 +2746,7 @@ void main() {
                 drawPile: [water],
                 discardPile: [milk],
                 drawnCard: fishBone,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2721,6 +2765,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: fishBone,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2739,6 +2784,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2797,6 +2843,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2815,6 +2862,7 @@ void main() {
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2833,6 +2881,7 @@ void main() {
                 },
                 drawPile: [milk],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               controller.discardDrawnCard();
@@ -2851,6 +2900,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.discardDrawnCard, throwsStateError);
@@ -2864,6 +2914,7 @@ void main() {
                 players: [alice, bob],
                 drawPile: [],
                 drawnCard: fishBone,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.discardDrawnCard, throwsStateError);
@@ -2880,6 +2931,7 @@ void main() {
                 },
                 drawPile: [],
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
               );
 
               expect(controller.discardDrawnCard, throwsStateError);
@@ -2922,6 +2974,7 @@ void main() {
                     },
                     drawPile: [fishFingers],
                     drawnCard: sausages,
+                    drawnFrom: Pile.draw,
                   );
 
               test(
@@ -3190,6 +3243,7 @@ void main() {
                 drawPile: [],
                 discardPile: deck,
                 drawnCard: sausages,
+                drawnFrom: Pile.draw,
                 random: Random(42),
               );
 

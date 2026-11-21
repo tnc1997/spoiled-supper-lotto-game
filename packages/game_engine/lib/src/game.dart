@@ -87,8 +87,7 @@ abstract interface class Game {
   ///
   /// Use this to tell whether the players have already seen the drawn
   /// card, since a card drawn from the [Pile.discard] pile was face up on
-  /// top of it. This can also be `null` while a card is drawn, if the game
-  /// was set up mid-turn without saying which pile it came from.
+  /// top of it.
   Pile? get drawnFrom;
 
   /// Whether the [drawnCard] can be placed, i.e. the game isn't over, a
