@@ -1,6 +1,7 @@
 import 'card.dart';
 import 'card_type.dart';
 import 'game_controller.dart';
+import 'pile.dart';
 import 'plate.dart';
 import 'player.dart';
 
@@ -80,6 +81,15 @@ abstract interface class Game {
   /// The card the current player has drawn and not yet played, or `null`
   /// if they haven't drawn one.
   Card? get drawnCard;
+
+  /// The pile the [drawnCard] was drawn from, or `null` if no card has
+  /// been drawn.
+  ///
+  /// Use this to tell whether the players have already seen the drawn
+  /// card, since a card drawn from the [Pile.discard] pile was face up on
+  /// top of it. This can also be `null` while a card is drawn, if the game
+  /// was set up mid-turn without saying which pile it came from.
+  Pile? get drawnFrom;
 
   /// Whether the [drawnCard] can be placed, i.e. the game isn't over, a
   /// card has been drawn and it's either a [CardType.standard] card or its

@@ -533,6 +533,50 @@ void main() {
               expect(controller.drawnCard, milk);
             },
           );
+
+          test(
+            'defaults to not knowing which pile the drawn card came from',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                drawnCard: milk,
+              );
+
+              expect(controller.drawnFrom, isNull);
+            },
+          );
+
+          test(
+            'holds the given pile the drawn card came from',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                drawnCard: milk,
+                drawnFrom: Pile.discard,
+              );
+
+              expect(controller.drawnFrom, Pile.discard);
+            },
+          );
+
+          test(
+            'throws if the pile is given without a drawn card',
+            () {
+              expect(
+                () => GameController(
+                  players: [alice, bob],
+                  drawPile: [sausages],
+                  drawnFrom: Pile.draw,
+                ),
+                throwsA(
+                  isA<ArgumentError>()
+                      .having((e) => e.name, 'name', 'drawnFrom'),
+                ),
+              );
+            },
+          );
         },
       );
 
@@ -1349,6 +1393,125 @@ void main() {
               controller.placeDrawnCard();
 
               expect(controller.isGameOver, isTrue);
+            },
+          );
+        },
+      );
+
+      group(
+        'drawnFrom',
+        () {
+          test(
+            'is null before a card has been drawn',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+              );
+
+              expect(controller.drawnFrom, isNull);
+            },
+          );
+
+          test(
+            'is the draw pile once a card is drawn from it',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+              );
+
+              controller.drawFromDrawPile();
+
+              expect(controller.drawnFrom, Pile.draw);
+            },
+          );
+
+          test(
+            'is the discard pile once a card is drawn from it',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+              );
+
+              controller.drawFromDiscardPile();
+
+              expect(controller.drawnFrom, Pile.discard);
+            },
+          );
+
+          test(
+            'is null once the drawn card is placed',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+              );
+
+              controller
+                ..drawFromDiscardPile()
+                ..placeDrawnCard();
+
+              expect(controller.drawnFrom, isNull);
+            },
+          );
+
+          test(
+            'is null once the drawn card is discarded',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                plates: {
+                  alice: [fishFingers],
+                },
+                drawPile: [milk, sausages],
+              );
+
+              controller
+                ..drawFromDrawPile()
+                ..discardDrawnCard();
+
+              expect(controller.drawnFrom, isNull);
+            },
+          );
+
+          test(
+            'is null once a winning card is placed',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                plates: {
+                  alice: [...allButMain],
+                },
+                drawPile: [fishFingers],
+                discardPile: [sausages],
+              );
+
+              controller
+                ..drawFromDiscardPile()
+                ..placeDrawnCard();
+
+              expect(controller.drawnFrom, isNull);
+            },
+          );
+
+          test(
+            'does not change if a move throws',
+            () {
+              final controller = GameController(
+                players: [alice, bob],
+                drawPile: [sausages],
+                discardPile: [milk],
+              );
+              controller.drawFromDrawPile();
+
+              attempt(controller.drawFromDiscardPile);
+
+              expect(controller.drawnFrom, Pile.draw);
             },
           );
         },

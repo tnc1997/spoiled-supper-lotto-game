@@ -5,6 +5,7 @@ import 'card.dart';
 import 'card_type.dart';
 import 'deck.dart';
 import 'game.dart';
+import 'pile.dart';
 import 'plate.dart';
 import 'player.dart';
 import 'shuffle.dart';
@@ -27,6 +28,7 @@ class GameController implements Game {
   int? _lastPlayerIndex;
   int? _winnerIndex;
   Card? _drawnCard;
+  Pile? _drawnFrom;
   final Random? _random;
 
   /// Holds the given state as-is.
@@ -36,7 +38,7 @@ class GameController implements Game {
   /// by player, and a player without an entry starts with an empty plate.
   /// [currentPlayerIndex] is the index into [players] of the player
   /// whose turn it is, and [drawnCard] is a card they have already drawn
-  /// and not yet played. A player whose plate is already full is the
+  /// and not yet played, from the pile given by [drawnFrom]. A player whose plate is already full is the
   /// [winner], so the game is over and [currentPlayerIndex] defaults to
   /// theirs; otherwise it defaults to the first player's. Pass a seeded
   /// [random] for reproducible reshuffles of the discard pile. The piles
@@ -50,7 +52,8 @@ class GameController implements Game {
   /// a key of [plates] isn't one of [players], if two of a player's cards
   /// share a category, if more than one player's plate is full, since a
   /// game can only have one winner, if [currentPlayerIndex] is out of
-  /// range, or if it isn't the winner's index once the game is over.
+  /// range, if it isn't the winner's index once the game is over, or if
+  /// [drawnFrom] is given without a [drawnCard].
   GameController({
     required List<Player> players,
     Map<Player, List<Card>> plates = const {},
@@ -58,6 +61,7 @@ class GameController implements Game {
     List<Card> discardPile = const [],
     int? currentPlayerIndex,
     Card? drawnCard,
+    Pile? drawnFrom,
     Random? random,
   }) : this._(
           seats: _seatsOf(players, plates),
@@ -65,6 +69,7 @@ class GameController implements Game {
           discardPile: discardPile,
           currentPlayerIndex: currentPlayerIndex,
           drawnCard: drawnCard,
+          drawnFrom: drawnFrom,
           random: random,
         );
 
@@ -74,6 +79,7 @@ class GameController implements Game {
     required List<Card> discardPile,
     required int? currentPlayerIndex,
     required Card? drawnCard,
+    required Pile? drawnFrom,
     required Random? random,
   })  : _seats = seats,
         players = List.unmodifiable([for (final seat in seats) seat.player]),
@@ -82,12 +88,21 @@ class GameController implements Game {
         _currentPlayerIndex = currentPlayerIndex ?? 0,
         _winnerIndex = _findWinnerIndex(seats),
         _drawnCard = drawnCard,
+        _drawnFrom = drawnFrom,
         _random = random {
     if (_seats.length < minPlayers || _seats.length > maxPlayers) {
       throw ArgumentError.value(
         _seats.length,
         'players',
         'Must have between $minPlayers and $maxPlayers players',
+      );
+    }
+
+    if (drawnFrom != null && drawnCard == null) {
+      throw ArgumentError.value(
+        drawnFrom,
+        'drawnFrom',
+        'Must only be given with a drawnCard',
       );
     }
 
@@ -194,6 +209,9 @@ class GameController implements Game {
   @override
   Card? get drawnCard => _drawnCard;
 
+  @override
+  Pile? get drawnFrom => _drawnFrom;
+
   /// Whether [placeDrawnCard] can be called, i.e. the game isn't over, a
   /// card has been drawn and it's either a [CardType.standard] card or its
   /// slot on the current player's plate is empty.
@@ -232,7 +250,8 @@ class GameController implements Game {
       !isGameOver && _drawnCard == null && _discardPile.isNotEmpty;
 
   /// Removes the top card from the draw pile and holds it as the
-  /// [drawnCard] until the current player plays it.
+  /// [drawnCard] until the current player plays it, with [drawnFrom] set to
+  /// [Pile.draw].
   ///
   /// An empty draw pile isn't refilled here, since it's refilled from the
   /// discard pile at the end of the play that empties it, whenever the
@@ -252,10 +271,12 @@ class GameController implements Game {
     }
 
     _drawnCard = _drawPile.removeLast();
+    _drawnFrom = Pile.draw;
   }
 
   /// Removes the top card from the discard pile and holds it as the
-  /// [drawnCard] until the current player plays it.
+  /// [drawnCard] until the current player plays it, with [drawnFrom] set to
+  /// [Pile.discard].
   ///
   /// Throws a [StateError] if the game is over, if a card has already been
   /// drawn and not yet played, or if the discard pile is empty.
@@ -271,6 +292,7 @@ class GameController implements Game {
     }
 
     _drawnCard = _discardPile.removeLast();
+    _drawnFrom = Pile.discard;
   }
 
   /// Places the [drawnCard] into the slot for its category on the current
@@ -344,6 +366,7 @@ class GameController implements Game {
   /// refilled if it has run out.
   void _finishPlay() {
     _drawnCard = null;
+    _drawnFrom = null;
     _lastPlayerIndex = _currentPlayerIndex;
 
     if (_currentSeat.plate.isFull) {

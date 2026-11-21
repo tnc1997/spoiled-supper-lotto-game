@@ -8,6 +8,7 @@ export 'src/category.dart';
 export 'src/deck.dart';
 export 'src/game.dart';
 export 'src/game_controller.dart';
+export 'src/pile.dart';
 export 'src/plate.dart';
 export 'src/player.dart';
 export 'src/shuffle.dart';
