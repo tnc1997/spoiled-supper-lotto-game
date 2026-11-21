@@ -42,16 +42,19 @@ void main() {
 
       /// Returns a notifier for a game between Alice, with [plate] on her
       /// plate, and Bob, in which Alice is about to draw [drawn] from the
-      /// draw pile, disposed of after the test.
+      /// top of the draw pile, or of the discard pile if [onDiscardPile],
+      /// disposed of after the test.
       GameNotifier notifierWith({
         required engine.Card drawn,
         List<engine.Card> plate = const [],
+        bool onDiscardPile = false,
       }) {
         final notifier = GameNotifier(
           engine.GameController(
             players: [alice, engine.Player(name: 'Bob')],
             plates: {alice: plate},
-            drawPile: [peas, drawn],
+            drawPile: [peas, if (!onDiscardPile) drawn],
+            discardPile: [if (onDiscardPile) drawn],
           ),
         );
         addTearDown(notifier.dispose);
@@ -139,6 +142,47 @@ void main() {
       );
 
       testWidgets(
+        'shows a card drawn from the discard pile face up straight away',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+            onDiscardPile: true,
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDiscardPile();
+          await tester.pump();
+
+          expect(find.byType(CardBack), findsNothing);
+          expect(tester.widget<Card>(find.byType(Card)).card, sausages);
+        },
+      );
+
+      testWidgets(
+        'announces a card drawn from the discard pile straight away',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+            onDiscardPile: true,
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDiscardPile();
+          await tester.pump();
+
+          expect(find.bySemanticsLabel('Drawn card'), findsNothing);
+          expect(
+            tester.getSemantics(
+              find.bySemanticsLabel('Drawn card, Sausages, Main'),
+            ),
+            isSemantics(isLiveRegion: true),
+          );
+        },
+      );
+
+      testWidgets(
         'shows the drawn card face up straight away if animations are '
         'disabled',
         (tester) async {
@@ -194,6 +238,28 @@ void main() {
       );
 
       testWidgets(
+        'places a card drawn from the discard pile whose slot is empty once '
+        'it has been face up for a moment',
+        (tester) async {
+          final notifier = notifierWith(drawn: sausages, onDiscardPile: true);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDiscardPile();
+          await tester.pump();
+          await tester.pump(
+            DrawnCard.holdDuration - const Duration(milliseconds: 1),
+          );
+
+          expect(notifier.game.drawnCard, sausages);
+
+          await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.game.drawnCard, isNull);
+          expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
+        },
+      );
+
+      testWidgets(
         'discards a spoiled card whose slot is filled once it has been face '
         'up for a moment',
         (tester) async {
@@ -226,6 +292,25 @@ void main() {
           await pumpDrawnCard(tester, notifier);
 
           notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+
+          expect(notifier.game.drawnCard, sausages);
+          expect(tester.widget<Card>(find.byType(Card)).card, sausages);
+        },
+      );
+
+      testWidgets(
+        'waits for the player to choose for a card drawn from the discard '
+        'pile whose slot is filled',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+            onDiscardPile: true,
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDiscardPile();
           await tester.pumpAndSettle();
 
           expect(notifier.game.drawnCard, sausages);

@@ -1,3 +1,4 @@
+import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
 import 'card_aspect_ratio.dart';
@@ -8,7 +9,8 @@ import 'game_scope.dart';
 
 /// Shows the card the current player has drawn, from the closest
 /// [GameScope], turning it over from face down to face up as it's drawn,
-/// over [flipDuration].
+/// over [flipDuration]. A card drawn from the discard pile is shown face up
+/// straight away, since it was already face up on the pile.
 ///
 /// If the card can only be played one way, it's then held face up for
 /// [holdDuration] before it's placed or discarded for the player. Otherwise
@@ -33,22 +35,25 @@ class DrawnCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final notifier = GameScope.of(context);
-    final card = notifier.game.drawnCard;
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final game = notifier.game;
+    final card = game.drawnCard;
+    // A card from the discard pile is already face up, so there's nothing
+    // to turn over.
+    final shouldFlip = !MediaQuery.disableAnimationsOf(context) &&
+        game.drawnFrom != engine.Pile.discard;
 
     return SizedBox(
       width: cardWidth,
       height: cardWidth / cardAspectRatio,
       child: card == null
           ? null
-          // Starts again from face down for each card drawn.
+          // Starts again for each card drawn.
           : TweenAnimationBuilder<double>(
               key: ObjectKey(card),
               tween: Tween(begin: 0, end: 1),
               // Turns the card over, then holds it face up, or only holds
-              // it if animations are disabled.
-              duration:
-                  reduceMotion ? holdDuration : flipDuration + holdDuration,
+              // it if it's already face up or animations are disabled.
+              duration: shouldFlip ? flipDuration + holdDuration : holdDuration,
               curve: Interval(
                 0,
                 flipDuration.inMicroseconds /
@@ -57,7 +62,7 @@ class DrawnCard extends StatelessWidget {
               ),
               onEnd: () => _playIfNoChoice(notifier),
               builder: (context, value, child) {
-                final progress = reduceMotion ? 1.0 : value;
+                final progress = shouldFlip ? value : 1.0;
 
                 // Announces the card once it's face up, as a screen reader
                 // can't see it turn over.
