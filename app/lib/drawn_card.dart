@@ -39,8 +39,8 @@ class DrawnCard extends StatelessWidget {
     final card = game.drawnCard;
     // A card from the discard pile is already face up, so there's nothing
     // to turn over.
-    final skipFlip = MediaQuery.disableAnimationsOf(context) ||
-        game.drawnFrom == engine.Pile.discard;
+    final shouldFlip = !MediaQuery.disableAnimationsOf(context) &&
+        game.drawnFrom != engine.Pile.discard;
 
     return SizedBox(
       width: cardWidth,
@@ -53,7 +53,7 @@ class DrawnCard extends StatelessWidget {
               tween: Tween(begin: 0, end: 1),
               // Turns the card over, then holds it face up, or only holds
               // it if it's already face up or animations are disabled.
-              duration: skipFlip ? holdDuration : flipDuration + holdDuration,
+              duration: shouldFlip ? flipDuration + holdDuration : holdDuration,
               curve: Interval(
                 0,
                 flipDuration.inMicroseconds /
@@ -62,7 +62,7 @@ class DrawnCard extends StatelessWidget {
               ),
               onEnd: () => _playIfNoChoice(notifier),
               builder: (context, value, child) {
-                final progress = skipFlip ? 1.0 : value;
+                final progress = shouldFlip ? value : 1.0;
 
                 // Announces the card once it's face up, as a screen reader
                 // can't see it turn over.
