@@ -6,6 +6,7 @@ import 'package:spoiled_supper_lotto_game/card_back.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
+import 'package:spoiled_supper_lotto_game/spoiled_reveal.dart';
 
 void main() {
   group(
@@ -315,6 +316,69 @@ void main() {
 
           expect(notifier.game.drawnCard, sausages);
           expect(tester.widget<Card>(find.byType(Card)).card, sausages);
+        },
+      );
+
+      testWidgets(
+        'reveals a spoiled card once it is face up',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+
+          expect(find.byType(SpoiledReveal), findsNothing);
+
+          await tester.pump(DrawnCard.flipDuration);
+
+          expect(find.byType(SpoiledReveal), findsOneWidget);
+          expect(
+            tester.widget<SpoiledReveal>(find.byType(SpoiledReveal)).duration,
+            DrawnCard.holdDuration,
+          );
+        },
+      );
+
+      testWidgets(
+        'reveals a spoiled card straight away if animations are disabled',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier, disableAnimations: true);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+
+          expect(find.byType(SpoiledReveal), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'does not reveal a standard card',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+
+          expect(find.byType(SpoiledReveal), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'does not reveal a spoiled card drawn from the discard pile',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone, onDiscardPile: true);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDiscardPile();
+          await tester.pump();
+
+          expect(find.byType(SpoiledReveal), findsNothing);
         },
       );
 

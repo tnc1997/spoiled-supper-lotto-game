@@ -6,6 +6,7 @@ import 'card_semantic_label.dart';
 import 'flipping_card.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
+import 'spoiled_reveal.dart';
 
 /// Shows the card the current player has drawn, from the closest
 /// [GameScope], turning it over from face down to face up as it's drawn,
@@ -15,6 +16,10 @@ import 'game_scope.dart';
 /// If the card can only be played one way, it's then held face up for
 /// [holdDuration] before it's placed or discarded for the player. Otherwise
 /// the player chooses with the `DrawnCardActions`.
+///
+/// A Spoiled card drawn from the draw pile is revealed with a
+/// [SpoiledReveal] once it's face up. One from the discard pile isn't,
+/// since it was already face up.
 ///
 /// While no card has been drawn, it keeps its space on the table, empty,
 /// so that nothing around it moves when a card is drawn.
@@ -41,6 +46,8 @@ class DrawnCard extends StatelessWidget {
     // to turn over.
     final shouldFlip = !MediaQuery.disableAnimationsOf(context) &&
         game.drawnFrom != engine.Pile.discard;
+    final isSpoiledReveal = card?.type == engine.CardType.spoiled &&
+        game.drawnFrom == engine.Pile.draw;
 
     return SizedBox(
       width: cardWidth,
@@ -66,7 +73,7 @@ class DrawnCard extends StatelessWidget {
 
                 // Announces the card once it's face up, as a screen reader
                 // can't see it turn over.
-                return Semantics(
+                final drawnCard = Semantics(
                   container: true,
                   liveRegion: true,
                   label: progress == 1
@@ -74,6 +81,10 @@ class DrawnCard extends StatelessWidget {
                       : 'Drawn card',
                   child: FlippingCard(card: card, progress: progress),
                 );
+
+                return isSpoiledReveal && progress == 1
+                    ? SpoiledReveal(duration: holdDuration, child: drawnCard)
+                    : drawnCard;
               },
             ),
     );
