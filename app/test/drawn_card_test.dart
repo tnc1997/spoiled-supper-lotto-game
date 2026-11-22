@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_back.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
+import 'package:spoiled_supper_lotto_game/flipping_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 
@@ -315,6 +316,127 @@ void main() {
 
           expect(notifier.game.drawnCard, sausages);
           expect(tester.widget<Card>(find.byType(Card)).card, sausages);
+        },
+      );
+
+      testWidgets(
+        'calls out a spoiled card once it is face up',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+
+          expect(find.text('Spoiled!'), findsNothing);
+
+          await tester.pump(DrawnCard.flipDuration);
+
+          expect(find.text('Spoiled!'), findsOneWidget);
+          expect(
+            tester.widget<Text>(find.text('Spoiled!')).style?.fontSize,
+            Theme.of(
+              tester.element(find.byType(DrawnCard)),
+            ).textTheme.displaySmall?.fontSize,
+          );
+
+          await tester.pumpAndSettle();
+
+          expect(find.text('Spoiled!'), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'does not call out a standard card',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+
+          expect(find.text('Spoiled!'), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'shakes a spoiled card while it is held face up',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration);
+
+          final restingLeft = tester.getTopLeft(find.byType(DrawnCard)).dx;
+
+          await tester.pump(DrawnCard.holdDuration ~/ 16);
+
+          expect(
+            tester.getTopLeft(find.byType(FlippingCard)).dx,
+            isNot(moreOrLessEquals(restingLeft)),
+          );
+        },
+      );
+
+      testWidgets(
+        'does not shake a standard card',
+        (tester) async {
+          final notifier = notifierWith(drawn: sausages);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration);
+          await tester.pump(DrawnCard.holdDuration ~/ 16);
+
+          expect(
+            tester.getTopLeft(find.byType(FlippingCard)).dx,
+            moreOrLessEquals(tester.getTopLeft(find.byType(DrawnCard)).dx),
+          );
+        },
+      );
+
+      testWidgets(
+        'calls out a spoiled card without shaking it if animations are '
+        'disabled',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier, disableAnimations: true);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+
+          expect(find.text('Spoiled!'), findsOneWidget);
+
+          await tester.pump(DrawnCard.holdDuration ~/ 16);
+
+          expect(
+            tester.getTopLeft(find.byType(FlippingCard)).dx,
+            moreOrLessEquals(tester.getTopLeft(find.byType(DrawnCard)).dx),
+          );
+        },
+      );
+
+      testWidgets(
+        'leaves the callout out of the semantics tree',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration);
+
+          expect(find.bySemanticsLabel('Spoiled!'), findsNothing);
+          expect(
+            find.bySemanticsLabel('Drawn card, Fish Bone, Main, Spoiled'),
+            findsOneWidget,
+          );
         },
       );
 

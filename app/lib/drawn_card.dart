@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 
@@ -15,6 +17,9 @@ import 'game_scope.dart';
 /// If the card can only be played one way, it's then held face up for
 /// [holdDuration] before it's placed or discarded for the player. Otherwise
 /// the player chooses with the `DrawnCardActions`.
+///
+/// A Spoiled card is called out with "Spoiled!" once it's face up, and
+/// shakes while it's held, unless animations are disabled.
 ///
 /// While no card has been drawn, it keeps its space on the table, empty,
 /// so that nothing around it moves when a card is drawn.
@@ -42,6 +47,13 @@ class DrawnCard extends StatelessWidget {
     final shouldFlip = !MediaQuery.disableAnimationsOf(context) &&
         game.drawnFrom != engine.Pile.discard;
 
+    final shouldShake = !MediaQuery.disableAnimationsOf(context) &&
+        card?.type == engine.CardType.spoiled;
+    final flipEnd = shouldFlip
+        ? flipDuration.inMicroseconds /
+            (flipDuration + holdDuration).inMicroseconds
+        : 0.0;
+
     return SizedBox(
       width: cardWidth,
       height: cardWidth / cardAspectRatio,
@@ -54,29 +66,52 @@ class DrawnCard extends StatelessWidget {
               // Turns the card over, then holds it face up, or only holds
               // it if it's already face up or animations are disabled.
               duration: shouldFlip ? flipDuration + holdDuration : holdDuration,
-              curve: Interval(
-                0,
-                flipDuration.inMicroseconds /
-                    (flipDuration + holdDuration).inMicroseconds,
-                curve: Curves.easeInOut,
-              ),
               onEnd: () => _playIfNoChoice(notifier),
               builder: (context, value, child) {
-                final progress = shouldFlip ? value : 1.0;
+                final progress = shouldFlip
+                    ? Interval(0, flipEnd, curve: Curves.easeInOut)
+                        .transform(value)
+                    : 1.0;
+                final isFaceUp = progress == 1;
+                final isSpoiled = card.type == engine.CardType.spoiled;
 
-                // Announces the card once it's face up, as a screen reader
-                // can't see it turn over.
-                return Semantics(
-                  container: true,
-                  liveRegion: true,
-                  label: progress == 1
-                      ? 'Drawn card, ${card.semanticLabel}'
-                      : 'Drawn card',
-                  child: FlippingCard(card: card, progress: progress),
+                return Transform.translate(
+                  offset: Offset(
+                    shouldShake
+                        ? _shakeOffset(Interval(flipEnd, 1).transform(value))
+                        : 0,
+                    0,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Announces the card once it's face up, as a screen
+                      // reader can't see it turn over.
+                      Semantics(
+                        container: true,
+                        liveRegion: true,
+                        label: isFaceUp
+                            ? 'Drawn card, ${card.semanticLabel}'
+                            : 'Drawn card',
+                        child: FlippingCard(card: card, progress: progress),
+                      ),
+                      // Calls out a Spoiled card once it's face up. Its
+                      // announcement already says it's Spoiled, so the
+                      // callout is only for show.
+                      if (isSpoiled && isFaceUp) const _SpoiledCallout(),
+                    ],
+                  ),
                 );
               },
             ),
     );
+  }
+
+  /// How far the card is shaken sideways, in logical pixels, [progress] of
+  /// the way through holding it face up, shaking a few times and settling.
+  static double _shakeOffset(double progress) {
+    return sin(progress * 4 * 2 * pi) * 8 * (1 - progress);
   }
 
   /// Places or discards the drawn card for the player, if it can only be
@@ -92,5 +127,41 @@ class DrawnCard extends StatelessWidget {
     } else if (game.canDiscardDrawnCard && !game.canPlaceDrawnCard) {
       notifier.discardDrawnCard();
     }
+  }
+}
+
+/// The "Spoiled!" callout shown across a Spoiled card as it's revealed, in
+/// the `displaySmall` text style, which is reserved for it.
+class _SpoiledCallout extends StatelessWidget {
+  const _SpoiledCallout();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ExcludeSemantics(
+      // Lets the callout be wider than the card.
+      child: OverflowBox(
+        maxWidth: double.infinity,
+        child: Transform.rotate(
+          angle: -pi / 12,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Text(
+                'Spoiled!',
+                style: theme.textTheme.displaySmall?.copyWith(
+                  color: theme.colorScheme.onErrorContainer,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
