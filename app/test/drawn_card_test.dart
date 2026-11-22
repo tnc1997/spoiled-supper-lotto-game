@@ -4,9 +4,9 @@ import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_back.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
-import 'package:spoiled_supper_lotto_game/flipping_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
+import 'package:spoiled_supper_lotto_game/spoiled_reveal.dart';
 
 void main() {
   group(
@@ -320,7 +320,7 @@ void main() {
       );
 
       testWidgets(
-        'calls out a spoiled card once it is face up',
+        'reveals a spoiled card once it is face up',
         (tester) async {
           final notifier = notifierWith(drawn: fishBone);
           await pumpDrawnCard(tester, notifier);
@@ -328,26 +328,33 @@ void main() {
           notifier.drawFromDrawPile();
           await tester.pump();
 
-          expect(find.text('Spoiled!'), findsNothing);
+          expect(find.byType(SpoiledReveal), findsNothing);
 
           await tester.pump(DrawnCard.flipDuration);
 
-          expect(find.text('Spoiled!'), findsOneWidget);
+          expect(find.byType(SpoiledReveal), findsOneWidget);
           expect(
-            tester.widget<Text>(find.text('Spoiled!')).style?.fontSize,
-            Theme.of(
-              tester.element(find.byType(DrawnCard)),
-            ).textTheme.displaySmall?.fontSize,
+            tester.widget<SpoiledReveal>(find.byType(SpoiledReveal)).duration,
+            DrawnCard.holdDuration,
           );
-
-          await tester.pumpAndSettle();
-
-          expect(find.text('Spoiled!'), findsNothing);
         },
       );
 
       testWidgets(
-        'does not call out a standard card',
+        'reveals a spoiled card straight away if animations are disabled',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier, disableAnimations: true);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+
+          expect(find.byType(SpoiledReveal), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'does not reveal a standard card',
         (tester) async {
           final notifier = notifierWith(
             drawn: sausages,
@@ -358,134 +365,20 @@ void main() {
           notifier.drawFromDrawPile();
           await tester.pumpAndSettle();
 
-          expect(find.text('Spoiled!'), findsNothing);
+          expect(find.byType(SpoiledReveal), findsNothing);
         },
       );
 
       testWidgets(
-        'shakes a spoiled card while it is held face up',
-        (tester) async {
-          final notifier = notifierWith(drawn: fishBone);
-          await pumpDrawnCard(tester, notifier);
-
-          notifier.drawFromDrawPile();
-          await tester.pump();
-          await tester.pump(DrawnCard.flipDuration);
-
-          final restingLeft = tester.getTopLeft(find.byType(DrawnCard)).dx;
-
-          await tester.pump(DrawnCard.holdDuration ~/ 16);
-
-          expect(
-            tester.getTopLeft(find.byType(FlippingCard)).dx,
-            isNot(moreOrLessEquals(restingLeft)),
-          );
-        },
-      );
-
-      testWidgets(
-        'does not shake a standard card',
-        (tester) async {
-          final notifier = notifierWith(drawn: sausages);
-          await pumpDrawnCard(tester, notifier);
-
-          notifier.drawFromDrawPile();
-          await tester.pump();
-          await tester.pump(DrawnCard.flipDuration);
-          await tester.pump(DrawnCard.holdDuration ~/ 16);
-
-          expect(
-            tester.getTopLeft(find.byType(FlippingCard)).dx,
-            moreOrLessEquals(tester.getTopLeft(find.byType(DrawnCard)).dx),
-          );
-        },
-      );
-
-      testWidgets(
-        'calls out a spoiled card without shaking it if animations are '
-        'disabled',
-        (tester) async {
-          final notifier = notifierWith(drawn: fishBone);
-          await pumpDrawnCard(tester, notifier, disableAnimations: true);
-
-          notifier.drawFromDrawPile();
-          await tester.pump();
-
-          expect(find.text('Spoiled!'), findsOneWidget);
-
-          await tester.pump(DrawnCard.holdDuration ~/ 16);
-
-          expect(
-            tester.getTopLeft(find.byType(FlippingCard)).dx,
-            moreOrLessEquals(tester.getTopLeft(find.byType(DrawnCard)).dx),
-          );
-        },
-      );
-
-      testWidgets(
-        'neither calls out nor shakes a spoiled card drawn from the discard '
-        'pile',
+        'does not reveal a spoiled card drawn from the discard pile',
         (tester) async {
           final notifier = notifierWith(drawn: fishBone, onDiscardPile: true);
           await pumpDrawnCard(tester, notifier);
 
           notifier.drawFromDiscardPile();
           await tester.pump();
-          await tester.pump(DrawnCard.holdDuration ~/ 16);
 
-          expect(find.text('Spoiled!'), findsNothing);
-          expect(
-            tester.getTopLeft(find.byType(FlippingCard)).dx,
-            moreOrLessEquals(tester.getTopLeft(find.byType(DrawnCard)).dx),
-          );
-        },
-      );
-
-      testWidgets(
-        'keeps the callout the same size with a larger text size',
-        (tester) async {
-          final notifier = notifierWith(drawn: fishBone);
-          await pumpDrawnCard(tester, notifier, disableAnimations: true);
-
-          notifier.drawFromDrawPile();
-          await tester.pump();
-
-          final size = tester.getSize(find.text('Spoiled!'));
-
-          await tester.pumpWidget(
-            MaterialApp(
-              home: MediaQuery(
-                data: const MediaQueryData(
-                  disableAnimations: true,
-                  textScaler: TextScaler.linear(2),
-                ),
-                child: GameScope(
-                  notifier: notifier,
-                  child: const Center(child: DrawnCard()),
-                ),
-              ),
-            ),
-          );
-
-          expect(tester.getSize(find.text('Spoiled!')), size);
-        },
-      );
-
-      testWidgets(
-        'leaves the callout out of the semantics tree',
-        (tester) async {
-          final notifier = notifierWith(drawn: fishBone);
-          await pumpDrawnCard(tester, notifier);
-
-          notifier.drawFromDrawPile();
-          await tester.pump();
-          await tester.pump(DrawnCard.flipDuration);
-
-          expect(find.bySemanticsLabel('Spoiled!'), findsNothing);
-          expect(
-            find.bySemanticsLabel('Drawn card, Fish Bone, Main, Spoiled'),
-            findsOneWidget,
-          );
+          expect(find.byType(SpoiledReveal), findsNothing);
         },
       );
 
