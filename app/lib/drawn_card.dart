@@ -18,8 +18,9 @@ import 'game_scope.dart';
 /// [holdDuration] before it's placed or discarded for the player. Otherwise
 /// the player chooses with the `DrawnCardActions`.
 ///
-/// A Spoiled card is called out with "Spoiled!" once it's face up, and
-/// shakes while it's held, unless animations are disabled.
+/// A Spoiled card drawn from the draw pile is called out with "Spoiled!"
+/// once it's face up, and shakes while it's held, unless animations are
+/// disabled. One from the discard pile isn't, since it was already face up.
 ///
 /// While no card has been drawn, it keeps its space on the table, empty,
 /// so that nothing around it moves when a card is drawn.
@@ -46,9 +47,12 @@ class DrawnCard extends StatelessWidget {
     // to turn over.
     final shouldFlip = !MediaQuery.disableAnimationsOf(context) &&
         game.drawnFrom != engine.Pile.discard;
-
-    final shouldShake = !MediaQuery.disableAnimationsOf(context) &&
-        card?.type == engine.CardType.spoiled;
+    // A Spoiled card is only revealed as it's drawn from the draw pile,
+    // since one from the discard pile was already face up.
+    final isSpoiledReveal = card?.type == engine.CardType.spoiled &&
+        game.drawnFrom == engine.Pile.draw;
+    final shouldShake =
+        !MediaQuery.disableAnimationsOf(context) && isSpoiledReveal;
     final flipEnd = shouldFlip
         ? flipDuration.inMicroseconds /
             (flipDuration + holdDuration).inMicroseconds
@@ -73,7 +77,6 @@ class DrawnCard extends StatelessWidget {
                         .transform(value)
                     : 1.0;
                 final isFaceUp = progress == 1;
-                final isSpoiled = card.type == engine.CardType.spoiled;
 
                 return Transform.translate(
                   offset: Offset(
@@ -96,10 +99,10 @@ class DrawnCard extends StatelessWidget {
                             : 'Drawn card',
                         child: FlippingCard(card: card, progress: progress),
                       ),
-                      // Calls out a Spoiled card once it's face up. Its
+                      // Calls out a Spoiled card once it's revealed. Its
                       // announcement already says it's Spoiled, so the
                       // callout is only for show.
-                      if (isSpoiled && isFaceUp) const _SpoiledCallout(),
+                      if (isSpoiledReveal && isFaceUp) const _SpoiledCallout(),
                     ],
                   ),
                 );
@@ -154,6 +157,9 @@ class _SpoiledCallout extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Text(
                 'Spoiled!',
+                // Keeps the callout from outgrowing the screen with a
+                // larger text size, since it's only for show.
+                textScaler: TextScaler.noScaling,
                 style: theme.textTheme.displaySmall?.copyWith(
                   color: theme.colorScheme.onErrorContainer,
                 ),

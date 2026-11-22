@@ -423,6 +423,55 @@ void main() {
       );
 
       testWidgets(
+        'neither calls out nor shakes a spoiled card drawn from the discard '
+        'pile',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone, onDiscardPile: true);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDiscardPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.holdDuration ~/ 16);
+
+          expect(find.text('Spoiled!'), findsNothing);
+          expect(
+            tester.getTopLeft(find.byType(FlippingCard)).dx,
+            moreOrLessEquals(tester.getTopLeft(find.byType(DrawnCard)).dx),
+          );
+        },
+      );
+
+      testWidgets(
+        'keeps the callout the same size with a larger text size',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier, disableAnimations: true);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+
+          final size = tester.getSize(find.text('Spoiled!'));
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: MediaQuery(
+                data: const MediaQueryData(
+                  disableAnimations: true,
+                  textScaler: TextScaler.linear(2),
+                ),
+                child: GameScope(
+                  notifier: notifier,
+                  child: const Center(child: DrawnCard()),
+                ),
+              ),
+            ),
+          );
+
+          expect(tester.getSize(find.text('Spoiled!')), size);
+        },
+      );
+
+      testWidgets(
         'leaves the callout out of the semantics tree',
         (tester) async {
           final notifier = notifierWith(drawn: fishBone);
