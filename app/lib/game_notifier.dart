@@ -48,8 +48,12 @@ class GameNotifier extends ChangeNotifier {
   /// [isPlacingDrawnCard], then notifies the listeners, so that the card
   /// can be shown going to its slot before [placeDrawnCard] places it.
   ///
-  /// Placing the card ends the turn, so the current player's plate is no
-  /// longer shown once it has been placed.
+  /// Placing the card ends the turn, unless it completes the player's meal,
+  /// so the current player's plate is usually no longer shown once it has
+  /// been placed.
+  ///
+  /// A `DrawnCard` must be shown to finish placing the card, by calling
+  /// [placeDrawnCard] once it's in its slot.
   ///
   /// Throws a [StateError] without notifying the listeners if the drawn
   /// card can't be placed, or if the notifier has been disposed.

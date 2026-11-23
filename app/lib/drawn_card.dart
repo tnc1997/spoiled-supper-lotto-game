@@ -47,6 +47,9 @@ class DrawnCard extends StatelessWidget {
 
   /// The key of the [Plate] that the card is placed on, for finding the
   /// card's slot, or `null` to place the card where it is.
+  ///
+  /// The plate's slots should be [cardWidth] wide, so that the card fills
+  /// its slot when it lands.
   final GlobalKey? plateKey;
 
   /// Shows the drawn card, [cardWidth] logical pixels wide, placing it on
@@ -70,7 +73,7 @@ class DrawnCard extends StatelessWidget {
     if (card != null && notifier.isPlacingDrawnCard) {
       return SizedBox.fromSize(
         size: size,
-        child: _placing(context, notifier, card),
+        child: _placing(context, notifier, card, isSpoiledReveal),
       );
     }
 
@@ -106,15 +109,19 @@ class DrawnCard extends StatelessWidget {
   }
 
   /// Shows [card] going to its slot on the plate, then places it.
+  ///
+  /// A Spoiled card that was revealed with a [SpoiledReveal] keeps its
+  /// callout on the way, without shaking again.
   Widget _placing(
     BuildContext context,
     GameNotifier notifier,
     engine.Card card,
+    bool isSpoiledReveal,
   ) {
     final slotOffset = _slotOffsetOf(context, card);
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
 
-    return TweenAnimationBuilder<double>(
+    final placing = TweenAnimationBuilder<double>(
       key: ValueKey(('placing', card)),
       tween: Tween(begin: 0, end: 1),
       duration: placeDuration,
@@ -128,8 +135,18 @@ class DrawnCard extends StatelessWidget {
           child: child,
         );
       },
-      child: _drawnCard(card, 1),
+      // Isn't a live region, so that the card, already announced as it
+      // turned face up, isn't announced again as it starts to move.
+      child: Semantics(
+        container: true,
+        label: 'Drawn card, ${card.semanticLabel}',
+        child: FlippingCard(card: card, progress: 1),
+      ),
     );
+
+    return isSpoiledReveal
+        ? SpoiledReveal(duration: Duration.zero, child: placing)
+        : placing;
   }
 
   /// Returns where the top left corner of [card]'s slot on the plate with
@@ -170,8 +187,8 @@ class DrawnCard extends StatelessWidget {
     );
   }
 
-  /// Places or discards the drawn card for the player, if it can only be
-  /// played one way.
+  /// Starts placing, or discards, the drawn card for the player, if it can
+  /// only be played one way.
   ///
   /// Does nothing once the card has been played, since no card is drawn
   /// again until [DrawnCard] has rebuilt, which ends this card's animation.

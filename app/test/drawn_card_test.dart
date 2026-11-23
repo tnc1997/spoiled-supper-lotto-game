@@ -483,6 +483,49 @@ void main() {
       );
 
       testWidgets(
+        'does not announce a card again as it starts going to its slot',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCardWithPlate(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+          notifier.startPlacingDrawnCard();
+          await tester.pump();
+
+          expect(
+            tester.getSemantics(
+              find.bySemanticsLabel('Drawn card, Sausages, Main'),
+            ),
+            isSemantics(isLiveRegion: false),
+          );
+        },
+      );
+
+      testWidgets(
+        'keeps the callout on a revealed spoiled card as it goes to its slot',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCardWithPlate(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration + DrawnCard.holdDuration);
+          await tester.pump(const Duration(milliseconds: 1));
+
+          expect(notifier.isPlacingDrawnCard, isTrue);
+          expect(find.text('Spoiled!'), findsOneWidget);
+          expect(
+            tester.widget<SpoiledReveal>(find.byType(SpoiledReveal)).duration,
+            Duration.zero,
+          );
+        },
+      );
+
+      testWidgets(
         'shows a card chosen to be placed in its slot straight away if '
         'animations are disabled',
         (tester) async {
