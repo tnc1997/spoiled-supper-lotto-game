@@ -6,6 +6,7 @@ import 'card_semantic_label.dart';
 import 'flipping_card.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
+import 'plate.dart';
 import 'spoiled_reveal.dart';
 
 /// Shows the card the current player has drawn, from the closest
@@ -16,6 +17,12 @@ import 'spoiled_reveal.dart';
 /// If the card can only be played one way, it's then held face up for
 /// [holdDuration] before it's placed or discarded for the player. Otherwise
 /// the player chooses with the `DrawnCardActions`.
+///
+/// Once the card is chosen to be placed, with
+/// [GameNotifier.startPlacingDrawnCard], it goes to its slot on the plate
+/// with [plateKey], over [placeDuration], and is then placed, so that the
+/// player sees it land on their plate before their turn ends. If
+/// animations are disabled, it's shown in its slot straight away instead.
 ///
 /// A Spoiled card drawn from the draw pile is revealed with a
 /// [SpoiledReveal] once it's face up. One from the discard pile isn't,
@@ -31,11 +38,20 @@ class DrawnCard extends StatelessWidget {
   /// when they have no choice.
   static const holdDuration = Duration(milliseconds: 600);
 
+  /// How long the card takes to go to its slot on the plate, once it's
+  /// chosen to be placed.
+  static const placeDuration = Duration(milliseconds: 400);
+
   /// The width of the card, in logical pixels.
   final double cardWidth;
 
-  /// Shows the drawn card, [cardWidth] logical pixels wide.
-  const DrawnCard({super.key, this.cardWidth = 120});
+  /// The key of the [Plate] that the card is placed on, for finding the
+  /// card's slot, or `null` to place the card where it is.
+  final GlobalKey? plateKey;
+
+  /// Shows the drawn card, [cardWidth] logical pixels wide, placing it on
+  /// the [Plate] with [plateKey].
+  const DrawnCard({super.key, this.cardWidth = 120, this.plateKey});
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +65,17 @@ class DrawnCard extends StatelessWidget {
     final isSpoiledReveal = card?.type == engine.CardType.spoiled &&
         game.drawnFrom == engine.Pile.draw;
 
-    return SizedBox(
-      width: cardWidth,
-      height: cardWidth / cardAspectRatio,
+    final size = Size(cardWidth, cardWidth / cardAspectRatio);
+
+    if (card != null && notifier.isPlacingDrawnCard) {
+      return SizedBox.fromSize(
+        size: size,
+        child: _placing(context, notifier, card),
+      );
+    }
+
+    return SizedBox.fromSize(
+      size: size,
       child: card == null
           ? null
           // Starts again for each card drawn.
@@ -71,22 +95,78 @@ class DrawnCard extends StatelessWidget {
               builder: (context, value, child) {
                 final progress = shouldFlip ? value : 1.0;
 
-                // Announces the card once it's face up, as a screen reader
-                // can't see it turn over.
-                final drawnCard = Semantics(
-                  container: true,
-                  liveRegion: true,
-                  label: progress == 1
-                      ? 'Drawn card, ${card.semanticLabel}'
-                      : 'Drawn card',
-                  child: FlippingCard(card: card, progress: progress),
-                );
+                final drawnCard = _drawnCard(card, progress);
 
                 return isSpoiledReveal && progress == 1
                     ? SpoiledReveal(duration: holdDuration, child: drawnCard)
                     : drawnCard;
               },
             ),
+    );
+  }
+
+  /// Shows [card] going to its slot on the plate, then places it.
+  Widget _placing(
+    BuildContext context,
+    GameNotifier notifier,
+    engine.Card card,
+  ) {
+    final slotOffset = _slotOffsetOf(context, card);
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(('placing', card)),
+      tween: Tween(begin: 0, end: 1),
+      duration: placeDuration,
+      curve: Curves.easeInOut,
+      onEnd: notifier.placeDrawnCard,
+      builder: (context, value, child) {
+        return Transform.translate(
+          // Shows the card in its slot straight away if animations are
+          // disabled, so that the player still sees it on their plate.
+          offset: slotOffset * (disableAnimations ? 1 : value),
+          child: child,
+        );
+      },
+      child: _drawnCard(card, 1),
+    );
+  }
+
+  /// Returns where the top left corner of [card]'s slot on the plate with
+  /// [plateKey] is, from where the drawn card is shown in [context], or
+  /// [Offset.zero] if the plate isn't shown.
+  ///
+  /// The plate and the drawn card don't move as the card is placed, so this
+  /// is read from where they were last laid out.
+  Offset _slotOffsetOf(BuildContext context, engine.Card card) {
+    final plateContext = plateKey?.currentContext;
+    final plate = plateContext?.widget;
+    final plateBox = plateContext?.findRenderObject();
+    final box = context.findRenderObject();
+
+    if (plate is! Plate ||
+        plateBox is! RenderBox ||
+        !plateBox.hasSize ||
+        box is! RenderBox ||
+        !box.hasSize) {
+      return Offset.zero;
+    }
+
+    return box.globalToLocal(
+      plateBox.localToGlobal(plate.slotOffsetOf(card.category)),
+    );
+  }
+
+  /// Shows [card], [progress] of the way through turning face up.
+  ///
+  /// Announces the card once it's face up, as a screen reader can't see it
+  /// turn over.
+  static Widget _drawnCard(engine.Card card, double progress) {
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: progress == 1 ? 'Drawn card, ${card.semanticLabel}' : 'Drawn card',
+      child: FlippingCard(card: card, progress: progress),
     );
   }
 
@@ -99,7 +179,7 @@ class DrawnCard extends StatelessWidget {
     final game = notifier.game;
 
     if (game.canPlaceDrawnCard && !game.canDiscardDrawnCard) {
-      notifier.placeDrawnCard();
+      notifier.startPlacingDrawnCard();
     } else if (game.canDiscardDrawnCard && !game.canPlaceDrawnCard) {
       notifier.discardDrawnCard();
     }

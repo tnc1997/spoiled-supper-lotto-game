@@ -3,9 +3,11 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_back.dart';
+import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
+import 'package:spoiled_supper_lotto_game/plate.dart';
 import 'package:spoiled_supper_lotto_game/spoiled_reveal.dart';
 
 void main() {
@@ -212,6 +214,8 @@ void main() {
           await tester.pump();
           await tester.pump(DrawnCard.holdDuration);
           await tester.pump(const Duration(milliseconds: 1));
+          await tester.pump(DrawnCard.placeDuration);
+          await tester.pump(const Duration(milliseconds: 1));
 
           expect(notifier.game.drawnCard, isNull);
         },
@@ -254,6 +258,11 @@ void main() {
           expect(notifier.game.drawnCard, sausages);
 
           await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.isPlacingDrawnCard, isTrue);
+
+          await tester.pump(DrawnCard.placeDuration);
+          await tester.pump(const Duration(milliseconds: 1));
 
           expect(notifier.game.drawnCard, isNull);
           expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
@@ -379,6 +388,134 @@ void main() {
           await tester.pump();
 
           expect(find.byType(SpoiledReveal), findsNothing);
+        },
+      );
+
+      /// Shows Alice's plate above the drawn card of the game of
+      /// [notifier], with the drawn card placed on it.
+      Future<void> pumpDrawnCardWithPlate(
+        WidgetTester tester,
+        GameNotifier notifier, {
+        bool disableAnimations = false,
+      }) {
+        final plateKey = GlobalKey();
+
+        return tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(disableAnimations: disableAnimations),
+              child: GameScope(
+                notifier: notifier,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 24,
+                  children: [
+                    // Fits both on the test's screen.
+                    Plate(key: plateKey, player: alice, cardWidth: 60),
+                    DrawnCard(plateKey: plateKey, cardWidth: 60),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      /// Returns where the drawn card is on screen.
+      Rect drawnCardRect(WidgetTester tester) {
+        return tester.getRect(
+          find.descendant(
+            of: find.byType(DrawnCard),
+            matching: find.byType(CardFrame),
+          ),
+        );
+      }
+
+      /// Returns where the card in the main slot of the plate is on screen.
+      Rect mainSlotRect(WidgetTester tester) {
+        return tester.getRect(
+          find.descendant(of: find.byType(Plate), matching: find.byType(Card)),
+        );
+      }
+
+      testWidgets(
+        'takes a card chosen to be placed to its slot on the plate, then '
+        'places it',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCardWithPlate(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+
+          final start = drawnCardRect(tester);
+          final slot = mainSlotRect(tester);
+
+          notifier.startPlacingDrawnCard();
+          await tester.pump();
+
+          expect(drawnCardRect(tester), start);
+
+          await tester.pump(DrawnCard.placeDuration ~/ 2);
+
+          expect(drawnCardRect(tester).top, lessThan(start.top));
+          expect(drawnCardRect(tester).top, greaterThan(slot.top));
+
+          await tester.pump(
+            DrawnCard.placeDuration ~/ 2 - const Duration(milliseconds: 1),
+          );
+
+          expect(notifier.game.drawnCard, sausages);
+          expect(drawnCardRect(tester).topLeft.dx,
+              moreOrLessEquals(slot.left, epsilon: 1));
+          expect(drawnCardRect(tester).topLeft.dy,
+              moreOrLessEquals(slot.top, epsilon: 1));
+
+          await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.game.drawnCard, isNull);
+          expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
+          expect(notifier.game.discardPile, [fishFingers]);
+        },
+      );
+
+      testWidgets(
+        'shows a card chosen to be placed in its slot straight away if '
+        'animations are disabled',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCardWithPlate(
+            tester,
+            notifier,
+            disableAnimations: true,
+          );
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+
+          final slot = mainSlotRect(tester);
+
+          notifier.startPlacingDrawnCard();
+          await tester.pump();
+
+          expect(drawnCardRect(tester), rectMoreOrLessEquals(slot));
+
+          await tester.pump(
+            DrawnCard.placeDuration - const Duration(milliseconds: 1),
+          );
+
+          expect(notifier.game.drawnCard, sausages);
+
+          await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.game.drawnCard, isNull);
+          expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
         },
       );
 

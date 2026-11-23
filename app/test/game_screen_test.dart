@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_frame.dart';
+import 'package:spoiled_supper_lotto_game/category_label.dart';
 import 'package:spoiled_supper_lotto_game/discard_pile.dart';
 import 'package:spoiled_supper_lotto_game/draw_pile.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
@@ -293,6 +294,57 @@ void main() {
           expect(slot.width, lessThan(120));
           expect(pile.width, moreOrLessEquals(slot.width));
           expect(discardPile.width, moreOrLessEquals(slot.width));
+        },
+      );
+
+      testWidgets(
+        "takes a card being placed to its slot on the current player's "
+        'plate, shrunk with it on a narrow screen, before the turn ends',
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(360, 740)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+          final notifier = notifierOf(tester);
+          final card = notifier.game.drawPile.last;
+
+          // Every slot is empty, so the card is placed for Sam.
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration + DrawnCard.holdDuration);
+          await tester.pump(const Duration(milliseconds: 1));
+
+          expect(notifier.isPlacingDrawnCard, isTrue);
+
+          await tester.pump(
+            DrawnCard.placeDuration - const Duration(milliseconds: 1),
+          );
+
+          final drawnCard = tester.getRect(
+            find.descendant(
+              of: find.byType(DrawnCard),
+              matching: find.byType(CardFrame),
+            ),
+          );
+          final slot = tester.getRect(
+            find.bySemanticsLabel('${card.category.label}, empty'),
+          );
+
+          expect(find.text("Sam's turn"), findsOneWidget);
+          expect(drawnCard.left, moreOrLessEquals(slot.left, epsilon: 1));
+          expect(drawnCard.top, moreOrLessEquals(slot.top, epsilon: 1));
+          expect(drawnCard.width, moreOrLessEquals(slot.width));
+
+          await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.game.plateOf(notifier.game.players[0]).cards, [
+            card,
+          ]);
+          expect(find.text("Alex's turn"), findsOneWidget);
         },
       );
 

@@ -98,8 +98,7 @@ void main() {
       );
 
       testWidgets(
-        'places the card, discarding the one it replaces, when Place is '
-        'tapped',
+        'starts placing the card, and hides, when Place is tapped',
         (tester) async {
           final notifier = notifierWith(
             drawn: sausages,
@@ -112,9 +111,10 @@ void main() {
           await tester.tap(find.text('Place').hitTestable());
           await tester.pump();
 
-          expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
-          expect(notifier.game.discardPile, [fishFingers]);
+          expect(notifier.isPlacingDrawnCard, isTrue);
+          expect(notifier.game.drawnCard, sausages);
           expect(find.text('Place').hitTestable(), findsNothing);
+          expect(find.text('Discard').hitTestable(), findsNothing);
         },
       );
 

@@ -40,6 +40,20 @@ class Plate extends StatelessWidget {
   /// Shows [player]'s plate, with each slot [cardWidth] logical pixels wide.
   const Plate({super.key, required this.player, this.cardWidth = 120});
 
+  /// The width of the plate, which the row of slots runs the full width
+  /// of, in logical pixels.
+  double get _width =>
+      _categories.length * cardWidth + (_categories.length - 1) * _dividerWidth;
+
+  /// Returns where the top left corner of the slot for [category] is, from
+  /// the top left corner of the plate, e.g. for a card to be moved into it.
+  Offset slotOffsetOf(engine.Category category) {
+    return Offset(
+      _categories.indexOf(category) * (cardWidth + _dividerWidth),
+      (_width / plateAspectRatio - cardWidth / cardAspectRatio) / 2,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -67,16 +81,12 @@ class Plate extends StatelessWidget {
       child: ColoredBox(color: colorScheme.outlineVariant),
     );
 
-    // The row of slots runs the board's full width.
-    final width = _categories.length * cardWidth +
-        (_categories.length - 1) * _dividerWidth;
-
     return Semantics(
       container: true,
       label: "${player.name}'s plate",
       child: Container(
-        width: width,
-        height: width / plateAspectRatio,
+        width: _width,
+        height: _width / plateAspectRatio,
         color: colorScheme.surfaceContainer,
         alignment: Alignment.center,
         child: Row(
