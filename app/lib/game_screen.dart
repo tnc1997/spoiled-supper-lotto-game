@@ -35,6 +35,9 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   late final GameNotifier _notifier;
 
+  /// The key of the plate, so that the drawn card can find its slot on it.
+  final _plateKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -85,15 +88,19 @@ class _GameScreenState extends State<GameScreen> {
                       child: Column(
                         spacing: 24,
                         children: [
-                          Plate(player: player),
+                          Plate(key: _plateKey, player: player),
                           // Lines up the cards' tops, rather than centring
                           // them, so that the piles' count labels hang below
                           // and don't push the drawn card down.
-                          const Row(
+                          Row(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 24,
-                            children: [DrawPile(), DiscardPile(), DrawnCard()],
+                            children: [
+                              const DrawPile(),
+                              const DiscardPile(),
+                              DrawnCard(plateKey: _plateKey),
+                            ],
                           ),
                         ],
                       ),

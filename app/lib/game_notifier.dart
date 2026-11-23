@@ -15,6 +15,8 @@ class GameNotifier extends ChangeNotifier {
 
   bool _isDisposed = false;
 
+  bool _isPlacingDrawnCard = false;
+
   /// Wraps [controller], which should then only be changed through this
   /// notifier.
   GameNotifier(engine.GameController controller) : _controller = controller;
@@ -27,6 +29,13 @@ class GameNotifier extends ChangeNotifier {
   /// since only moves made through this notifier notify its listeners.
   engine.Game get game => _controller;
 
+  /// Whether the drawn card is on its way to its slot on the current
+  /// player's plate, having been chosen to be placed with
+  /// [startPlacingDrawnCard], but isn't placed yet.
+  ///
+  /// It goes back to `false` once the next move is made.
+  bool get isPlacingDrawnCard => _isPlacingDrawnCard;
+
   /// Draws the top card of the draw pile, as
   /// [engine.GameController.drawFromDrawPile] does.
   void drawFromDrawPile() => _play(_controller.drawFromDrawPile);
@@ -34,6 +43,30 @@ class GameNotifier extends ChangeNotifier {
   /// Draws the top card of the discard pile, as
   /// [engine.GameController.drawFromDiscardPile] does.
   void drawFromDiscardPile() => _play(_controller.drawFromDiscardPile);
+
+  /// Starts placing the drawn card on the current player's plate, setting
+  /// [isPlacingDrawnCard], then notifies the listeners, so that the card
+  /// can be shown going to its slot before [placeDrawnCard] places it.
+  ///
+  /// Placing the card ends the turn, unless it completes the player's meal,
+  /// so the current player's plate is usually no longer shown once it has
+  /// been placed.
+  ///
+  /// A `DrawnCard` must be shown to finish placing the card, by calling
+  /// [placeDrawnCard] once it's in its slot.
+  ///
+  /// Throws a [StateError] without notifying the listeners if the drawn
+  /// card can't be placed, or if the notifier has been disposed.
+  void startPlacingDrawnCard() {
+    _requireNotDisposed();
+
+    if (!_controller.canPlaceDrawnCard) {
+      throw StateError('The drawn card cannot be placed');
+    }
+
+    _isPlacingDrawnCard = true;
+    notifyListeners();
+  }
 
   /// Places the drawn card on the current player's plate, as
   /// [engine.GameController.placeDrawnCard] does.
@@ -53,11 +86,17 @@ class GameNotifier extends ChangeNotifier {
   /// Throws a [StateError] without making the move if the notifier has been
   /// disposed, so a move can't be made and then fail to notify.
   void _play(VoidCallback move) {
+    _requireNotDisposed();
+
+    move();
+    _isPlacingDrawnCard = false;
+    notifyListeners();
+  }
+
+  /// Throws a [StateError] if the notifier has been disposed.
+  void _requireNotDisposed() {
     if (_isDisposed) {
       throw StateError('Cannot make a move once the GameNotifier is disposed');
     }
-
-    move();
-    notifyListeners();
   }
 }

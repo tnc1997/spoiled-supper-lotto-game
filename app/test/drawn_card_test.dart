@@ -6,6 +6,7 @@ import 'package:spoiled_supper_lotto_game/card_back.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
+import 'package:spoiled_supper_lotto_game/placing_card.dart';
 import 'package:spoiled_supper_lotto_game/spoiled_reveal.dart';
 
 void main() {
@@ -212,6 +213,8 @@ void main() {
           await tester.pump();
           await tester.pump(DrawnCard.holdDuration);
           await tester.pump(const Duration(milliseconds: 1));
+          await tester.pump(DrawnCard.placeDuration);
+          await tester.pump(const Duration(milliseconds: 1));
 
           expect(notifier.game.drawnCard, isNull);
         },
@@ -254,6 +257,11 @@ void main() {
           expect(notifier.game.drawnCard, sausages);
 
           await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.isPlacingDrawnCard, isTrue);
+
+          await tester.pump(DrawnCard.placeDuration);
+          await tester.pump(const Duration(milliseconds: 1));
 
           expect(notifier.game.drawnCard, isNull);
           expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
@@ -379,6 +387,88 @@ void main() {
           await tester.pump();
 
           expect(find.byType(SpoiledReveal), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'takes a card chosen to be placed to its slot, then places it',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+          notifier.startPlacingDrawnCard();
+          await tester.pump();
+
+          final placingCard = tester.widget<PlacingCard>(
+            find.byType(PlacingCard),
+          );
+          expect(placingCard.category, engine.Category.main);
+          expect(placingCard.duration, DrawnCard.placeDuration);
+
+          await tester.pump(
+            DrawnCard.placeDuration - const Duration(milliseconds: 1),
+          );
+
+          expect(notifier.game.drawnCard, sausages);
+
+          await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.game.drawnCard, isNull);
+          expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
+        },
+      );
+
+      testWidgets(
+        'does not announce a card again as it starts going to its slot',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+          notifier.startPlacingDrawnCard();
+          await tester.pump();
+
+          expect(
+            tester.getSemantics(
+              find.bySemanticsLabel('Drawn card, Sausages, Main'),
+            ),
+            isSemantics(isLiveRegion: false),
+          );
+        },
+      );
+
+      testWidgets(
+        'takes the callout on a revealed spoiled card with it to its slot',
+        (tester) async {
+          final notifier = notifierWith(drawn: fishBone);
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration + DrawnCard.holdDuration);
+          await tester.pump(const Duration(milliseconds: 1));
+
+          expect(notifier.isPlacingDrawnCard, isTrue);
+          expect(
+            find.descendant(
+              of: find.byType(PlacingCard),
+              matching: find.text('Spoiled!'),
+            ),
+            findsOneWidget,
+          );
+          expect(
+            tester.widget<SpoiledReveal>(find.byType(SpoiledReveal)).duration,
+            Duration.zero,
+          );
         },
       );
 

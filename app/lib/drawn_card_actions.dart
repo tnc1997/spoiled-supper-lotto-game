@@ -7,7 +7,8 @@ import 'game_scope.dart';
 /// slot on their plate, or to discard it.
 ///
 /// The player only has a choice for a standard card whose slot is already
-/// filled. The rest of the time, the actions keep their space, hidden and
+/// filled, until they choose to place it, which starts it on its way to
+/// their plate. The rest of the time, the actions keep their space, hidden and
 /// disabled, so that nothing around them moves when they show.
 class DrawnCardActions extends StatelessWidget {
   /// Shows the actions for the drawn card.
@@ -17,7 +18,9 @@ class DrawnCardActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final notifier = GameScope.of(context);
     final game = notifier.game;
-    final hasChoice = game.canPlaceDrawnCard && game.canDiscardDrawnCard;
+    final hasChoice = game.canPlaceDrawnCard &&
+        game.canDiscardDrawnCard &&
+        !notifier.isPlacingDrawnCard;
 
     return Visibility(
       visible: hasChoice,
@@ -31,7 +34,7 @@ class DrawnCardActions extends StatelessWidget {
         children: [
           // Disabled while hidden, so that they can't be focused.
           FilledButton(
-            onPressed: hasChoice ? notifier.placeDrawnCard : null,
+            onPressed: hasChoice ? notifier.startPlacingDrawnCard : null,
             child: const Text('Place'),
           ),
           OutlinedButton(

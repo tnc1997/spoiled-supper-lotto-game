@@ -3,6 +3,7 @@ import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_aspect_ratio.dart';
+import 'package:spoiled_supper_lotto_game/category_label.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/plate.dart';
@@ -178,6 +179,25 @@ void main() {
             moreOrLessEquals(board.bottom - dessert.bottom),
           );
           expect(dessert.top, greaterThan(board.top));
+        },
+      );
+
+      testWidgets(
+        'gives where each slot is on the plate',
+        (tester) async {
+          await pumpPlate(tester, bob);
+
+          final plate = tester.widget<Plate>(find.byType(Plate));
+          final board = tester.getRect(find.byType(Plate));
+
+          for (final category in engine.Category.values) {
+            expect(
+              board.topLeft + plate.slotOffsetOf(category),
+              tester
+                  .getRect(find.bySemanticsLabel('${category.label}, empty'))
+                  .topLeft,
+            );
+          }
         },
       );
 

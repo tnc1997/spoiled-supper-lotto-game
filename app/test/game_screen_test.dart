@@ -297,6 +297,20 @@ void main() {
       );
 
       testWidgets(
+        'places the drawn card on the plate shown',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(
+            tester.widget<DrawnCard>(find.byType(DrawnCard)).plateKey,
+            tester.widget<Plate>(find.byType(Plate)).key,
+          );
+        },
+      );
+
+      testWidgets(
         'disposes of the game when removed',
         (tester) async {
           await tester.pumpWidget(

@@ -95,6 +95,49 @@ void main() {
       );
 
       group(
+        'startPlacingDrawnCard',
+        () {
+          test(
+            'starts placing the drawn card, without placing it, then '
+            'notifies listeners once',
+            () {
+              notifier.drawFromDrawPile();
+              notifications.clear();
+
+              notifier.startPlacingDrawnCard();
+
+              expect(notifier.isPlacingDrawnCard, isTrue);
+              expect(controller.drawnCard, sausages);
+              expect(controller.plateOf(alice)[engine.Category.main], isNull);
+              expect(notifications, ['Alice: Sausages']);
+            },
+          );
+
+          test(
+            'stops placing the drawn card once it has been placed',
+            () {
+              notifier
+                ..drawFromDrawPile()
+                ..startPlacingDrawnCard()
+                ..placeDrawnCard();
+
+              expect(notifier.isPlacingDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'throws without notifying listeners if the drawn card cannot be '
+            'placed',
+            () {
+              expect(notifier.startPlacingDrawnCard, throwsStateError);
+              expect(notifier.isPlacingDrawnCard, isFalse);
+              expect(notifications, isEmpty);
+            },
+          );
+        },
+      );
+
+      group(
         'placeDrawnCard',
         () {
           test(
