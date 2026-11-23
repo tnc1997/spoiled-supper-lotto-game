@@ -6,6 +6,7 @@ import 'card_semantic_label.dart';
 import 'flipping_card.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
+import 'placing_card.dart';
 import 'plate.dart';
 import 'spoiled_reveal.dart';
 
@@ -20,9 +21,9 @@ import 'spoiled_reveal.dart';
 ///
 /// Once the card is chosen to be placed, with
 /// [GameNotifier.startPlacingDrawnCard], it goes to its slot on the plate
-/// with [plateKey], over [placeDuration], and is then placed, so that the
-/// player sees it land on their plate before their turn ends. If
-/// animations are disabled, it's shown in its slot straight away instead.
+/// with [plateKey] as a [PlacingCard], over [placeDuration], and is then
+/// placed, so that the player sees it land on their plate before their
+/// turn ends.
 ///
 /// A Spoiled card drawn from the draw pile is revealed with a
 /// [SpoiledReveal] once it's face up. One from the discard pile isn't,
@@ -73,7 +74,26 @@ class DrawnCard extends StatelessWidget {
     if (card != null && notifier.isPlacingDrawnCard) {
       return SizedBox.fromSize(
         size: size,
-        child: _placing(context, notifier, card, isSpoiledReveal),
+        child: PlacingCard(
+          plateKey: plateKey,
+          category: card.category,
+          duration: placeDuration,
+          onEnd: notifier.placeDrawnCard,
+          // Isn't a live region, so that the card, already announced as it
+          // turned face up, isn't announced again as it starts to move.
+          child: Semantics(
+            container: true,
+            label: 'Drawn card, ${card.semanticLabel}',
+            // Keeps a revealed Spoiled card's callout on the way, without
+            // shaking it again.
+            child: isSpoiledReveal
+                ? SpoiledReveal(
+                    duration: Duration.zero,
+                    child: FlippingCard(card: card, progress: 1),
+                  )
+                : FlippingCard(card: card, progress: 1),
+          ),
+        ),
       );
     }
 
@@ -105,72 +125,6 @@ class DrawnCard extends StatelessWidget {
                     : drawnCard;
               },
             ),
-    );
-  }
-
-  /// Shows [card] going to its slot on the plate, then places it.
-  ///
-  /// A Spoiled card that was revealed with a [SpoiledReveal] keeps its
-  /// callout on the way, without shaking again.
-  Widget _placing(
-    BuildContext context,
-    GameNotifier notifier,
-    engine.Card card,
-    bool isSpoiledReveal,
-  ) {
-    final slotOffset = _slotOffsetOf(context, card);
-    final disableAnimations = MediaQuery.disableAnimationsOf(context);
-
-    final placing = TweenAnimationBuilder<double>(
-      key: ValueKey(('placing', card)),
-      tween: Tween(begin: 0, end: 1),
-      duration: placeDuration,
-      curve: Curves.easeInOut,
-      onEnd: notifier.placeDrawnCard,
-      builder: (context, value, child) {
-        return Transform.translate(
-          // Shows the card in its slot straight away if animations are
-          // disabled, so that the player still sees it on their plate.
-          offset: slotOffset * (disableAnimations ? 1 : value),
-          child: child,
-        );
-      },
-      // Isn't a live region, so that the card, already announced as it
-      // turned face up, isn't announced again as it starts to move.
-      child: Semantics(
-        container: true,
-        label: 'Drawn card, ${card.semanticLabel}',
-        child: FlippingCard(card: card, progress: 1),
-      ),
-    );
-
-    return isSpoiledReveal
-        ? SpoiledReveal(duration: Duration.zero, child: placing)
-        : placing;
-  }
-
-  /// Returns where the top left corner of [card]'s slot on the plate with
-  /// [plateKey] is, from where the drawn card is shown in [context], or
-  /// [Offset.zero] if the plate isn't shown.
-  ///
-  /// The plate and the drawn card don't move as the card is placed, so this
-  /// is read from where they were last laid out.
-  Offset _slotOffsetOf(BuildContext context, engine.Card card) {
-    final plateContext = plateKey?.currentContext;
-    final plate = plateContext?.widget;
-    final plateBox = plateContext?.findRenderObject();
-    final box = context.findRenderObject();
-
-    if (plate is! Plate ||
-        plateBox is! RenderBox ||
-        !plateBox.hasSize ||
-        box is! RenderBox ||
-        !box.hasSize) {
-      return Offset.zero;
-    }
-
-    return box.globalToLocal(
-      plateBox.localToGlobal(plate.slotOffsetOf(card.category)),
     );
   }
 
