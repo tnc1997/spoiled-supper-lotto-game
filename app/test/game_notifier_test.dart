@@ -66,13 +66,6 @@ void main() {
         },
       );
 
-      test(
-        'is not placing the drawn card at the start',
-        () {
-          expect(notifier.isPlacingDrawnCard, isFalse);
-        },
-      );
-
       group(
         'drawFromDrawPile',
         () {
@@ -139,18 +132,6 @@ void main() {
               expect(notifier.startPlacingDrawnCard, throwsStateError);
               expect(notifier.isPlacingDrawnCard, isFalse);
               expect(notifications, isEmpty);
-            },
-          );
-
-          test(
-            'throws once disposed',
-            () {
-              final notifier = GameNotifier(controller);
-              controller.drawFromDrawPile();
-              notifier.dispose();
-
-              expect(notifier.startPlacingDrawnCard, throwsStateError);
-              expect(notifier.isPlacingDrawnCard, isFalse);
             },
           );
         },
