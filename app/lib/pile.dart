@@ -35,8 +35,16 @@ class Pile extends StatelessWidget {
   /// The width of the pile, in logical pixels.
   final double cardWidth;
 
+  /// The key of the area that [card] is shown in, e.g. for a card to be
+  /// moved onto the pile.
+  ///
+  /// It isn't always at the top left corner of the pile, since the pile is
+  /// as wide as the count below it, if that's wider, with [card] centred.
+  final GlobalKey? cardKey;
+
   /// Shows a pile labelled [label], with [count] cards in it and [card] on
-  /// top, [cardWidth] logical pixels wide, that calls [onTap] when tapped.
+  /// top, [cardWidth] logical pixels wide, that calls [onTap] when tapped,
+  /// with its card's area keyed with [cardKey].
   const Pile({
     super.key,
     required this.label,
@@ -44,6 +52,7 @@ class Pile extends StatelessWidget {
     required this.card,
     required this.onTap,
     this.cardWidth = 120,
+    this.cardKey,
   });
 
   @override
@@ -61,6 +70,7 @@ class Pile extends StatelessWidget {
         spacing: 8,
         children: [
           SizedBox(
+            key: cardKey,
             width: cardWidth,
             // Takes its size, in the card's shape, from the pile.
             child: Stack(

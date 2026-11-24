@@ -75,6 +75,40 @@ void main() {
       );
 
       testWidgets(
+        'keys the area its top card is shown in, even when its count is '
+        'wider',
+        (tester) async {
+          final cardKey = GlobalKey();
+          await tester.pumpWidget(
+            MaterialApp(
+              home: MediaQuery(
+                // Makes the count wider than the card.
+                data: const MediaQueryData(textScaler: TextScaler.linear(4)),
+                child: Center(
+                  child: Pile(
+                    label: 'Draw pile',
+                    count: 45,
+                    card: const CardBack(),
+                    onTap: null,
+                    cardKey: cardKey,
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          expect(
+            tester.getSize(find.text('45 cards')).width,
+            greaterThan(tester.getSize(find.byType(CardFrame)).width),
+          );
+          expect(
+            tester.getRect(find.byKey(cardKey)),
+            tester.getRect(find.byType(CardFrame)),
+          );
+        },
+      );
+
+      testWidgets(
         'shows that it is empty without a top card',
         (tester) async {
           await pumpPile(

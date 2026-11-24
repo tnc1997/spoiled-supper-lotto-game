@@ -319,7 +319,7 @@ void main() {
 
           expect(
             tester.widget<DrawnCard>(find.byType(DrawnCard)).discardPileKey,
-            tester.widget<DiscardPile>(find.byType(DiscardPile)).key,
+            tester.widget<DiscardPile>(find.byType(DiscardPile)).cardKey,
           );
         },
       );
