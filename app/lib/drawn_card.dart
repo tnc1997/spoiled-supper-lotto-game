@@ -59,11 +59,12 @@ class DrawnCard extends StatelessWidget {
   /// its slot when it lands.
   final GlobalKey? plateKey;
 
-  /// The key of the discard pile that the card is discarded to, or `null`
-  /// to discard the card where it is.
+  /// The key of the area that the discard pile's top card is shown in,
+  /// which the card goes to when it's discarded, or `null` to discard the
+  /// card where it is.
   ///
-  /// The top card of the pile should be [cardWidth] wide, at its top left
-  /// corner, so that the card covers it when it lands.
+  /// The area should be [cardWidth] wide, so that the card covers the
+  /// pile's top card when it lands.
   final GlobalKey? discardPileKey;
 
   /// Shows the drawn card, [cardWidth] logical pixels wide, placing it on
@@ -90,41 +91,6 @@ class DrawnCard extends StatelessWidget {
 
     final size = Size(cardWidth, cardWidth / cardAspectRatio);
 
-    if (card != null &&
-        (notifier.isPlacingDrawnCard || notifier.isDiscardingDrawnCard)) {
-      final isPlacing = notifier.isPlacingDrawnCard;
-      final plate = plateKey?.currentWidget;
-
-      return SizedBox.fromSize(
-        size: size,
-        child: MovingCard(
-          // Leaves the card where it is if the plate isn't shown.
-          targetKey:
-              isPlacing ? (plate is Plate ? plateKey : null) : discardPileKey,
-          targetOffset: isPlacing && plate is Plate
-              ? plate.slotOffsetOf(card.category)
-              : Offset.zero,
-          duration: isPlacing ? placeDuration : discardDuration,
-          onEnd:
-              isPlacing ? notifier.placeDrawnCard : notifier.discardDrawnCard,
-          // Isn't a live region, so that the card, already announced as it
-          // turned face up, isn't announced again as it starts to move.
-          child: Semantics(
-            container: true,
-            label: 'Drawn card, ${card.semanticLabel}',
-            // Keeps a revealed Spoiled card's callout on the way, without
-            // shaking it again.
-            child: isSpoiledReveal
-                ? SpoiledReveal(
-                    duration: Duration.zero,
-                    child: FlippingCard(card: card, progress: 1),
-                  )
-                : FlippingCard(card: card, progress: 1),
-          ),
-        ),
-      );
-    }
-
     return SizedBox.fromSize(
       size: size,
       child: card == null
@@ -146,6 +112,13 @@ class DrawnCard extends StatelessWidget {
               builder: (context, value, child) {
                 final progress = shouldFlip ? value : 1.0;
 
+                if (notifier.isPlacingDrawnCard ||
+                    notifier.isDiscardingDrawnCard) {
+                  // Keeps turning the card over on the way, if it was
+                  // chosen to be played before it was face up.
+                  return _movingCard(notifier, card, progress, isSpoiledReveal);
+                }
+
                 final drawnCard = _drawnCard(card, progress);
 
                 return isSpoiledReveal && progress == 1
@@ -166,6 +139,44 @@ class DrawnCard extends StatelessWidget {
       liveRegion: true,
       label: progress == 1 ? 'Drawn card, ${card.semanticLabel}' : 'Drawn card',
       child: FlippingCard(card: card, progress: progress),
+    );
+  }
+
+  /// Shows [card], [progress] of the way through turning face up, going to
+  /// its slot on the plate or to the discard pile, as [notifier] is placing
+  /// or discarding it, then places or discards it once it's there.
+  ///
+  /// Keeps a revealed Spoiled card's callout, if [isSpoiledReveal], without
+  /// shaking it again.
+  Widget _movingCard(
+    GameNotifier notifier,
+    engine.Card card,
+    double progress,
+    bool isSpoiledReveal,
+  ) {
+    final isPlacing = notifier.isPlacingDrawnCard;
+    final plate = plateKey?.currentWidget;
+    final flippingCard = FlippingCard(card: card, progress: progress);
+
+    return MovingCard(
+      // Leaves the card where it is if the plate isn't shown.
+      targetKey:
+          isPlacing ? (plate is Plate ? plateKey : null) : discardPileKey,
+      targetOffset: isPlacing && plate is Plate
+          ? plate.slotOffsetOf(card.category)
+          : Offset.zero,
+      duration: isPlacing ? placeDuration : discardDuration,
+      onEnd: isPlacing ? notifier.placeDrawnCard : notifier.discardDrawnCard,
+      // Isn't a live region, so that the card, already announced as it
+      // turned face up, isn't announced again as it starts to move.
+      child: Semantics(
+        container: true,
+        label:
+            progress == 1 ? 'Drawn card, ${card.semanticLabel}' : 'Drawn card',
+        child: isSpoiledReveal && progress == 1
+            ? SpoiledReveal(duration: Duration.zero, child: flippingCard)
+            : flippingCard,
+      ),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:spoiled_supper_lotto_game/card.dart';
 import 'package:spoiled_supper_lotto_game/card_back.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
+import 'package:spoiled_supper_lotto_game/flipping_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
 import 'package:spoiled_supper_lotto_game/moving_card.dart';
@@ -492,6 +493,39 @@ void main() {
 
           expect(notifier.game.drawnCard, isNull);
           expect(notifier.game.discardPile, [sausages]);
+        },
+      );
+
+      testWidgets(
+        'keeps turning a card over on the way if it is chosen to be played '
+        'before it is face up',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          await pumpDrawnCard(tester, notifier);
+
+          notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration ~/ 4);
+          notifier.startDiscardingDrawnCard();
+          await tester.pump();
+
+          double progress() =>
+              tester.widget<FlippingCard>(find.byType(FlippingCard)).progress;
+
+          expect(find.byType(MovingCard), findsOneWidget);
+          expect(progress(), lessThan(1));
+
+          await tester.pump(DrawnCard.flipDuration ~/ 2);
+
+          expect(progress(), lessThan(1));
+
+          await tester.pump(DrawnCard.flipDuration ~/ 2);
+
+          expect(progress(), 1);
+          expect(notifier.game.drawnCard, sausages);
         },
       );
 
