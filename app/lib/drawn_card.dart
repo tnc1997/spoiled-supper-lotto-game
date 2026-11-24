@@ -6,7 +6,7 @@ import 'card_semantic_label.dart';
 import 'flipping_card.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
-import 'placing_card.dart';
+import 'moving_card.dart';
 import 'plate.dart';
 import 'spoiled_reveal.dart';
 
@@ -21,9 +21,11 @@ import 'spoiled_reveal.dart';
 ///
 /// Once the card is chosen to be placed, with
 /// [GameNotifier.startPlacingDrawnCard], it goes to its slot on the plate
-/// with [plateKey] as a [PlacingCard], over [placeDuration], and is then
+/// with [plateKey] as a [MovingCard], over [placeDuration], and is then
 /// placed, so that the player sees it land on their plate before their
-/// turn ends.
+/// turn ends. Likewise, once it's chosen to be discarded, with
+/// [GameNotifier.startDiscardingDrawnCard], it goes to the discard pile
+/// with [discardPileKey], over [discardDuration], and is then discarded.
 ///
 /// A Spoiled card drawn from the draw pile is revealed with a
 /// [SpoiledReveal] once it's face up. One from the discard pile isn't,
@@ -43,6 +45,10 @@ class DrawnCard extends StatelessWidget {
   /// chosen to be placed.
   static const placeDuration = Duration(milliseconds: 400);
 
+  /// How long the card takes to go to the discard pile, once it's chosen to
+  /// be discarded.
+  static const discardDuration = Duration(milliseconds: 400);
+
   /// The width of the card, in logical pixels.
   final double cardWidth;
 
@@ -53,9 +59,22 @@ class DrawnCard extends StatelessWidget {
   /// its slot when it lands.
   final GlobalKey? plateKey;
 
+  /// The key of the discard pile that the card is discarded to, or `null`
+  /// to discard the card where it is.
+  ///
+  /// The top card of the pile should be [cardWidth] wide, at its top left
+  /// corner, so that the card covers it when it lands.
+  final GlobalKey? discardPileKey;
+
   /// Shows the drawn card, [cardWidth] logical pixels wide, placing it on
-  /// the [Plate] with [plateKey].
-  const DrawnCard({super.key, this.cardWidth = 120, this.plateKey});
+  /// the [Plate] with [plateKey], or discarding it to the discard pile with
+  /// [discardPileKey].
+  const DrawnCard({
+    super.key,
+    this.cardWidth = 120,
+    this.plateKey,
+    this.discardPileKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -71,14 +90,23 @@ class DrawnCard extends StatelessWidget {
 
     final size = Size(cardWidth, cardWidth / cardAspectRatio);
 
-    if (card != null && notifier.isPlacingDrawnCard) {
+    if (card != null &&
+        (notifier.isPlacingDrawnCard || notifier.isDiscardingDrawnCard)) {
+      final isPlacing = notifier.isPlacingDrawnCard;
+      final plate = plateKey?.currentWidget;
+
       return SizedBox.fromSize(
         size: size,
-        child: PlacingCard(
-          plateKey: plateKey,
-          category: card.category,
-          duration: placeDuration,
-          onEnd: notifier.placeDrawnCard,
+        child: MovingCard(
+          // Leaves the card where it is if the plate isn't shown.
+          targetKey:
+              isPlacing ? (plate is Plate ? plateKey : null) : discardPileKey,
+          targetOffset: isPlacing && plate is Plate
+              ? plate.slotOffsetOf(card.category)
+              : Offset.zero,
+          duration: isPlacing ? placeDuration : discardDuration,
+          onEnd:
+              isPlacing ? notifier.placeDrawnCard : notifier.discardDrawnCard,
           // Isn't a live region, so that the card, already announced as it
           // turned face up, isn't announced again as it starts to move.
           child: Semantics(
@@ -141,8 +169,8 @@ class DrawnCard extends StatelessWidget {
     );
   }
 
-  /// Starts placing, or discards, the drawn card for the player, if it can
-  /// only be played one way.
+  /// Starts placing, or discarding, the drawn card for the player, if it
+  /// can only be played one way.
   ///
   /// Does nothing once the card has been played, since no card is drawn
   /// again until [DrawnCard] has rebuilt, which ends this card's animation.
@@ -152,7 +180,7 @@ class DrawnCard extends StatelessWidget {
     if (game.canPlaceDrawnCard && !game.canDiscardDrawnCard) {
       notifier.startPlacingDrawnCard();
     } else if (game.canDiscardDrawnCard && !game.canPlaceDrawnCard) {
-      notifier.discardDrawnCard();
+      notifier.startDiscardingDrawnCard();
     }
   }
 }

@@ -6,7 +6,8 @@ import 'package:spoiled_supper_lotto_game/card_back.dart';
 import 'package:spoiled_supper_lotto_game/drawn_card.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
-import 'package:spoiled_supper_lotto_game/placing_card.dart';
+import 'package:spoiled_supper_lotto_game/moving_card.dart';
+import 'package:spoiled_supper_lotto_game/plate.dart';
 import 'package:spoiled_supper_lotto_game/spoiled_reveal.dart';
 
 void main() {
@@ -64,11 +65,15 @@ void main() {
         return notifier;
       }
 
-      /// Shows the drawn card of the game of [notifier].
+      /// Shows the drawn card of the game of [notifier], placing it on
+      /// Alice's plate, shown above it with [plateKey], if given, and
+      /// discarding it to the discard pile with [discardPileKey].
       Future<void> pumpDrawnCard(
         WidgetTester tester,
         GameNotifier notifier, {
         bool disableAnimations = false,
+        GlobalKey? plateKey,
+        GlobalKey? discardPileKey,
       }) {
         return tester.pumpWidget(
           MaterialApp(
@@ -76,7 +81,21 @@ void main() {
               data: MediaQueryData(disableAnimations: disableAnimations),
               child: GameScope(
                 notifier: notifier,
-                child: const Center(child: DrawnCard()),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Fits both on the test's screen.
+                      if (plateKey != null)
+                        Plate(key: plateKey, player: alice, cardWidth: 60),
+                      DrawnCard(
+                        cardWidth: 60,
+                        plateKey: plateKey,
+                        discardPileKey: discardPileKey,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -279,6 +298,12 @@ void main() {
           await pumpDrawnCard(tester, notifier);
 
           notifier.drawFromDrawPile();
+          await tester.pump();
+          await tester.pump(DrawnCard.flipDuration + DrawnCard.holdDuration);
+          await tester.pump(const Duration(milliseconds: 1));
+
+          expect(notifier.isDiscardingDrawnCard, isTrue);
+
           await tester.pumpAndSettle();
 
           expect(notifier.game.drawnCard, isNull);
@@ -397,18 +422,25 @@ void main() {
             drawn: sausages,
             plate: [fishFingers],
           );
-          await pumpDrawnCard(tester, notifier);
+          final plateKey = GlobalKey();
+          await pumpDrawnCard(tester, notifier, plateKey: plateKey);
 
           notifier.drawFromDrawPile();
           await tester.pumpAndSettle();
           notifier.startPlacingDrawnCard();
           await tester.pump();
 
-          final placingCard = tester.widget<PlacingCard>(
-            find.byType(PlacingCard),
+          final movingCard = tester.widget<MovingCard>(
+            find.byType(MovingCard),
           );
-          expect(placingCard.category, engine.Category.main);
-          expect(placingCard.duration, DrawnCard.placeDuration);
+          expect(movingCard.targetKey, plateKey);
+          expect(
+            movingCard.targetOffset,
+            tester
+                .widget<Plate>(find.byType(Plate))
+                .slotOffsetOf(engine.Category.main),
+          );
+          expect(movingCard.duration, DrawnCard.placeDuration);
 
           await tester.pump(
             DrawnCard.placeDuration - const Duration(milliseconds: 1),
@@ -420,6 +452,46 @@ void main() {
 
           expect(notifier.game.drawnCard, isNull);
           expect(notifier.game.plateOf(alice)[engine.Category.main], sausages);
+        },
+      );
+
+      testWidgets(
+        'takes a card chosen to be discarded to the discard pile, then '
+        'discards it',
+        (tester) async {
+          final notifier = notifierWith(
+            drawn: sausages,
+            plate: [fishFingers],
+          );
+          final discardPileKey = GlobalKey();
+          await pumpDrawnCard(
+            tester,
+            notifier,
+            discardPileKey: discardPileKey,
+          );
+
+          notifier.drawFromDrawPile();
+          await tester.pumpAndSettle();
+          notifier.startDiscardingDrawnCard();
+          await tester.pump();
+
+          final movingCard = tester.widget<MovingCard>(
+            find.byType(MovingCard),
+          );
+          expect(movingCard.targetKey, discardPileKey);
+          expect(movingCard.targetOffset, Offset.zero);
+          expect(movingCard.duration, DrawnCard.discardDuration);
+
+          await tester.pump(
+            DrawnCard.discardDuration - const Duration(milliseconds: 1),
+          );
+
+          expect(notifier.game.drawnCard, sausages);
+
+          await tester.pump(const Duration(milliseconds: 2));
+
+          expect(notifier.game.drawnCard, isNull);
+          expect(notifier.game.discardPile, [sausages]);
         },
       );
 
@@ -460,7 +532,7 @@ void main() {
           expect(notifier.isPlacingDrawnCard, isTrue);
           expect(
             find.descendant(
-              of: find.byType(PlacingCard),
+              of: find.byType(MovingCard),
               matching: find.text('Spoiled!'),
             ),
             findsOneWidget,

@@ -17,6 +17,8 @@ class GameNotifier extends ChangeNotifier {
 
   bool _isPlacingDrawnCard = false;
 
+  bool _isDiscardingDrawnCard = false;
+
   /// Wraps [controller], which should then only be changed through this
   /// notifier.
   GameNotifier(engine.GameController controller) : _controller = controller;
@@ -35,6 +37,13 @@ class GameNotifier extends ChangeNotifier {
   ///
   /// It goes back to `false` once the next move is made.
   bool get isPlacingDrawnCard => _isPlacingDrawnCard;
+
+  /// Whether the drawn card is on its way to the discard pile, having been
+  /// chosen to be discarded with [startDiscardingDrawnCard], but isn't
+  /// discarded yet.
+  ///
+  /// It goes back to `false` once the next move is made.
+  bool get isDiscardingDrawnCard => _isDiscardingDrawnCard;
 
   /// Draws the top card of the draw pile, as
   /// [engine.GameController.drawFromDrawPile] does.
@@ -72,6 +81,26 @@ class GameNotifier extends ChangeNotifier {
   /// [engine.GameController.placeDrawnCard] does.
   void placeDrawnCard() => _play(_controller.placeDrawnCard);
 
+  /// Starts discarding the drawn card, setting [isDiscardingDrawnCard],
+  /// then notifies the listeners, so that the card can be shown going to
+  /// the discard pile before [discardDrawnCard] discards it.
+  ///
+  /// A `DrawnCard` must be shown to finish discarding the card, by calling
+  /// [discardDrawnCard] once it's on the discard pile.
+  ///
+  /// Throws a [StateError] without notifying the listeners if the drawn
+  /// card can't be discarded, or if the notifier has been disposed.
+  void startDiscardingDrawnCard() {
+    _requireNotDisposed();
+
+    if (!_controller.canDiscardDrawnCard) {
+      throw StateError('The drawn card cannot be discarded');
+    }
+
+    _isDiscardingDrawnCard = true;
+    notifyListeners();
+  }
+
   /// Discards the drawn card, as [engine.GameController.discardDrawnCard] does.
   void discardDrawnCard() => _play(_controller.discardDrawnCard);
 
@@ -90,6 +119,7 @@ class GameNotifier extends ChangeNotifier {
 
     move();
     _isPlacingDrawnCard = false;
+    _isDiscardingDrawnCard = false;
     notifyListeners();
   }
 

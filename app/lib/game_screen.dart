@@ -38,6 +38,9 @@ class _GameScreenState extends State<GameScreen> {
   /// The key of the plate, so that the drawn card can find its slot on it.
   final _plateKey = GlobalKey();
 
+  /// The key of the discard pile, so that the drawn card can find it.
+  final _discardPileKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -98,8 +101,11 @@ class _GameScreenState extends State<GameScreen> {
                             spacing: 24,
                             children: [
                               const DrawPile(),
-                              const DiscardPile(),
-                              DrawnCard(plateKey: _plateKey),
+                              DiscardPile(key: _discardPileKey),
+                              DrawnCard(
+                                plateKey: _plateKey,
+                                discardPileKey: _discardPileKey,
+                              ),
                             ],
                           ),
                         ],

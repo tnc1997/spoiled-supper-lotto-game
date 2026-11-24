@@ -4,12 +4,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:spoiled_supper_lotto_game/card_aspect_ratio.dart';
 import 'package:spoiled_supper_lotto_game/game_notifier.dart';
 import 'package:spoiled_supper_lotto_game/game_scope.dart';
-import 'package:spoiled_supper_lotto_game/placing_card.dart';
+import 'package:spoiled_supper_lotto_game/moving_card.dart';
 import 'package:spoiled_supper_lotto_game/plate.dart';
 
 void main() {
   group(
-    'PlacingCard',
+    'MovingCard',
     () {
       const duration = Duration(milliseconds: 400);
       const cardKey = Key('card');
@@ -34,7 +34,7 @@ void main() {
 
       /// Shows a card going to the main slot on Alice's plate, shown above
       /// it unless [showsPlate] is `false`.
-      Future<void> pumpPlacingCard(
+      Future<void> pumpMovingCard(
         WidgetTester tester, {
         bool showsPlate = true,
         bool disableAnimations = false,
@@ -54,9 +54,10 @@ void main() {
                     // Fits both on the test's screen.
                     if (showsPlate)
                       Plate(key: plateKey, player: alice, cardWidth: 60),
-                    PlacingCard(
-                      plateKey: plateKey,
-                      category: engine.Category.main,
+                    MovingCard(
+                      targetKey: plateKey,
+                      targetOffset: Plate(player: alice, cardWidth: 60)
+                          .slotOffsetOf(engine.Category.main),
                       duration: duration,
                       onEnd: () => ends++,
                       child: const SizedBox(
@@ -79,9 +80,9 @@ void main() {
       }
 
       testWidgets(
-        'takes the card to its slot over the duration, then calls onEnd',
+        'takes the card to its target over the duration, then calls onEnd',
         (tester) async {
-          await pumpPlacingCard(tester);
+          await pumpMovingCard(tester);
 
           final start = tester.getRect(find.byKey(cardKey));
           final slot = mainSlotRect(tester);
@@ -109,10 +110,10 @@ void main() {
       );
 
       testWidgets(
-        'shows the card in its slot straight away, then calls onEnd after '
+        'shows the card at its target straight away, then calls onEnd after '
         'the duration, if animations are disabled',
         (tester) async {
-          await pumpPlacingCard(tester, disableAnimations: true);
+          await pumpMovingCard(tester, disableAnimations: true);
           // Finds the slot once the card has been laid out.
           await tester.pump();
 
@@ -129,10 +130,10 @@ void main() {
       );
 
       testWidgets(
-        'leaves the card where it is, then calls onEnd, if the plate is not '
-        'shown',
+        'leaves the card where it is, then calls onEnd, if the target is '
+        'not shown',
         (tester) async {
-          await pumpPlacingCard(tester, showsPlate: false);
+          await pumpMovingCard(tester, showsPlate: false);
 
           final start = tester.getRect(find.byKey(cardKey));
 

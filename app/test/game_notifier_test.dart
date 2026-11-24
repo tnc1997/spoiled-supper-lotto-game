@@ -138,6 +138,54 @@ void main() {
       );
 
       group(
+        'startDiscardingDrawnCard',
+        () {
+          test(
+            'starts discarding the drawn card, without discarding it, then '
+            'notifies listeners once',
+            () {
+              setUpGame(alicesCards: [pie]);
+              notifier.drawFromDrawPile();
+              notifications.clear();
+
+              notifier.startDiscardingDrawnCard();
+
+              expect(notifier.isDiscardingDrawnCard, isTrue);
+              expect(controller.drawnCard, sausages);
+              expect(controller.discardPile, [fishFingers]);
+              expect(notifications, ['Alice: Sausages']);
+            },
+          );
+
+          test(
+            'stops discarding the drawn card once it has been discarded',
+            () {
+              setUpGame(alicesCards: [pie]);
+              notifier
+                ..drawFromDrawPile()
+                ..startDiscardingDrawnCard()
+                ..discardDrawnCard();
+
+              expect(notifier.isDiscardingDrawnCard, isFalse);
+            },
+          );
+
+          test(
+            'throws without notifying listeners if the drawn card cannot be '
+            'discarded',
+            () {
+              notifier.drawFromDrawPile();
+              notifications.clear();
+
+              expect(notifier.startDiscardingDrawnCard, throwsStateError);
+              expect(notifier.isDiscardingDrawnCard, isFalse);
+              expect(notifications, isEmpty);
+            },
+          );
+        },
+      );
+
+      group(
         'placeDrawnCard',
         () {
           test(
