@@ -14,8 +14,13 @@ class DiscardPile extends StatelessWidget {
   /// The width of the pile, in logical pixels.
   final double cardWidth;
 
-  /// Shows the discard pile, [cardWidth] logical pixels wide.
-  const DiscardPile({super.key, this.cardWidth = 120});
+  /// The key of the area that the pile's top card is shown in, e.g. for a
+  /// card to be discarded onto it.
+  final GlobalKey? cardKey;
+
+  /// Shows the discard pile, [cardWidth] logical pixels wide, with its top
+  /// card's area keyed with [cardKey].
+  const DiscardPile({super.key, this.cardWidth = 120, this.cardKey});
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +42,7 @@ class DiscardPile extends StatelessWidget {
             ),
       onTap: game.canDrawFromDiscardPile ? notifier.drawFromDiscardPile : null,
       cardWidth: cardWidth,
+      cardKey: cardKey,
     );
   }
 }

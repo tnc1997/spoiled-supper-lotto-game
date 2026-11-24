@@ -111,7 +111,7 @@ void main() {
           await tester.tap(find.text('Place').hitTestable());
           await tester.pump();
 
-          expect(notifier.isPlacingDrawnCard, isTrue);
+          expect(notifier.drawnCardPlay, DrawnCardPlay.place);
           expect(notifier.game.drawnCard, sausages);
           expect(find.text('Place').hitTestable(), findsNothing);
           expect(find.text('Discard').hitTestable(), findsNothing);
@@ -119,7 +119,7 @@ void main() {
       );
 
       testWidgets(
-        'discards the card when Discard is tapped',
+        'starts discarding the card, and hides, when Discard is tapped',
         (tester) async {
           final notifier = notifierWith(
             drawn: sausages,
@@ -132,11 +132,9 @@ void main() {
           await tester.tap(find.text('Discard').hitTestable());
           await tester.pump();
 
-          expect(
-            notifier.game.plateOf(alice)[engine.Category.main],
-            fishFingers,
-          );
-          expect(notifier.game.discardPile, [sausages]);
+          expect(notifier.drawnCardPlay, DrawnCardPlay.discard);
+          expect(notifier.game.drawnCard, sausages);
+          expect(find.text('Place').hitTestable(), findsNothing);
           expect(find.text('Discard').hitTestable(), findsNothing);
         },
       );

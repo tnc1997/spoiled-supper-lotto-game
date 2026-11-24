@@ -95,7 +95,7 @@ void main() {
       );
 
       group(
-        'startPlacingDrawnCard',
+        'startPlayingDrawnCard',
         () {
           test(
             'starts placing the drawn card, without placing it, then '
@@ -104,9 +104,9 @@ void main() {
               notifier.drawFromDrawPile();
               notifications.clear();
 
-              notifier.startPlacingDrawnCard();
+              notifier.startPlayingDrawnCard(DrawnCardPlay.place);
 
-              expect(notifier.isPlacingDrawnCard, isTrue);
+              expect(notifier.drawnCardPlay, DrawnCardPlay.place);
               expect(controller.drawnCard, sausages);
               expect(controller.plateOf(alice)[engine.Category.main], isNull);
               expect(notifications, ['Alice: Sausages']);
@@ -114,14 +114,47 @@ void main() {
           );
 
           test(
-            'stops placing the drawn card once it has been placed',
+            'starts discarding the drawn card, without discarding it, then '
+            'notifies listeners once',
+            () {
+              setUpGame(alicesCards: [pie]);
+              notifier.drawFromDrawPile();
+              notifications.clear();
+
+              notifier.startPlayingDrawnCard(DrawnCardPlay.discard);
+
+              expect(notifier.drawnCardPlay, DrawnCardPlay.discard);
+              expect(controller.drawnCard, sausages);
+              expect(controller.discardPile, [fishFingers]);
+              expect(notifications, ['Alice: Sausages']);
+            },
+          );
+
+          test(
+            'does nothing once the drawn card is being played',
+            () {
+              setUpGame(alicesCards: [pie]);
+              notifier
+                ..drawFromDrawPile()
+                ..startPlayingDrawnCard(DrawnCardPlay.place);
+              notifications.clear();
+
+              notifier.startPlayingDrawnCard(DrawnCardPlay.discard);
+
+              expect(notifier.drawnCardPlay, DrawnCardPlay.place);
+              expect(notifications, isEmpty);
+            },
+          );
+
+          test(
+            'stops playing the drawn card once it has been played',
             () {
               notifier
                 ..drawFromDrawPile()
-                ..startPlacingDrawnCard()
+                ..startPlayingDrawnCard(DrawnCardPlay.place)
                 ..placeDrawnCard();
 
-              expect(notifier.isPlacingDrawnCard, isFalse);
+              expect(notifier.drawnCardPlay, isNull);
             },
           );
 
@@ -129,8 +162,27 @@ void main() {
             'throws without notifying listeners if the drawn card cannot be '
             'placed',
             () {
-              expect(notifier.startPlacingDrawnCard, throwsStateError);
-              expect(notifier.isPlacingDrawnCard, isFalse);
+              expect(
+                () => notifier.startPlayingDrawnCard(DrawnCardPlay.place),
+                throwsStateError,
+              );
+              expect(notifier.drawnCardPlay, isNull);
+              expect(notifications, isEmpty);
+            },
+          );
+
+          test(
+            'throws without notifying listeners if the drawn card cannot be '
+            'discarded',
+            () {
+              notifier.drawFromDrawPile();
+              notifications.clear();
+
+              expect(
+                () => notifier.startPlayingDrawnCard(DrawnCardPlay.discard),
+                throwsStateError,
+              );
+              expect(notifier.drawnCardPlay, isNull);
               expect(notifications, isEmpty);
             },
           );

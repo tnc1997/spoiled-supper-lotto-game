@@ -311,6 +311,20 @@ void main() {
       );
 
       testWidgets(
+        'discards the drawn card to the discard pile shown',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(
+            tester.widget<DrawnCard>(find.byType(DrawnCard)).discardPileKey,
+            tester.widget<DiscardPile>(find.byType(DiscardPile)).cardKey,
+          );
+        },
+      );
+
+      testWidgets(
         'disposes of the game when removed',
         (tester) async {
           await tester.pumpWidget(
