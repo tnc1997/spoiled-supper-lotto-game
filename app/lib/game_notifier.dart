@@ -64,10 +64,18 @@ class GameNotifier extends ChangeNotifier {
   /// A `DrawnCard` must be shown to finish placing the card, by calling
   /// [placeDrawnCard] once it's in its slot.
   ///
+  /// Does nothing if the drawn card is already being placed or discarded.
+  ///
   /// Throws a [StateError] without notifying the listeners if the drawn
   /// card can't be placed, or if the notifier has been disposed.
   void startPlacingDrawnCard() {
     _requireNotDisposed();
+
+    // Ignores a second choice made before the actions hide, e.g. Place and
+    // Discard tapped in the same frame.
+    if (_isPlacingDrawnCard || _isDiscardingDrawnCard) {
+      return;
+    }
 
     if (!_controller.canPlaceDrawnCard) {
       throw StateError('The drawn card cannot be placed');
@@ -88,10 +96,18 @@ class GameNotifier extends ChangeNotifier {
   /// A `DrawnCard` must be shown to finish discarding the card, by calling
   /// [discardDrawnCard] once it's on the discard pile.
   ///
+  /// Does nothing if the drawn card is already being placed or discarded.
+  ///
   /// Throws a [StateError] without notifying the listeners if the drawn
   /// card can't be discarded, or if the notifier has been disposed.
   void startDiscardingDrawnCard() {
     _requireNotDisposed();
+
+    // Ignores a second choice made before the actions hide, e.g. Place and
+    // Discard tapped in the same frame.
+    if (_isPlacingDrawnCard || _isDiscardingDrawnCard) {
+      return;
+    }
 
     if (!_controller.canDiscardDrawnCard) {
       throw StateError('The drawn card cannot be discarded');

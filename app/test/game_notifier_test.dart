@@ -114,6 +114,23 @@ void main() {
           );
 
           test(
+            'does nothing once the drawn card is being discarded',
+            () {
+              setUpGame(alicesCards: [pie]);
+              notifier
+                ..drawFromDrawPile()
+                ..startDiscardingDrawnCard();
+              notifications.clear();
+
+              notifier.startPlacingDrawnCard();
+
+              expect(notifier.isPlacingDrawnCard, isFalse);
+              expect(notifier.isDiscardingDrawnCard, isTrue);
+              expect(notifications, isEmpty);
+            },
+          );
+
+          test(
             'stops placing the drawn card once it has been placed',
             () {
               notifier
@@ -154,6 +171,23 @@ void main() {
               expect(controller.drawnCard, sausages);
               expect(controller.discardPile, [fishFingers]);
               expect(notifications, ['Alice: Sausages']);
+            },
+          );
+
+          test(
+            'does nothing once the drawn card is being placed',
+            () {
+              setUpGame(alicesCards: [pie]);
+              notifier
+                ..drawFromDrawPile()
+                ..startPlacingDrawnCard();
+              notifications.clear();
+
+              notifier.startDiscardingDrawnCard();
+
+              expect(notifier.isDiscardingDrawnCard, isFalse);
+              expect(notifier.isPlacingDrawnCard, isTrue);
+              expect(notifications, isEmpty);
             },
           );
 
