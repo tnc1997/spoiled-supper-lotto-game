@@ -233,7 +233,7 @@ void main() {
           await tester.pump();
           await tester.pump(DrawnCard.holdDuration);
           await tester.pump(const Duration(milliseconds: 1));
-          await tester.pump(DrawnCard.placeDuration);
+          await tester.pump(DrawnCard.moveDuration);
           await tester.pump(const Duration(milliseconds: 1));
 
           expect(notifier.game.drawnCard, isNull);
@@ -278,9 +278,9 @@ void main() {
 
           await tester.pump(const Duration(milliseconds: 2));
 
-          expect(notifier.isPlacingDrawnCard, isTrue);
+          expect(notifier.drawnCardPlay, DrawnCardPlay.place);
 
-          await tester.pump(DrawnCard.placeDuration);
+          await tester.pump(DrawnCard.moveDuration);
           await tester.pump(const Duration(milliseconds: 1));
 
           expect(notifier.game.drawnCard, isNull);
@@ -303,7 +303,7 @@ void main() {
           await tester.pump(DrawnCard.flipDuration + DrawnCard.holdDuration);
           await tester.pump(const Duration(milliseconds: 1));
 
-          expect(notifier.isDiscardingDrawnCard, isTrue);
+          expect(notifier.drawnCardPlay, DrawnCardPlay.discard);
 
           await tester.pumpAndSettle();
 
@@ -428,7 +428,7 @@ void main() {
 
           notifier.drawFromDrawPile();
           await tester.pumpAndSettle();
-          notifier.startPlacingDrawnCard();
+          notifier.startPlayingDrawnCard(DrawnCardPlay.place);
           await tester.pump();
 
           final movingCard = tester.widget<MovingCard>(
@@ -441,10 +441,10 @@ void main() {
                 .widget<Plate>(find.byType(Plate))
                 .slotOffsetOf(engine.Category.main),
           );
-          expect(movingCard.duration, DrawnCard.placeDuration);
+          expect(movingCard.duration, DrawnCard.moveDuration);
 
           await tester.pump(
-            DrawnCard.placeDuration - const Duration(milliseconds: 1),
+            DrawnCard.moveDuration - const Duration(milliseconds: 1),
           );
 
           expect(notifier.game.drawnCard, sausages);
@@ -473,7 +473,7 @@ void main() {
 
           notifier.drawFromDrawPile();
           await tester.pumpAndSettle();
-          notifier.startDiscardingDrawnCard();
+          notifier.startPlayingDrawnCard(DrawnCardPlay.discard);
           await tester.pump();
 
           final movingCard = tester.widget<MovingCard>(
@@ -481,10 +481,10 @@ void main() {
           );
           expect(movingCard.targetKey, discardPileKey);
           expect(movingCard.targetOffset, Offset.zero);
-          expect(movingCard.duration, DrawnCard.discardDuration);
+          expect(movingCard.duration, DrawnCard.moveDuration);
 
           await tester.pump(
-            DrawnCard.discardDuration - const Duration(milliseconds: 1),
+            DrawnCard.moveDuration - const Duration(milliseconds: 1),
           );
 
           expect(notifier.game.drawnCard, sausages);
@@ -509,7 +509,7 @@ void main() {
           notifier.drawFromDrawPile();
           await tester.pump();
           await tester.pump(DrawnCard.flipDuration ~/ 4);
-          notifier.startDiscardingDrawnCard();
+          notifier.startPlayingDrawnCard(DrawnCardPlay.discard);
           await tester.pump();
 
           double progress() =>
@@ -540,7 +540,7 @@ void main() {
 
           notifier.drawFromDrawPile();
           await tester.pumpAndSettle();
-          notifier.startPlacingDrawnCard();
+          notifier.startPlayingDrawnCard(DrawnCardPlay.place);
           await tester.pump();
 
           expect(
@@ -563,7 +563,7 @@ void main() {
           await tester.pump(DrawnCard.flipDuration + DrawnCard.holdDuration);
           await tester.pump(const Duration(milliseconds: 1));
 
-          expect(notifier.isPlacingDrawnCard, isTrue);
+          expect(notifier.drawnCardPlay, DrawnCardPlay.place);
           expect(
             find.descendant(
               of: find.byType(MovingCard),

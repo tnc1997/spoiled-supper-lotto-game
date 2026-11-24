@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'game_notifier.dart';
 import 'game_scope.dart';
 
 /// Offers the current player, from the closest [GameScope], a choice of how
@@ -21,8 +22,7 @@ class DrawnCardActions extends StatelessWidget {
     final game = notifier.game;
     final hasChoice = game.canPlaceDrawnCard &&
         game.canDiscardDrawnCard &&
-        !notifier.isPlacingDrawnCard &&
-        !notifier.isDiscardingDrawnCard;
+        notifier.drawnCardPlay == null;
 
     return Visibility(
       visible: hasChoice,
@@ -36,11 +36,15 @@ class DrawnCardActions extends StatelessWidget {
         children: [
           // Disabled while hidden, so that they can't be focused.
           FilledButton(
-            onPressed: hasChoice ? notifier.startPlacingDrawnCard : null,
+            onPressed: hasChoice
+                ? () => notifier.startPlayingDrawnCard(DrawnCardPlay.place)
+                : null,
             child: const Text('Place'),
           ),
           OutlinedButton(
-            onPressed: hasChoice ? notifier.startDiscardingDrawnCard : null,
+            onPressed: hasChoice
+                ? () => notifier.startPlayingDrawnCard(DrawnCardPlay.discard)
+                : null,
             child: const Text('Discard'),
           ),
         ],

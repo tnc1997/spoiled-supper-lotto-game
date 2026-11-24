@@ -111,7 +111,7 @@ void main() {
           await tester.tap(find.text('Place').hitTestable());
           await tester.pump();
 
-          expect(notifier.isPlacingDrawnCard, isTrue);
+          expect(notifier.drawnCardPlay, DrawnCardPlay.place);
           expect(notifier.game.drawnCard, sausages);
           expect(find.text('Place').hitTestable(), findsNothing);
           expect(find.text('Discard').hitTestable(), findsNothing);
@@ -132,7 +132,7 @@ void main() {
           await tester.tap(find.text('Discard').hitTestable());
           await tester.pump();
 
-          expect(notifier.isDiscardingDrawnCard, isTrue);
+          expect(notifier.drawnCardPlay, DrawnCardPlay.discard);
           expect(notifier.game.drawnCard, sausages);
           expect(find.text('Place').hitTestable(), findsNothing);
           expect(find.text('Discard').hitTestable(), findsNothing);

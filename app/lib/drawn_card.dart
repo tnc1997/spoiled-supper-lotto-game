@@ -19,13 +19,11 @@ import 'spoiled_reveal.dart';
 /// [holdDuration] before it's placed or discarded for the player. Otherwise
 /// the player chooses with the `DrawnCardActions`.
 ///
-/// Once the card is chosen to be placed, with
-/// [GameNotifier.startPlacingDrawnCard], it goes to its slot on the plate
-/// with [plateKey] as a [MovingCard], over [placeDuration], and is then
-/// placed, so that the player sees it land on their plate before their
-/// turn ends. Likewise, once it's chosen to be discarded, with
-/// [GameNotifier.startDiscardingDrawnCard], it goes to the discard pile
-/// with [discardPileKey], over [discardDuration], and is then discarded.
+/// Once the card is chosen to be played, with
+/// [GameNotifier.startPlayingDrawnCard], it goes as a [MovingCard], over
+/// [moveDuration], to its slot on the plate with [plateKey] or to the
+/// discard pile with [discardPileKey], and is then placed or discarded, so
+/// that the player sees where it went before their turn ends.
 ///
 /// A Spoiled card drawn from the draw pile is revealed with a
 /// [SpoiledReveal] once it's face up. One from the discard pile isn't,
@@ -41,13 +39,9 @@ class DrawnCard extends StatelessWidget {
   /// when they have no choice.
   static const holdDuration = Duration(milliseconds: 600);
 
-  /// How long the card takes to go to its slot on the plate, once it's
-  /// chosen to be placed.
-  static const placeDuration = Duration(milliseconds: 400);
-
-  /// How long the card takes to go to the discard pile, once it's chosen to
-  /// be discarded.
-  static const discardDuration = Duration(milliseconds: 400);
+  /// How long the card takes to go to its slot on the plate or to the
+  /// discard pile, once it's chosen to be played.
+  static const moveDuration = Duration(milliseconds: 400);
 
   /// The width of the card, in logical pixels.
   final double cardWidth;
@@ -111,12 +105,46 @@ class DrawnCard extends StatelessWidget {
               onEnd: () => _playIfNoChoice(notifier),
               builder: (context, value, child) {
                 final progress = shouldFlip ? value : 1.0;
+                final play = notifier.drawnCardPlay;
 
-                if (notifier.isPlacingDrawnCard ||
-                    notifier.isDiscardingDrawnCard) {
-                  // Keeps turning the card over on the way, if it was
-                  // chosen to be played before it was face up.
-                  return _movingCard(notifier, card, progress, isSpoiledReveal);
+                if (play != null) {
+                  final isPlacing = play == DrawnCardPlay.place;
+                  final plate = plateKey?.currentWidget;
+                  final flippingCard =
+                      FlippingCard(card: card, progress: progress);
+
+                  return MovingCard(
+                    // Leaves the card where it is if the plate isn't shown.
+                    targetKey: isPlacing
+                        ? (plate is Plate ? plateKey : null)
+                        : discardPileKey,
+                    targetOffset: isPlacing && plate is Plate
+                        ? plate.slotOffsetOf(card.category)
+                        : Offset.zero,
+                    duration: moveDuration,
+                    onEnd: isPlacing
+                        ? notifier.placeDrawnCard
+                        : notifier.discardDrawnCard,
+                    // Isn't a live region, so that the card, already
+                    // announced as it turned face up, isn't announced again
+                    // as it starts to move.
+                    child: Semantics(
+                      container: true,
+                      label: progress == 1
+                          ? 'Drawn card, ${card.semanticLabel}'
+                          : 'Drawn card',
+                      // Keeps turning the card over on the way, if it was
+                      // chosen to be played before it was face up, and
+                      // keeps a revealed Spoiled card's callout, without
+                      // shaking it again.
+                      child: isSpoiledReveal && progress == 1
+                          ? SpoiledReveal(
+                              duration: Duration.zero,
+                              child: flippingCard,
+                            )
+                          : flippingCard,
+                    ),
+                  );
                 }
 
                 final drawnCard = _drawnCard(card, progress);
@@ -142,44 +170,6 @@ class DrawnCard extends StatelessWidget {
     );
   }
 
-  /// Shows [card], [progress] of the way through turning face up, going to
-  /// its slot on the plate or to the discard pile, as [notifier] is placing
-  /// or discarding it, then places or discards it once it's there.
-  ///
-  /// Keeps a revealed Spoiled card's callout, if [isSpoiledReveal], without
-  /// shaking it again.
-  Widget _movingCard(
-    GameNotifier notifier,
-    engine.Card card,
-    double progress,
-    bool isSpoiledReveal,
-  ) {
-    final isPlacing = notifier.isPlacingDrawnCard;
-    final plate = plateKey?.currentWidget;
-    final flippingCard = FlippingCard(card: card, progress: progress);
-
-    return MovingCard(
-      // Leaves the card where it is if the plate isn't shown.
-      targetKey:
-          isPlacing ? (plate is Plate ? plateKey : null) : discardPileKey,
-      targetOffset: isPlacing && plate is Plate
-          ? plate.slotOffsetOf(card.category)
-          : Offset.zero,
-      duration: isPlacing ? placeDuration : discardDuration,
-      onEnd: isPlacing ? notifier.placeDrawnCard : notifier.discardDrawnCard,
-      // Isn't a live region, so that the card, already announced as it
-      // turned face up, isn't announced again as it starts to move.
-      child: Semantics(
-        container: true,
-        label:
-            progress == 1 ? 'Drawn card, ${card.semanticLabel}' : 'Drawn card',
-        child: isSpoiledReveal && progress == 1
-            ? SpoiledReveal(duration: Duration.zero, child: flippingCard)
-            : flippingCard,
-      ),
-    );
-  }
-
   /// Starts placing, or discarding, the drawn card for the player, if it
   /// can only be played one way.
   ///
@@ -189,9 +179,9 @@ class DrawnCard extends StatelessWidget {
     final game = notifier.game;
 
     if (game.canPlaceDrawnCard && !game.canDiscardDrawnCard) {
-      notifier.startPlacingDrawnCard();
+      notifier.startPlayingDrawnCard(DrawnCardPlay.place);
     } else if (game.canDiscardDrawnCard && !game.canPlaceDrawnCard) {
-      notifier.startDiscardingDrawnCard();
+      notifier.startPlayingDrawnCard(DrawnCardPlay.discard);
     }
   }
 }

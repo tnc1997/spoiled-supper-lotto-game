@@ -1,6 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:game_engine/game_engine.dart' as engine;
 
+/// A way of playing the drawn card, chosen with
+/// [GameNotifier.startPlayingDrawnCard].
+enum DrawnCardPlay {
+  /// Places the card in its slot on the current player's plate, replacing
+  /// the card in it, if any.
+  place,
+
+  /// Discards the card onto the discard pile.
+  discard,
+}
+
 /// Wraps a [engine.GameController] so the UI is told whenever a move is made.
 ///
 /// Read the game through [game], and make moves through this notifier's
@@ -15,9 +26,7 @@ class GameNotifier extends ChangeNotifier {
 
   bool _isDisposed = false;
 
-  bool _isPlacingDrawnCard = false;
-
-  bool _isDiscardingDrawnCard = false;
+  DrawnCardPlay? _drawnCardPlay;
 
   /// Wraps [controller], which should then only be changed through this
   /// notifier.
@@ -31,19 +40,13 @@ class GameNotifier extends ChangeNotifier {
   /// since only moves made through this notifier notify its listeners.
   engine.Game get game => _controller;
 
-  /// Whether the drawn card is on its way to its slot on the current
-  /// player's plate, having been chosen to be placed with
-  /// [startPlacingDrawnCard], but isn't placed yet.
+  /// How the drawn card is being played, having been chosen with
+  /// [startPlayingDrawnCard], while it's on its way to its slot on the
+  /// current player's plate or to the discard pile, or `null` if it isn't
+  /// being played.
   ///
-  /// It goes back to `false` once the next move is made.
-  bool get isPlacingDrawnCard => _isPlacingDrawnCard;
-
-  /// Whether the drawn card is on its way to the discard pile, having been
-  /// chosen to be discarded with [startDiscardingDrawnCard], but isn't
-  /// discarded yet.
-  ///
-  /// It goes back to `false` once the next move is made.
-  bool get isDiscardingDrawnCard => _isDiscardingDrawnCard;
+  /// It goes back to `null` once the next move is made.
+  DrawnCardPlay? get drawnCardPlay => _drawnCardPlay;
 
   /// Draws the top card of the draw pile, as
   /// [engine.GameController.drawFromDrawPile] does.
@@ -53,69 +56,47 @@ class GameNotifier extends ChangeNotifier {
   /// [engine.GameController.drawFromDiscardPile] does.
   void drawFromDiscardPile() => _play(_controller.drawFromDiscardPile);
 
-  /// Starts placing the drawn card on the current player's plate, setting
-  /// [isPlacingDrawnCard], then notifies the listeners, so that the card
-  /// can be shown going to its slot before [placeDrawnCard] places it.
+  /// Starts playing the drawn card as [play], setting [drawnCardPlay], then
+  /// notifies the listeners, so that the card can be shown going to its
+  /// slot on the plate or to the discard pile before [placeDrawnCard] or
+  /// [discardDrawnCard] plays it.
   ///
   /// Placing the card ends the turn, unless it completes the player's meal,
   /// so the current player's plate is usually no longer shown once it has
   /// been placed.
   ///
-  /// A `DrawnCard` must be shown to finish placing the card, by calling
-  /// [placeDrawnCard] once it's in its slot.
+  /// A `DrawnCard` must be shown to finish playing the card, by calling
+  /// [placeDrawnCard] or [discardDrawnCard] once it's there.
   ///
-  /// Does nothing if the drawn card is already being placed or discarded.
+  /// Does nothing if the drawn card is already being played.
   ///
   /// Throws a [StateError] without notifying the listeners if the drawn
-  /// card can't be placed, or if the notifier has been disposed.
-  void startPlacingDrawnCard() {
+  /// card can't be played as [play], or if the notifier has been disposed.
+  void startPlayingDrawnCard(DrawnCardPlay play) {
     _requireNotDisposed();
 
     // Ignores a second choice made before the actions hide, e.g. Place and
     // Discard tapped in the same frame.
-    if (_isPlacingDrawnCard || _isDiscardingDrawnCard) {
+    if (_drawnCardPlay != null) {
       return;
     }
 
-    if (!_controller.canPlaceDrawnCard) {
-      throw StateError('The drawn card cannot be placed');
+    final canPlay = switch (play) {
+      DrawnCardPlay.place => _controller.canPlaceDrawnCard,
+      DrawnCardPlay.discard => _controller.canDiscardDrawnCard,
+    };
+
+    if (!canPlay) {
+      throw StateError('The drawn card cannot be played as ${play.name}');
     }
 
-    _isPlacingDrawnCard = true;
+    _drawnCardPlay = play;
     notifyListeners();
   }
 
   /// Places the drawn card on the current player's plate, as
   /// [engine.GameController.placeDrawnCard] does.
   void placeDrawnCard() => _play(_controller.placeDrawnCard);
-
-  /// Starts discarding the drawn card, setting [isDiscardingDrawnCard],
-  /// then notifies the listeners, so that the card can be shown going to
-  /// the discard pile before [discardDrawnCard] discards it.
-  ///
-  /// A `DrawnCard` must be shown to finish discarding the card, by calling
-  /// [discardDrawnCard] once it's on the discard pile.
-  ///
-  /// Does nothing if the drawn card is already being placed or discarded.
-  ///
-  /// Throws a [StateError] without notifying the listeners if the drawn
-  /// card can't be discarded, or if the notifier has been disposed.
-  void startDiscardingDrawnCard() {
-    _requireNotDisposed();
-
-    // Ignores a second choice made before the actions hide, e.g. Place and
-    // Discard tapped in the same frame.
-    if (_isPlacingDrawnCard || _isDiscardingDrawnCard) {
-      return;
-    }
-
-    if (!_controller.canDiscardDrawnCard) {
-      throw StateError('The drawn card cannot be discarded');
-    }
-
-    _isDiscardingDrawnCard = true;
-    notifyListeners();
-  }
 
   /// Discards the drawn card, as [engine.GameController.discardDrawnCard] does.
   void discardDrawnCard() => _play(_controller.discardDrawnCard);
@@ -134,8 +115,7 @@ class GameNotifier extends ChangeNotifier {
     _requireNotDisposed();
 
     move();
-    _isPlacingDrawnCard = false;
-    _isDiscardingDrawnCard = false;
+    _drawnCardPlay = null;
     notifyListeners();
   }
 
