@@ -107,7 +107,6 @@ class _GameScreenState extends State<GameScreen> {
                         flex: fill ? 1 : 0,
                         fit: FlexFit.tight,
                         child: FittedBox(
-                          fit: fill ? BoxFit.contain : BoxFit.scaleDown,
                           child: Column(
                             spacing: 24,
                             children: [
