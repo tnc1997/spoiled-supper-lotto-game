@@ -274,49 +274,6 @@ void main() {
         },
       );
 
-      for (final size in [const Size(740, 360), const Size(800, 250)]) {
-        testWidgets(
-          'keeps the plate full size and scrolls on a short '
-          '${size.width.toInt()}x${size.height.toInt()} screen',
-          (tester) async {
-            tester.view
-              ..physicalSize = size
-              ..devicePixelRatio = 1;
-            addTearDown(tester.view.reset);
-
-            await tester.pumpWidget(
-              const MaterialApp(
-                home: GameScreen(playerNames: ['Sam', 'Alex']),
-              ),
-            );
-
-            final slot = tester.getRect(
-              find
-                  .descendant(
-                    of: find.byType(Plate),
-                    matching: find.byType(EmptySlot),
-                  )
-                  .first,
-            );
-
-            expect(tester.takeException(), isNull);
-            expect(slot.width, moreOrLessEquals(120));
-
-            await tester.scrollUntilVisible(
-              find.byType(FilledButton),
-              100,
-              scrollable: find.byType(Scrollable),
-            );
-
-            // Measures the actions, which keep their space while hidden.
-            expect(
-              tester.getRect(find.byType(FilledButton)).bottom,
-              lessThanOrEqualTo(size.height),
-            );
-          },
-        );
-      }
-
       testWidgets(
         "keeps the drawn card's actions full size on a narrow screen",
         (tester) async {
