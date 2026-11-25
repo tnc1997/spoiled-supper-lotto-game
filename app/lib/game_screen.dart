@@ -66,29 +66,29 @@ class _GameScreenState extends State<GameScreen> {
       notifier: _notifier,
       child: Scaffold(
         appBar: AppBar(title: const Text('Pass & Play')),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Builder(
-              builder: (context) {
-                final player = GameScope.of(context).game.currentPlayer;
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Builder(
+            builder: (context) {
+              final player = GameScope.of(context).game.currentPlayer;
 
-                return Column(
-                  spacing: 24,
-                  children: [
-                    // Announces each new turn to a screen reader.
-                    Semantics(
-                      liveRegion: true,
-                      child: Heading(
-                        "${player.name}'s turn",
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
+              return Column(
+                spacing: 24,
+                children: [
+                  // Announces each new turn to a screen reader.
+                  Semantics(
+                    liveRegion: true,
+                    child: Heading(
+                      "${player.name}'s turn",
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    // Shrinks the plate and piles together, rather than
-                    // overflowing, on narrow screens, so that the piles'
-                    // cards stay the size of the plate's.
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
+                  ),
+                  // Scales the plate and piles together to fill the space
+                  // left, growing them on large screens and shrinking them,
+                  // rather than overflowing, on small ones, so that the
+                  // piles' cards stay the size of the plate's.
+                  Expanded(
+                    child: FittedBox(
                       child: Column(
                         spacing: 24,
                         children: [
@@ -112,13 +112,13 @@ class _GameScreenState extends State<GameScreen> {
                         ],
                       ),
                     ),
-                    // Keeps the drawn card's actions full size, below the
-                    // table, so that they're easy to tap.
-                    const DrawnCardActions(),
-                  ],
-                );
-              },
-            ),
+                  ),
+                  // Keeps the drawn card's actions full size, below the
+                  // table, so that they're easy to tap.
+                  const DrawnCardActions(),
+                ],
+              );
+            },
           ),
         ),
       ),

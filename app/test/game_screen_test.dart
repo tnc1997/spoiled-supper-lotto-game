@@ -233,6 +233,48 @@ void main() {
       );
 
       testWidgets(
+        'grows the plate and piles together to fill a large screen',
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(1920, 1080)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          final plate = tester.getRect(find.byType(Plate));
+          final pile = tester.getRect(
+            find.descendant(
+              of: find.byType(DrawPile),
+              matching: find.byType(CardFrame),
+            ),
+          );
+          final slot = tester.getRect(
+            find
+                .descendant(
+                  of: find.byType(Plate),
+                  matching: find.byType(EmptySlot),
+                )
+                .first,
+          );
+
+          expect(tester.takeException(), isNull);
+          expect(slot.width, greaterThan(120));
+          expect(pile.width, moreOrLessEquals(slot.width));
+          final heading = tester.getRect(find.text("Sam's turn"));
+          final actions = tester.getRect(find.byType(FilledButton));
+
+          expect(plate.top, greaterThanOrEqualTo(heading.bottom));
+          expect(
+            tester.getRect(find.byType(DrawPile)).bottom,
+            lessThanOrEqualTo(actions.top),
+          );
+        },
+      );
+
+      testWidgets(
         "keeps the drawn card's actions full size on a narrow screen",
         (tester) async {
           tester.view
