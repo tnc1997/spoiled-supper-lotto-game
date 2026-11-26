@@ -37,7 +37,7 @@ class _GameScreenState extends State<GameScreen> {
 
   /// The key of the discard pile's top card, so that the drawn card can
   /// find where to go when it's discarded.
-  final _discardPileCardKey = GlobalKey();
+  final _discardPileKey = GlobalKey();
 
   @override
   void initState() {
@@ -89,7 +89,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Table(
                         player: player,
                         plateKey: _plateKey,
-                        discardPileKey: _discardPileCardKey,
+                        discardPileKey: _discardPileKey,
                       ),
                     ),
                   ),
