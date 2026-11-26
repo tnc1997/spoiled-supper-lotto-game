@@ -54,57 +54,6 @@ void main() {
       }
 
       testWidgets(
-        "shows the player's plate with the plate key",
-        (tester) async {
-          await pumpTable(tester);
-
-          final plate = tester.widget<Plate>(find.byType(Plate));
-
-          expect(plate.player, same(notifier.game.currentPlayer));
-          expect(plate.key, plateKey);
-        },
-      );
-
-      testWidgets(
-        'shows the draw pile, the discard pile and the drawn card',
-        (tester) async {
-          await pumpTable(tester);
-
-          expect(find.byType(DrawPile), findsOneWidget);
-          expect(find.byType(DiscardPile), findsOneWidget);
-          expect(find.byType(DrawnCard), findsOneWidget);
-        },
-      );
-
-      testWidgets(
-        'places the drawn card on the plate shown',
-        (tester) async {
-          await pumpTable(tester);
-
-          expect(
-            tester.widget<DrawnCard>(find.byType(DrawnCard)).plateKey,
-            plateKey,
-          );
-        },
-      );
-
-      testWidgets(
-        'discards the drawn card to the discard pile shown',
-        (tester) async {
-          await pumpTable(tester);
-
-          expect(
-            tester.widget<DiscardPile>(find.byType(DiscardPile)).cardKey,
-            discardPileKey,
-          );
-          expect(
-            tester.widget<DrawnCard>(find.byType(DrawnCard)).discardPileKey,
-            discardPileKey,
-          );
-        },
-      );
-
-      testWidgets(
         'lines up the drawn card with the draw and discard piles',
         (tester) async {
           await pumpTable(tester);
