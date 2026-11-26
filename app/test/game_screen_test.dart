@@ -295,9 +295,37 @@ void main() {
                 .first,
           );
 
+          final discardPile = tester.getRect(
+            find.descendant(
+              of: find.byType(DiscardPile),
+              matching: find.byType(EmptySlot),
+            ),
+          );
+
           expect(tester.takeException(), isNull);
           expect(slot.width, lessThan(120));
           expect(pile.width, moreOrLessEquals(slot.width));
+          expect(discardPile.width, moreOrLessEquals(slot.width));
+        },
+      );
+
+      testWidgets(
+        'gives the drawn card the keys of the plate and discard pile shown',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          final drawnCard = tester.widget<DrawnCard>(find.byType(DrawnCard));
+
+          expect(
+            drawnCard.plateKey,
+            tester.widget<Plate>(find.byType(Plate)).key,
+          );
+          expect(
+            drawnCard.discardPileKey,
+            tester.widget<DiscardPile>(find.byType(DiscardPile)).cardKey,
+          );
         },
       );
 
