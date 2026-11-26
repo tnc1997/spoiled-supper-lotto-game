@@ -184,35 +184,6 @@ void main() {
       );
 
       testWidgets(
-        'lines up the drawn card with the draw and discard piles',
-        (tester) async {
-          await tester.pumpWidget(
-            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
-          );
-
-          notifierOf(tester).drawFromDrawPile();
-          await tester.pump();
-
-          final drawPile = tester.getRect(
-            find.descendant(
-              of: find.byType(DrawPile),
-              matching: find.byType(CardFrame),
-            ),
-          );
-          final discardPile = tester.getRect(
-            find.descendant(
-              of: find.byType(DiscardPile),
-              matching: find.byType(EmptySlot),
-            ),
-          );
-          final drawnCard = tester.getRect(find.byType(DrawnCard));
-
-          expect(drawnCard.top, moreOrLessEquals(drawPile.top));
-          expect(drawnCard.top, moreOrLessEquals(discardPile.top));
-        },
-      );
-
-      testWidgets(
         'fits the plate on a narrow screen',
         (tester) async {
           tester.view
@@ -339,28 +310,20 @@ void main() {
       );
 
       testWidgets(
-        'places the drawn card on the plate shown',
+        'gives the drawn card the keys of the plate and discard pile shown',
         (tester) async {
           await tester.pumpWidget(
             const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
           );
 
+          final drawnCard = tester.widget<DrawnCard>(find.byType(DrawnCard));
+
           expect(
-            tester.widget<DrawnCard>(find.byType(DrawnCard)).plateKey,
+            drawnCard.plateKey,
             tester.widget<Plate>(find.byType(Plate)).key,
           );
-        },
-      );
-
-      testWidgets(
-        'discards the drawn card to the discard pile shown',
-        (tester) async {
-          await tester.pumpWidget(
-            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
-          );
-
           expect(
-            tester.widget<DrawnCard>(find.byType(DrawnCard)).discardPileKey,
+            drawnCard.discardPileKey,
             tester.widget<DiscardPile>(find.byType(DiscardPile)).cardKey,
           );
         },

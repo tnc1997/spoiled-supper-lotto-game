@@ -1,16 +1,13 @@
 import 'dart:math';
 
 import 'package:game_engine/game_engine.dart' as engine;
-import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart' hide Table;
 
-import 'discard_pile.dart';
-import 'draw_pile.dart';
-import 'drawn_card.dart';
 import 'drawn_card_actions.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
 import 'heading.dart';
-import 'plate.dart';
+import 'table.dart';
 
 /// The screen for playing a new Pass & Play game between players with the
 /// names given, which sets up the game and exposes it through a [GameScope]
@@ -40,7 +37,7 @@ class _GameScreenState extends State<GameScreen> {
 
   /// The key of the discard pile's top card, so that the drawn card can
   /// find where to go when it's discarded.
-  final _discardPileCardKey = GlobalKey();
+  final _discardPileKey = GlobalKey();
 
   @override
   void initState() {
@@ -89,27 +86,10 @@ class _GameScreenState extends State<GameScreen> {
                   // piles' cards stay the size of the plate's.
                   Expanded(
                     child: FittedBox(
-                      child: Column(
-                        spacing: 24,
-                        children: [
-                          Plate(key: _plateKey, player: player),
-                          // Lines up the cards' tops, rather than centring
-                          // them, so that the piles' count labels hang below
-                          // and don't push the drawn card down.
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 24,
-                            children: [
-                              const DrawPile(),
-                              DiscardPile(cardKey: _discardPileCardKey),
-                              DrawnCard(
-                                plateKey: _plateKey,
-                                discardPileKey: _discardPileCardKey,
-                              ),
-                            ],
-                          ),
-                        ],
+                      child: Table(
+                        player: player,
+                        plateKey: _plateKey,
+                        discardPileKey: _discardPileKey,
                       ),
                     ),
                   ),
