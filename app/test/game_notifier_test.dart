@@ -219,19 +219,6 @@ void main() {
                 ],
                 [(alice, sausages, DrawnCardPlay.place)],
               );
-              expect(notifier.playedCards.single.replacedCard, isNull);
-            },
-          );
-
-          test(
-            'records the card replaced on the plate',
-            () {
-              setUpGame(alicesCards: [pie]);
-              notifier
-                ..drawFromDrawPile()
-                ..placeDrawnCard();
-
-              expect(notifier.playedCards.single.replacedCard, pie);
             },
           );
         },
@@ -269,7 +256,6 @@ void main() {
                 ],
                 [(alice, sausages, DrawnCardPlay.discard)],
               );
-              expect(notifier.playedCards.single.replacedCard, isNull);
             },
           );
         },

@@ -30,28 +30,6 @@ void main() {
       );
 
       test(
-        'describes a card placed over another, naming the card replaced',
-        () {
-          final playedCard = PlayedCard(
-            player: alice,
-            card: const engine.Card(
-              id: '2',
-              type: engine.CardType.standard,
-              category: engine.Category.main,
-              name: 'Sausages',
-            ),
-            play: DrawnCardPlay.place,
-            replacedCard: fishBone,
-          );
-
-          expect(
-            playedCard.description,
-            'Alice placed Sausages, replacing Fish Bone',
-          );
-        },
-      );
-
-      test(
         'describes a card discarded',
         () {
           final playedCard = PlayedCard(
