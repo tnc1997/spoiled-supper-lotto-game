@@ -204,6 +204,23 @@ void main() {
               expect(notifications, ['Bob: null']);
             },
           );
+
+          test(
+            'adds the card to the cards played',
+            () {
+              notifier
+                ..drawFromDrawPile()
+                ..placeDrawnCard();
+
+              expect(
+                [
+                  for (final playedCard in notifier.playedCards)
+                    (playedCard.player, playedCard.card, playedCard.play),
+                ],
+                [(alice, sausages, DrawnCardPlay.place)],
+              );
+            },
+          );
         },
       );
 
@@ -223,6 +240,24 @@ void main() {
               expect(notifications, ['Bob: null']);
             },
           );
+
+          test(
+            'adds the card to the cards played',
+            () {
+              setUpGame(alicesCards: [pie]);
+              notifier
+                ..drawFromDrawPile()
+                ..discardDrawnCard();
+
+              expect(
+                [
+                  for (final playedCard in notifier.playedCards)
+                    (playedCard.player, playedCard.card, playedCard.play),
+                ],
+                [(alice, sausages, DrawnCardPlay.discard)],
+              );
+            },
+          );
         },
       );
 
@@ -237,10 +272,18 @@ void main() {
           expect(notifier.discardDrawnCard, throwsStateError);
 
           expect(notifications, isEmpty);
+          expect(notifier.playedCards, isEmpty);
           expect(controller.drawnCard, sausages);
           expect(controller.drawPile, [milk]);
           expect(controller.discardPile, [fishFingers]);
           expect(controller.currentPlayerIndex, 0);
+        },
+      );
+
+      test(
+        'starts with no cards played',
+        () {
+          expect(notifier.playedCards, isEmpty);
         },
       );
 

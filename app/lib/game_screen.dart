@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:game_engine/game_engine.dart' as engine;
 import 'package:material_ui/material_ui.dart' hide Table;
 
+import 'action_log.dart';
 import 'drawn_card_actions.dart';
 import 'game_notifier.dart';
 import 'game_scope.dart';
@@ -67,19 +68,28 @@ class _GameScreenState extends State<GameScreen> {
           padding: const EdgeInsets.all(24),
           child: Builder(
             builder: (context) {
-              final player = GameScope.of(context).game.currentPlayer;
+              final notifier = GameScope.of(context);
+              final player = notifier.game.currentPlayer;
+              final lastPlayedCard = notifier.playedCards.lastOrNull;
 
               return Column(
                 spacing: 24,
                 children: [
-                  // Announces each new turn to a screen reader.
+                  // Announces each card played, then whose turn it is, to a
+                  // screen reader, in one live region, since a screen
+                  // reader may only hear the last of two live regions that
+                  // change at once.
                   Semantics(
                     liveRegion: true,
+                    label: lastPlayedCard == null
+                        ? null
+                        : '${lastPlayedCard.description}.',
                     child: Heading(
                       "${player.name}'s turn",
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),
+                  const ActionLog(),
                   // Scales the plate and piles together to fill the space
                   // left, growing them on large screens and shrinking them,
                   // rather than overflowing, on small ones, so that the
