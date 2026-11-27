@@ -311,6 +311,22 @@ void main() {
           expect(controller.drawPile, [milk, sausages]);
         },
       );
+
+      test(
+        'throws before playing the drawn card once disposed',
+        () {
+          setUpGame(alicesCards: [pie]);
+          controller.drawFromDrawPile();
+          final notifier = GameNotifier(controller)..dispose();
+
+          expect(notifier.placeDrawnCard, throwsStateError);
+          expect(notifier.discardDrawnCard, throwsStateError);
+          expect(notifier.playedCards, isEmpty);
+          expect(controller.drawnCard, sausages);
+          expect(controller.plateOf(alice)[engine.Category.main], pie);
+          expect(controller.discardPile, [fishFingers]);
+        },
+      );
     },
   );
 }
