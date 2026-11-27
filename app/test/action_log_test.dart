@@ -55,6 +55,14 @@ void main() {
         return notifier;
       }
 
+      /// Returns the text of each line of the log, newest first.
+      List<String?> linesOf(WidgetTester tester) {
+        return tester
+            .widgetList<Text>(find.byType(Text))
+            .map((text) => text.data)
+            .toList();
+      }
+
       /// Draws and places [count] cards in turn.
       void placeCards(GameNotifier notifier, int count) {
         for (var i = 0; i < count; i++) {
@@ -88,13 +96,8 @@ void main() {
 
           await pumpLog(tester, notifier);
 
-          final lines = tester
-              .widgetList<Text>(find.byType(Text))
-              .map((text) => text.data)
-              .toList();
-
           expect(
-            lines,
+            linesOf(tester),
             ['Bob placed Peas', 'Alice placed Jelly', 'Bob placed Milk'],
           );
         },
@@ -124,6 +127,60 @@ void main() {
           await tester.pump();
 
           expect(tester.getSize(find.byType(ActionLog)).height, empty.height);
+        },
+      );
+
+      testWidgets(
+        'keeps a long card played to one line, announcing it in full',
+        (tester) async {
+          tester.view
+            ..physicalSize = const Size(200, 600)
+            ..devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+          final notifier = GameNotifier(
+            engine.GameController(
+              players: [
+                engine.Player(name: 'Alexandra Montgomery'),
+                engine.Player(name: 'Bob'),
+              ],
+              drawPile: [cards[1], cards[0]],
+            ),
+          );
+          addTearDown(notifier.dispose);
+          await pumpLog(tester, notifier);
+          // Played before Bob's card, so that it isn't the newest, which
+          // is left out of the semantics tree.
+          const line = 'Alexandra Montgomery placed Sausages';
+
+          placeCards(notifier, 2);
+          await tester.pump();
+
+          expect(
+            tester.getSize(find.text(line)).height,
+            tester.getSize(find.text('Bob placed Milk')).height,
+          );
+          expect(
+            tester.getSemantics(find.text(line)),
+            matchesSemantics(label: line),
+          );
+        },
+      );
+
+      testWidgets(
+        'leaves the newest card played out of the semantics tree',
+        (tester) async {
+          final handle = tester.ensureSemantics();
+          final notifier = newNotifier();
+          placeCards(notifier, 2);
+
+          await pumpLog(tester, notifier);
+
+          expect(find.semantics.byLabel('Bob placed Milk'), findsNothing);
+          expect(
+            find.semantics.byLabel('Alice placed Sausages'),
+            findsOneWidget,
+          );
+          handle.dispose();
         },
       );
 

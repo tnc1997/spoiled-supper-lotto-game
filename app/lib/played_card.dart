@@ -14,21 +14,33 @@ class PlayedCard {
   /// How the card was played.
   final DrawnCardPlay play;
 
-  /// Records that [player] played [card] as [play].
+  /// The card that [card] replaced on [player]'s plate, which went onto the
+  /// discard pile, or `null` if it went into an empty slot or was
+  /// discarded.
+  final engine.Card? replacedCard;
+
+  /// Records that [player] played [card] as [play], replacing
+  /// [replacedCard] on their plate, if any.
   const PlayedCard({
     required this.player,
     required this.card,
     required this.play,
+    this.replacedCard,
   });
 
-  /// What happened, e.g. `Alice placed Sausages` or
+  /// What happened, e.g. `Alice placed Sausages`,
+  /// `Alice placed Sausages, replacing Fish Fingers` or
   /// `Alice discarded Fish Bone`.
   String get description {
     final verb = switch (play) {
       DrawnCardPlay.place => 'placed',
       DrawnCardPlay.discard => 'discarded',
     };
+    final replacedCard = this.replacedCard;
 
-    return '${player.name} $verb ${card.name}';
+    return [
+      '${player.name} $verb ${card.name}',
+      if (replacedCard != null) 'replacing ${replacedCard.name}',
+    ].join(', ');
   }
 }

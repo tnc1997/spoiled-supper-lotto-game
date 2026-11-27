@@ -120,6 +120,49 @@ void main() {
       );
 
       testWidgets(
+        'announces the winning card played, then who has won',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: GameScreen(
+                playerNames: const ['Sam', 'Alex'],
+                random: Random(1),
+              ),
+            ),
+          );
+          final notifier = notifierOf(tester);
+          final game = notifier.game;
+
+          // Plays the game out, placing each card that can be placed.
+          while (!game.isGameOver) {
+            if (game.canDrawFromDrawPile) {
+              notifier.drawFromDrawPile();
+            } else {
+              notifier.drawFromDiscardPile();
+            }
+
+            if (game.canPlaceDrawnCard) {
+              notifier.placeDrawnCard();
+            } else {
+              notifier.discardDrawnCard();
+            }
+          }
+          await tester.pump();
+          final winner = game.winner!.name;
+
+          expect(
+            tester.getSemantics(find.text('$winner wins!')),
+            matchesSemantics(
+              label: '${notifier.playedCards.last.description}.\n'
+                  '$winner wins!',
+              isHeader: true,
+              isLiveRegion: true,
+            ),
+          );
+        },
+      );
+
+      testWidgets(
         'shows the action log',
         (tester) async {
           await tester.pumpWidget(

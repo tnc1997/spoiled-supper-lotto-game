@@ -69,23 +69,27 @@ class _GameScreenState extends State<GameScreen> {
           child: Builder(
             builder: (context) {
               final notifier = GameScope.of(context);
-              final player = notifier.game.currentPlayer;
+              final game = notifier.game;
+              final player = game.currentPlayer;
               final lastPlayedCard = notifier.playedCards.lastOrNull;
 
               return Column(
                 spacing: 24,
                 children: [
-                  // Announces each card played, then whose turn it is, to a
-                  // screen reader, in one live region, since a screen
-                  // reader may only hear the last of two live regions that
-                  // change at once.
+                  // Announces each card played, then whose turn it is, or
+                  // who has won, to a screen reader, in one live region,
+                  // since a screen reader may only hear the last of two live
+                  // regions that change at once. The card played is part of
+                  // the heading, for the same reason.
                   Semantics(
                     liveRegion: true,
                     label: lastPlayedCard == null
                         ? null
                         : '${lastPlayedCard.description}.',
                     child: Heading(
-                      "${player.name}'s turn",
+                      game.isGameOver
+                          ? '${player.name} wins!'
+                          : "${player.name}'s turn",
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),

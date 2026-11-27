@@ -136,6 +136,9 @@ class GameNotifier extends ChangeNotifier {
   void _playDrawnCard(DrawnCardPlay play) {
     final player = _controller.currentPlayer;
     final card = _controller.drawnCard;
+    final replacedCard = play == DrawnCardPlay.place && card != null
+        ? _controller.plateOf(player)[card.category]
+        : null;
 
     _play(() {
       switch (play) {
@@ -146,7 +149,14 @@ class GameNotifier extends ChangeNotifier {
       }
 
       // The move has succeeded, so a card was drawn.
-      _playedCards.add(PlayedCard(player: player, card: card!, play: play));
+      _playedCards.add(
+        PlayedCard(
+          player: player,
+          card: card!,
+          play: play,
+          replacedCard: replacedCard,
+        ),
+      );
     });
   }
 
