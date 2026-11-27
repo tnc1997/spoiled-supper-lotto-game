@@ -13,11 +13,8 @@ import 'game_scope.dart';
 /// Each card played is kept to one line, so that a long one doesn't wrap
 /// and move what's around it, but is announced in full.
 ///
-/// It isn't a live region, since a new card played usually passes the turn
-/// too, so whoever shows whose turn it is should announce the newest card
-/// played along with it, in the same announcement, from
-/// [GameNotifier.playedCards]. The newest card is left out of the semantics
-/// tree, so that it isn't read twice in a row.
+/// The newest card is left out of the semantics tree, since whoever shows
+/// whose turn it is should announce it, from [GameNotifier.playedCards].
 class ActionLog extends StatelessWidget {
   /// How many of the most recent cards played are shown.
   static const length = 3;
