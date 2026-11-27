@@ -1,5 +1,9 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 import 'package:game_engine/game_engine.dart' as engine;
+
+import 'played_card.dart';
 
 /// A way of playing the drawn card, chosen with
 /// [GameNotifier.startPlayingDrawnCard].
@@ -28,6 +32,8 @@ class GameNotifier extends ChangeNotifier {
 
   DrawnCardPlay? _drawnCardPlay;
 
+  final _playedCards = <PlayedCard>[];
+
   /// Wraps [controller], which should then only be changed through this
   /// notifier.
   GameNotifier(engine.GameController controller) : _controller = controller;
@@ -47,6 +53,10 @@ class GameNotifier extends ChangeNotifier {
   ///
   /// It goes back to `null` once the next move is made.
   DrawnCardPlay? get drawnCardPlay => _drawnCardPlay;
+
+  /// Each drawn card that has been placed or discarded through this
+  /// notifier, oldest first.
+  List<PlayedCard> get playedCards => UnmodifiableListView(_playedCards);
 
   /// Draws the top card of the draw pile, as
   /// [engine.GameController.drawFromDrawPile] does.
@@ -95,11 +105,13 @@ class GameNotifier extends ChangeNotifier {
   }
 
   /// Places the drawn card on the current player's plate, as
-  /// [engine.GameController.placeDrawnCard] does.
-  void placeDrawnCard() => _play(_controller.placeDrawnCard);
+  /// [engine.GameController.placeDrawnCard] does, adding it to
+  /// [playedCards].
+  void placeDrawnCard() => _playDrawnCard(DrawnCardPlay.place);
 
-  /// Discards the drawn card, as [engine.GameController.discardDrawnCard] does.
-  void discardDrawnCard() => _play(_controller.discardDrawnCard);
+  /// Discards the drawn card, as [engine.GameController.discardDrawnCard]
+  /// does, adding it to [playedCards].
+  void discardDrawnCard() => _playDrawnCard(DrawnCardPlay.discard);
 
   @override
   void dispose() {
@@ -115,6 +127,27 @@ class GameNotifier extends ChangeNotifier {
     _requireNotDisposed();
 
     move();
+    _drawnCardPlay = null;
+    notifyListeners();
+  }
+
+  /// Plays the drawn card as [play] and, once it has succeeded, adds it to
+  /// [playedCards] and notifies the listeners, as [_play] does for a move.
+  void _playDrawnCard(DrawnCardPlay play) {
+    _requireNotDisposed();
+
+    final player = _controller.currentPlayer;
+    final card = _controller.drawnCard;
+
+    switch (play) {
+      case DrawnCardPlay.place:
+        _controller.placeDrawnCard();
+      case DrawnCardPlay.discard:
+        _controller.discardDrawnCard();
+    }
+
+    // The move has succeeded, so a card was drawn.
+    _playedCards.add(PlayedCard(player: player, card: card!, play: play));
     _drawnCardPlay = null;
     notifyListeners();
   }

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:spoiled_supper_lotto_game/action_log.dart';
 import 'package:spoiled_supper_lotto_game/card_frame.dart';
 import 'package:spoiled_supper_lotto_game/discard_pile.dart';
 import 'package:spoiled_supper_lotto_game/draw_pile.dart';
@@ -90,6 +91,85 @@ void main() {
               isLiveRegion: true,
             ),
           );
+        },
+      );
+
+      testWidgets(
+        'announces the card played, then whose turn it is, in one live region',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+          final notifier = notifierOf(tester);
+          final card = notifier.game.drawPile.last;
+
+          notifier
+            ..drawFromDrawPile()
+            ..placeDrawnCard();
+          await tester.pump();
+
+          expect(
+            tester.getSemantics(find.text("Alex's turn")),
+            matchesSemantics(
+              label: "Sam placed ${card.name}.\nAlex's turn",
+              isHeader: true,
+              isLiveRegion: true,
+            ),
+          );
+        },
+      );
+
+      testWidgets(
+        'announces the winning card played, then who has won',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: GameScreen(
+                playerNames: const ['Sam', 'Alex'],
+                random: Random(1),
+              ),
+            ),
+          );
+          final notifier = notifierOf(tester);
+          final game = notifier.game;
+
+          // Plays the game out, placing each card that can be placed.
+          while (!game.isGameOver) {
+            if (game.canDrawFromDrawPile) {
+              notifier.drawFromDrawPile();
+            } else {
+              notifier.drawFromDiscardPile();
+            }
+
+            if (game.canPlaceDrawnCard) {
+              notifier.placeDrawnCard();
+            } else {
+              notifier.discardDrawnCard();
+            }
+          }
+          await tester.pump();
+          final winner = game.winner!.name;
+
+          expect(
+            tester.getSemantics(find.text('$winner wins!')),
+            matchesSemantics(
+              label: '${notifier.playedCards.last.description}.\n'
+                  '$winner wins!',
+              isHeader: true,
+              isLiveRegion: true,
+            ),
+          );
+        },
+      );
+
+      testWidgets(
+        'shows the action log',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(home: GameScreen(playerNames: ['Sam', 'Alex'])),
+          );
+
+          expect(find.byType(ActionLog), findsOneWidget);
         },
       );
 
