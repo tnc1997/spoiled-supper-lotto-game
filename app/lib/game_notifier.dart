@@ -132,32 +132,34 @@ class GameNotifier extends ChangeNotifier {
   }
 
   /// Plays the drawn card as [play] and, once it has succeeded, adds it to
-  /// [playedCards] and notifies the listeners.
+  /// [playedCards] and notifies the listeners, as [_play] does for a move.
   void _playDrawnCard(DrawnCardPlay play) {
+    _requireNotDisposed();
+
     final player = _controller.currentPlayer;
     final card = _controller.drawnCard;
     final replacedCard = play == DrawnCardPlay.place && card != null
         ? _controller.plateOf(player)[card.category]
         : null;
 
-    _play(() {
-      switch (play) {
-        case DrawnCardPlay.place:
-          _controller.placeDrawnCard();
-        case DrawnCardPlay.discard:
-          _controller.discardDrawnCard();
-      }
+    switch (play) {
+      case DrawnCardPlay.place:
+        _controller.placeDrawnCard();
+      case DrawnCardPlay.discard:
+        _controller.discardDrawnCard();
+    }
 
-      // The move has succeeded, so a card was drawn.
-      _playedCards.add(
-        PlayedCard(
-          player: player,
-          card: card!,
-          play: play,
-          replacedCard: replacedCard,
-        ),
-      );
-    });
+    // The move has succeeded, so a card was drawn.
+    _playedCards.add(
+      PlayedCard(
+        player: player,
+        card: card!,
+        play: play,
+        replacedCard: replacedCard,
+      ),
+    );
+    _drawnCardPlay = null;
+    notifyListeners();
   }
 
   /// Throws a [StateError] if the notifier has been disposed.
